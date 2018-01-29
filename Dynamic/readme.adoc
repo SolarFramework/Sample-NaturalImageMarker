@@ -1,0 +1,58 @@
+This program shows how to use SolAR framework and two modules (openCV and Tools) to perform a simple camera pose estimation based on a natural image marker.
+In this exemple, the actual SolAR component implementations are loaded at runtime, and in the code we are using the abstract interface of the components.
+
+To use it, you need to set the following parameters:
+
+. a path to a file describing the natural image marker (.yml)
+. a path to a file defining your camera calibration parameters (.yml)
+. the camera number (if you don't know, try 0) or a path to a video
+. a configuration file to set the registery path in order to load module during runtime (.ini)
+
+Example of use : SolARNaturalImageMarkerStatic.exe grafMarker.yml camera_calibration.yml 0
+
+Examples of yml files are provided.
+The natural image marker file indicates the marker size in defined i nthe same unit as the one used to calibrate your camera (meters, centimeters, etc.), as well as the path to the image defining your maker:
+[source]
+-----
+%YAML:1.0
+---
+MarkerWidth: 0.285
+MarkerHeight: 0.197
+ImagePath: './graf1.png'
+-----
+
+Concerning the camera calibration file, you can use the one provided with this sample. Be aware that the provided camera calibration file is likely to mismatch your hardware, leading to awkward results. In case you want to use a  correct calibration, you can run the provided camera calibration software (see SolAR web page). It will output a calibration file in the correct format that you can use readily.
+
+Notice that your working directory should be correctly set (in QT see Projects/run).
+
+Finally, the config.inin file is used to set where is your file describing all the interfaces of the components embedded in your modules.
+Example of the content of a config.ini file:
+[source]
+-----
+[OpenCV]
+xmlDebugPath=../../../Modules/SolARModuleOpenCV/xpcf_SolARModuleOpenCV_registry_debug.xml
+xmlReleasePath=../../../Modules/SolARModuleOpenCV/xpcf_SolARModuleOpenCV_registry_release.xml
+libDebugPath=F:/Dev/bcomBuild/SolARModuleOpenCV/1.0.0/lib/x86_64/shared/debug/SolARModuleOpenCV.dll
+libReleasePath=F:/Dev/bcomBuild/SolARModuleOpenCV/1.0.0/lib/x86_64/shared/release/SolARModuleOpenCV.dll
+[Tools]
+xmlDebugPath=../../../Modules/SolARModuleTools/xpcf_SolARModuleTools_registry_debug.xml
+xmlReleasePath=../../../Modules/SolARModuleTools/xpcf_SolARModuleTools_registry_release.xml
+libDebugPath=F:/Dev/bcomBuild/SolARModuleTools/1.0.0/lib/x86_64/shared/debug/SolARModuleTools.dll
+libReleasePath=F:/Dev/bcomBuild/SolARModuleTools/1.0.0/lib/x86_64/shared/release/SolARModuleTools.dll
+-----
+NB: libDebugPath and libReleasePath values are optional. They describe full path to your library files. If not provided,
+library filepath described in xmlDebugPath/xmlReleasePath will be used. In this case config file must look like this:
+
+[source]
+----
+[OpenCV]
+xmlDebugPath=../../../Modules/SolARCModuleOpenCV/xpcf_SolARModuleOpenCV_registry_debug.xml
+xmlReleasePath=../../../Modules/SolARCModuleOpenCV/xpcf_SolARModuleOpenCV_registry_release.xml
+libDebugPath=
+libReleasePath=
+[Tools]
+xmlDebugPath=../../../Modules/SolARModuleTools/xpcf_SolARModuleTools_registry_debug.xml
+xmlReleasePath=../../../Modules/SolARModuleTools/xpcf_SolARModuleTools_registry_release.xml
+libDebugPath=
+libReleasePath=
+----
