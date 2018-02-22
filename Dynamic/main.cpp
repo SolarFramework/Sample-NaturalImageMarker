@@ -25,7 +25,6 @@ namespace xpcf  = org::bcom::xpcf;
 #include <thread>         // std::this_thread::sleep_for
 #include <chrono>         // std::chrono::seconds
 
-
 /* print this help message to explain which arguments to pass*/
 /* the content of the message displayed is in the readme.adoc file*/
 int printHelp(){
@@ -105,10 +104,9 @@ int main(int argc, char *argv[])
     SRef<geom::IImage2WorldMapper> img_mapper = toolsModule.createComponent<geom::IImage2WorldMapper>(MODULES::TOOLS::UUID::IMAGE2WORLD_MAPPER);
     SRef<geom::I2DTransform> transform2D = toolsModule.createComponent<geom::I2DTransform>(MODULES::TOOLS::UUID::TRANSFORM2D);
 
- 	std::cout<<"Loading Sift"<<std::endl;
-	std::cout<<MODULES::OPENCV::UUID::DESCRIPTORS_EXTRACTOR_SIFT<<std::endl;
-   	SRef<features::IDescriptorsExtractor> descriptorExtractor = opencvNonFreeModule.createComponent<features::IDescriptorsExtractor>(MODULES::OPENCV::UUID::DESCRIPTORS_EXTRACTOR_SIFT);
-    std::cout<<"Done"<<std::endl;
+	LOG_INFO("Loading a non-free component: SIFT is protected by a patent.");
+  	SRef<features::IDescriptorsExtractor> descriptorExtractor = opencvNonFreeModule.createComponent<features::IDescriptorsExtractor>(MODULES::OPENCV::UUID::DESCRIPTORS_EXTRACTOR_SIFT);
+
 
     /* in dynamic mode, we need to check that components are well created*/
     /* this is needed in dynamic mode */
