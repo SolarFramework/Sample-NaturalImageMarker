@@ -76,7 +76,7 @@ int main(int argc, char *argv[])
     }
 
 
-	MODULES::OPENCV::SolARModuleManagerOpencvNonFree opencvNonFreeModule(argv[4]);
+	MODULES::NONFREEOPENCV::SolARModuleManagerOpencvNonFree opencvNonFreeModule(argv[4]);
     if (!opencvNonFreeModule.isLoaded()) // xpcf library load has failed
     {
         LOG_ERROR("XPCF library load has failed")
@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
     SRef<geom::I2DTransform> transform2D = toolsModule.createComponent<geom::I2DTransform>(MODULES::TOOLS::UUID::TRANSFORM2D);
 
 	LOG_INFO("Loading a non-free component: SIFT is protected by a patent.");
-  	SRef<features::IDescriptorsExtractor> descriptorExtractor = opencvNonFreeModule.createComponent<features::IDescriptorsExtractor>(MODULES::OPENCV::UUID::DESCRIPTORS_EXTRACTOR_SIFT);
+  	SRef<features::IDescriptorsExtractor> descriptorExtractor = opencvNonFreeModule.createComponent<features::IDescriptorsExtractor>(MODULES::NONFREEOPENCV::UUID::DESCRIPTORS_EXTRACTOR_SIFT);
 
 
     /* in dynamic mode, we need to check that components are well created*/
