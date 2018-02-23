@@ -29,6 +29,7 @@ using namespace SolAR::datastructure;
 using namespace SolAR::api;
 using namespace SolAR::api::solver::pose;
 using namespace SolAR::MODULES::OPENCV;
+using namespace SolAR::MODULES::NONFREEOPENCV;
 using namespace SolAR::MODULES::TOOLS;
 
 namespace xpcf  = org::bcom::xpcf;
@@ -74,6 +75,7 @@ int main(int argc, char *argv[])
 
     // declare and instantiate components
     LOG_INFO("Start creating components");
+
 
     /* create components  */
 	SolARCameraOpencv* camera =new SolARCameraOpencv();
