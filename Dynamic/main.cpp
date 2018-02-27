@@ -3,7 +3,7 @@
 using namespace std;
 #include "IComponentManager.h"
 
-
+#include "SolARModuleManagerNonFreeOpencv.h"
 #include "SolARModuleManagerOpencv.h"
 #include "SolARModuleManagerTools.h"
 #include "SolAROpenCVHelper.h"
@@ -24,7 +24,6 @@ namespace xpcf  = org::bcom::xpcf;
 
 #include <thread>         // std::this_thread::sleep_for
 #include <chrono>         // std::chrono::seconds
-
 
 /* print this help message to explain which arguments to pass*/
 /* the content of the message displayed is in the readme.adoc file*/
@@ -76,14 +75,25 @@ int main(int argc, char *argv[])
         return -1;
     }
 
+
+	MODULES::NONFREEOPENCV::SolARModuleManagerOpencvNonFree opencvNonFreeModule(argv[4]);
+    if (!opencvNonFreeModule.isLoaded()) // xpcf library load has failed
+    {
+        LOG_ERROR("XPCF library load has failed")
+        return -1;
+    }
+
+	std::cout<<" opencvNonFreeModule.isLoaded() "<<opencvNonFreeModule.isLoaded()<<std::endl;
+
+
     // declare and create components
     LOG_INFO("Start creating components");
     SRef<input::devices::ICamera> camera = opencvModule.createComponent<input::devices::ICamera>(MODULES::OPENCV::UUID::CAMERA);
     SRef<display::IImageViewer> imageViewer = opencvModule.createComponent<display::IImageViewer>(MODULES::OPENCV::UUID::IMAGE_VIEWER);
     SRef<input::files::IMarker2DNaturalImage> marker = opencvModule.createComponent<input::files::IMarker2DNaturalImage>(MODULES::OPENCV::UUID::MARKER2D_NATURAL_IMAGE);
     SRef<features::IKeypointDetector> kpDetector = opencvModule.createComponent<features::IKeypointDetector>(MODULES::OPENCV::UUID::KEYPOINT_DETECTOR);
-    SRef<features::IDescriptorsExtractor> descriptorExtractor = opencvModule.createComponent<features::IDescriptorsExtractor>(MODULES::OPENCV::UUID::DESCRIPTORS_EXTRACTOR_SIFT);
-    SRef<features::IDescriptorMatcher>  matcher = opencvModule.createComponent<features::IDescriptorMatcher>(MODULES::OPENCV::UUID::DESCRIPTOR_MATCHER_KNN);
+
+	SRef<features::IDescriptorMatcher>  matcher = opencvModule.createComponent<features::IDescriptorMatcher>(MODULES::OPENCV::UUID::DESCRIPTOR_MATCHER_KNN);
     SRef<solver::pose::IHomographyEstimation> homographyEstimation = opencvModule.createComponent<solver::pose::IHomographyEstimation>(MODULES::OPENCV::UUID::HOMOGRAPHY_ESTIMATION);
     SRef<solver::pose::IHomographyValidation> homographyValidation = toolsModule.createComponent<solver::pose::IHomographyValidation>(MODULES::TOOLS::UUID::HOMOGRAPHY_VALIDATION);
     SRef<features::IKeypointsReIndexer>   keypointsReindexer = toolsModule.createComponent<features::IKeypointsReIndexer>(MODULES::TOOLS::UUID::KEYPOINTS_REINDEXER);
@@ -93,6 +103,10 @@ int main(int argc, char *argv[])
     SRef<display::I3DOverlay> overlay3DComponent = opencvModule.createComponent<display::I3DOverlay>(MODULES::OPENCV::UUID::OVERLAY3D);
     SRef<geom::IImage2WorldMapper> img_mapper = toolsModule.createComponent<geom::IImage2WorldMapper>(MODULES::TOOLS::UUID::IMAGE2WORLD_MAPPER);
     SRef<geom::I2DTransform> transform2D = toolsModule.createComponent<geom::I2DTransform>(MODULES::TOOLS::UUID::TRANSFORM2D);
+
+	LOG_INFO("Loading a non-free component: SIFT is protected by a patent.");
+  	SRef<features::IDescriptorsExtractor> descriptorExtractor = opencvNonFreeModule.createComponent<features::IDescriptorsExtractor>(MODULES::NONFREEOPENCV::UUID::DESCRIPTORS_EXTRACTOR_SIFT);
+
 
     /* in dynamic mode, we need to check that components are well created*/
     /* this is needed in dynamic mode */
