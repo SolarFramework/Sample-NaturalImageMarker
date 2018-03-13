@@ -3,7 +3,6 @@
 using namespace std;
 #include "IComponentManager.h"
 
-#include "SolARModuleManagerNonFreeOpencv.h"
 #include "SolARModuleManagerOpencv.h"
 #include "SolARModuleManagerTools.h"
 #include "SolAROpenCVHelper.h"
@@ -75,17 +74,6 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-
-	MODULES::NONFREEOPENCV::SolARModuleManagerOpencvNonFree opencvNonFreeModule(argv[4]);
-    if (!opencvNonFreeModule.isLoaded()) // xpcf library load has failed
-    {
-        LOG_ERROR("XPCF library load has failed")
-        return -1;
-    }
-
-	std::cout<<" opencvNonFreeModule.isLoaded() "<<opencvNonFreeModule.isLoaded()<<std::endl;
-
-
     // declare and create components
     LOG_INFO("Start creating components");
     SRef<input::devices::ICamera> camera = opencvModule.createComponent<input::devices::ICamera>(MODULES::OPENCV::UUID::CAMERA);
@@ -104,8 +92,8 @@ int main(int argc, char *argv[])
     SRef<geom::IImage2WorldMapper> img_mapper = toolsModule.createComponent<geom::IImage2WorldMapper>(MODULES::TOOLS::UUID::IMAGE2WORLD_MAPPER);
     SRef<geom::I2DTransform> transform2D = toolsModule.createComponent<geom::I2DTransform>(MODULES::TOOLS::UUID::TRANSFORM2D);
 
-	LOG_INFO("Loading a non-free component: SIFT is protected by a patent.");
-  	SRef<features::IDescriptorsExtractor> descriptorExtractor = opencvNonFreeModule.createComponent<features::IDescriptorsExtractor>(MODULES::NONFREEOPENCV::UUID::DESCRIPTORS_EXTRACTOR_SIFT);
+	
+  	SRef<features::IDescriptorsExtractor> descriptorExtractor = opencvModule.createComponent<features::IDescriptorsExtractor>(MODULES::OPENCV::UUID::DESCRIPTORS_EXTRACTOR_AKAZE);
 
 
     /* in dynamic mode, we need to check that components are well created*/
@@ -131,7 +119,7 @@ int main(int argc, char *argv[])
 	std::vector< SRef<Keypoint> > refKeypoints, camKeypoints;  // where to store detected keypoints in ref image and camera image
 
 															   // initialize keypoint detector
-	kpDetector->setType(features::KeypointDetectorType::SIFT);
+	kpDetector->setType(features::KeypointDetectorType::AKAZE);
 
 
 	// load marker

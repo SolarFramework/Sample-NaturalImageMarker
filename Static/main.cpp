@@ -1,3 +1,7 @@
+
+#define USE_AKAZE2
+
+
 #include <iostream>
 
 using namespace std;
@@ -5,7 +9,11 @@ using namespace std;
 #include "SolARImageViewerOpencv.h"
 #include "SolARMarker2DNaturalImageOpencv.h"
 #include "SolARKeypointDetectorOpencv.h"
-#include "SolARDescriptorsExtractorSIFTOpencv.h"
+#ifdef USE_AKAZE2
+#include "SolARDescriptorsExtractorAKAZE2Opencv.h"
+#else
+#include "SolARDescriptorsExtractorAKAZEOpencv.h"
+#endif
 #include "SolARDescriptorMatcherKNNOpencv.h"
 #include "SolARHomographyEstimationOpencv.h"
 #include "SolARHomographyValidation.h"
@@ -21,7 +29,6 @@ using namespace SolAR::datastructure;
 using namespace SolAR::api;
 using namespace SolAR::api::solver::pose;
 using namespace SolAR::MODULES::OPENCV;
-using namespace SolAR::MODULES::NONFREEOPENCV;
 using namespace SolAR::MODULES::TOOLS;
 
 namespace xpcf  = org::bcom::xpcf;
@@ -50,10 +57,12 @@ int printHelp(){
     return 1;
 }
 
+
 int main(int argc, char *argv[])
 {
 
     LOG_ADD_LOG_TO_CONSOLE();
+	LOG_ADD_LOG_TO_FILE("./logAkaze.log");
 
     if(argc<4) {
         printHelp();
@@ -65,7 +74,7 @@ int main(int argc, char *argv[])
     // declare components
     LOG_INFO("Start creating components");
     boost::uuids::string_generator gen;
-    SRef<input::devices::ICamera>               camera;
+    SRef<input::devices::ICamera>                camera;
     SRef<input::files::IMarker2DNaturalImage>   marker;
     SRef<features::IKeypointDetector>           kpDetector;
     SRef<features::IDescriptorsExtractor>       descriptorExtractor;
@@ -84,7 +93,11 @@ int main(int argc, char *argv[])
     xpcf::ComponentFactory::createComponent<SolARCameraOpencv>(gen(input::devices::ICamera::UUID ), camera);
     xpcf::ComponentFactory::createComponent<SolARMarker2DNaturalImageOpencv>(gen(input::files::IMarker2DNaturalImage::UUID ), marker);
     xpcf::ComponentFactory::createComponent<SolARKeypointDetectorOpencv>(gen(features::IKeypointDetector::UUID ), kpDetector);
-    xpcf::ComponentFactory::createComponent<SolARDescriptorsExtractorSIFTOpencv>(gen(features::IDescriptorsExtractor::UUID ), descriptorExtractor);
+#ifdef USE_AKAZE2
+    xpcf::ComponentFactory::createComponent<SolARDescriptorsExtractorAKAZE2Opencv>(gen(features::IDescriptorsExtractor::UUID ), descriptorExtractor);
+#else
+	xpcf::ComponentFactory::createComponent<SolARDescriptorsExtractorAKAZEOpencv>(gen(features::IDescriptorsExtractor::UUID), descriptorExtractor);
+#endif
     xpcf::ComponentFactory::createComponent<SolARDescriptorMatcherKNNOpencv>(gen(features::IDescriptorMatcher::UUID ), matcher);
     xpcf::ComponentFactory::createComponent<SolARKeypointsReIndexer>(gen(features::IKeypointsReIndexer::UUID ), keypointsReindexer);
     xpcf::ComponentFactory::createComponent<SolARImage2WorldMapper4Marker2D>(gen(geom::IImage2WorldMapper::UUID ), img_mapper);
@@ -109,10 +122,6 @@ int main(int argc, char *argv[])
 
     Transform2Df Hm;
     std::vector< SRef<Keypoint> > refKeypoints, camKeypoints;  // where to store detected keypoints in ref image and camera image
-
-    // initialize keypoint detector
-    kpDetector->setType(features::KeypointDetectorType::SIFT);
-
  
     // load marker
     LOG_INFO("LOAD MARKER IMAGE ");
@@ -297,8 +306,8 @@ int main(int argc, char *argv[])
 
     end= clock();
     double duration=double(end - start) / CLOCKS_PER_SEC;
-    printf ("\n\nElasped time is %.2lf seconds.\n",duration );
-    printf (  "Number of processed frame per second : %8.2f\n",count/duration );
+	LOG_INFO("\n\nElasped time is {} seconds.\n",duration );
+	LOG_INFO(  "Number of processed frame per second : {}\n",count/duration );
 
     std::cout << "this is the end..." << '\n';
 
