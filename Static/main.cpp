@@ -33,7 +33,7 @@ using namespace SolAR::MODULES::TOOLS;
 
 namespace xpcf  = org::bcom::xpcf;
 #include <string>
-
+ 
 #include <boost/timer/timer.hpp>
 #include <boost/chrono.hpp>
 
@@ -119,6 +119,11 @@ int main(int argc, char *argv[])
     SRef<DescriptorBuffer> refDescriptors, camDescriptors;
     std::vector<DescriptorMatch> matches;
 
+#ifdef USE_AKAZE2
+	kpDetector->setType(features::KeypointDetectorType::AKAZE2);
+#else
+	kpDetector->setType(features::KeypointDetectorType::AKAZE);
+#endif
 
     Transform2Df Hm;
     std::vector< SRef<Keypoint> > refKeypoints, camKeypoints;  // where to store detected keypoints in ref image and camera image
