@@ -124,8 +124,11 @@ int main(int argc, char *argv[])
 	std::vector< SRef<Keypoint> > refKeypoints, camKeypoints;  // where to store detected keypoints in ref image and camera image
 
 															   // initialize keypoint detector
-	kpDetector->setType(features::KeypointDetectorType::AKAZE);
-
+	#ifdef USE_AKAZE2
+		kpDetector->setType(features::KeypointDetectorType::AKAZE2);
+	#else
+		kpDetector->setType(features::KeypointDetectorType::AKAZE);
+	#endif
 
 	// load marker
 	LOG_INFO("LOAD MARKER IMAGE ");
