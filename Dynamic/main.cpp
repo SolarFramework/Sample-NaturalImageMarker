@@ -1,3 +1,6 @@
+#define USE_AKAZE2
+
+
 #include <iostream>
 
 using namespace std;
@@ -92,9 +95,11 @@ int main(int argc, char *argv[])
     SRef<geom::IImage2WorldMapper> img_mapper = toolsModule.createComponent<geom::IImage2WorldMapper>(MODULES::TOOLS::UUID::IMAGE2WORLD_MAPPER);
     SRef<geom::I2DTransform> transform2D = toolsModule.createComponent<geom::I2DTransform>(MODULES::TOOLS::UUID::TRANSFORM2D);
 
-	
+#ifdef USE_AKAZE2
+    SRef<features::IDescriptorsExtractor> descriptorExtractor = opencvModule.createComponent<features::IDescriptorsExtractor>(MODULES::OPENCV::UUID::DESCRIPTORS_EXTRACTOR_AKAZE2);
+#else
   	SRef<features::IDescriptorsExtractor> descriptorExtractor = opencvModule.createComponent<features::IDescriptorsExtractor>(MODULES::OPENCV::UUID::DESCRIPTORS_EXTRACTOR_AKAZE);
-
+#endif
 
     /* in dynamic mode, we need to check that components are well created*/
     /* this is needed in dynamic mode */
@@ -217,9 +222,10 @@ int main(int argc, char *argv[])
 		// detect keypoints in camera image
 		kpDetector->detect(camImage, camKeypoints);
 		// Not working, C2664 : cannot convert argument 1 from std::vector<boost_shared_ptr<Keypoint>> to std::vector<boost_shared_ptr<Point2Df>> !
-		kpImageCam = camImage->copy();
+#ifdef DEBUG
+        kpImageCam = camImage->copy();
 		overlay2DComponent->drawCircles(camKeypoints, 3, 1, kpImageCam);
-
+#endif
 		/* you can either draw keypoints */
 		// kpDetector->drawKeypoints(camImage,camKeypoints,kpImageCam);
 
@@ -283,8 +289,12 @@ int main(int argc, char *argv[])
 					if (pose.getPoseTransform()(3, 3) != 0.0)
 					{
 						/* We draw a box on the place of the recognized natural marker*/
-						overlay3DComponent->drawBox(pose, marker->getWidth(), marker->getHeight(), marker->getWidth()*0.5f, affineTransform, kpImageCam);
-					}
+#ifdef DEBUG
+                        overlay3DComponent->drawBox(pose, marker->getWidth(), marker->getHeight(), marker->getWidth()*0.5f, affineTransform, kpImageCam);
+#else
+                        overlay3DComponent->drawBox(pose, marker->getWidth(), marker->getHeight(), marker->getWidth()*0.5f, affineTransform, camImage);
+#endif
+                    }
 					else
 					{
 						/* The pose estimated is false: error case*/
@@ -298,9 +308,12 @@ int main(int argc, char *argv[])
 
 
 		}
-
-		if (imageViewer->display("camera keypoints", kpImageCam, &escape_key) == SolAR::FrameworkReturnCode::_STOP)
-			break;
+#ifdef DEBUG
+        if (imageViewer->display("Natural Image Marker", kpImageCam, &escape_key) == SolAR::FrameworkReturnCode::_STOP)
+#else
+        if (imageViewer->display("Natural Image Marker", camImage, &escape_key) == SolAR::FrameworkReturnCode::_STOP)
+#endif
+        break;
 	}
 
 	end = clock();
