@@ -1,9 +1,11 @@
+#define USE_AKAZE2
+
+
 #include <iostream>
 
 using namespace std;
 #include "IComponentManager.h"
 
-#include "SolARModuleManagerNonFreeOpencv.h"
 #include "SolARModuleManagerOpencv.h"
 #include "SolARModuleManagerTools.h"
 #include "SolAROpenCVHelper.h"
@@ -75,17 +77,6 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-
-	MODULES::NONFREEOPENCV::SolARModuleManagerOpencvNonFree opencvNonFreeModule(argv[4]);
-    if (!opencvNonFreeModule.isLoaded()) // xpcf library load has failed
-    {
-        LOG_ERROR("XPCF library load has failed")
-        return -1;
-    }
-
-	std::cout<<" opencvNonFreeModule.isLoaded() "<<opencvNonFreeModule.isLoaded()<<std::endl;
-
-
     // declare and create components
     LOG_INFO("Start creating components");
     SRef<input::devices::ICamera> camera = opencvModule.createComponent<input::devices::ICamera>(MODULES::OPENCV::UUID::CAMERA);
@@ -104,9 +95,11 @@ int main(int argc, char *argv[])
     SRef<geom::IImage2WorldMapper> img_mapper = toolsModule.createComponent<geom::IImage2WorldMapper>(MODULES::TOOLS::UUID::IMAGE2WORLD_MAPPER);
     SRef<geom::I2DTransform> transform2D = toolsModule.createComponent<geom::I2DTransform>(MODULES::TOOLS::UUID::TRANSFORM2D);
 
-	LOG_INFO("Loading a non-free component: SIFT is protected by a patent.");
-  	SRef<features::IDescriptorsExtractor> descriptorExtractor = opencvNonFreeModule.createComponent<features::IDescriptorsExtractor>(MODULES::NONFREEOPENCV::UUID::DESCRIPTORS_EXTRACTOR_SIFT);
-
+#ifdef USE_AKAZE2
+    SRef<features::IDescriptorsExtractor> descriptorExtractor = opencvModule.createComponent<features::IDescriptorsExtractor>(MODULES::OPENCV::UUID::DESCRIPTORS_EXTRACTOR_AKAZE2);
+#else
+  	SRef<features::IDescriptorsExtractor> descriptorExtractor = opencvModule.createComponent<features::IDescriptorsExtractor>(MODULES::OPENCV::UUID::DESCRIPTORS_EXTRACTOR_AKAZE);
+#endif
 
     /* in dynamic mode, we need to check that components are well created*/
     /* this is needed in dynamic mode */
@@ -131,8 +124,11 @@ int main(int argc, char *argv[])
 	std::vector< SRef<Keypoint> > refKeypoints, camKeypoints;  // where to store detected keypoints in ref image and camera image
 
 															   // initialize keypoint detector
-	kpDetector->setType(features::KeypointDetectorType::SIFT);
-
+	#ifdef USE_AKAZE2
+		kpDetector->setType(features::KeypointDetectorType::AKAZE2);
+	#else
+		kpDetector->setType(features::KeypointDetectorType::AKAZE);
+	#endif
 
 	// load marker
 	LOG_INFO("LOAD MARKER IMAGE ");
@@ -229,9 +225,10 @@ int main(int argc, char *argv[])
 		// detect keypoints in camera image
 		kpDetector->detect(camImage, camKeypoints);
 		// Not working, C2664 : cannot convert argument 1 from std::vector<boost_shared_ptr<Keypoint>> to std::vector<boost_shared_ptr<Point2Df>> !
-		kpImageCam = camImage->copy();
+#ifdef DEBUG
+        kpImageCam = camImage->copy();
 		overlay2DComponent->drawCircles(camKeypoints, 3, 1, kpImageCam);
-
+#endif
 		/* you can either draw keypoints */
 		// kpDetector->drawKeypoints(camImage,camKeypoints,kpImageCam);
 
@@ -295,8 +292,12 @@ int main(int argc, char *argv[])
 					if (pose.getPoseTransform()(3, 3) != 0.0)
 					{
 						/* We draw a box on the place of the recognized natural marker*/
-						overlay3DComponent->drawBox(pose, marker->getWidth(), marker->getHeight(), marker->getWidth()*0.5f, affineTransform, kpImageCam);
-					}
+#ifdef DEBUG
+                        overlay3DComponent->drawBox(pose, marker->getWidth(), marker->getHeight(), marker->getWidth()*0.5f, affineTransform, kpImageCam);
+#else
+                        overlay3DComponent->drawBox(pose, marker->getWidth(), marker->getHeight(), marker->getWidth()*0.5f, affineTransform, camImage);
+#endif
+                    }
 					else
 					{
 						/* The pose estimated is false: error case*/
@@ -310,9 +311,12 @@ int main(int argc, char *argv[])
 
 
 		}
-
-		if (imageViewer->display("camera keypoints", kpImageCam, &escape_key) == SolAR::FrameworkReturnCode::_STOP)
-			break;
+#ifdef DEBUG
+        if (imageViewer->display("Natural Image Marker", kpImageCam, &escape_key) == SolAR::FrameworkReturnCode::_STOP)
+#else
+        if (imageViewer->display("Natural Image Marker", camImage, &escape_key) == SolAR::FrameworkReturnCode::_STOP)
+#endif
+        break;
 	}
 
 	end = clock();
