@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
     SRef<solver::pose::I2DTransformFinder> homographyEstimation = opencvModule.createComponent<solver::pose::I2DTransformFinder>(MODULES::OPENCV::UUID::HOMOGRAPHY_ESTIMATION);
     SRef<solver::pose::IHomographyValidation> homographyValidation = toolsModule.createComponent<solver::pose::IHomographyValidation>(MODULES::TOOLS::UUID::HOMOGRAPHY_VALIDATION);
     SRef<features::IKeypointsReIndexer>   keypointsReindexer = toolsModule.createComponent<features::IKeypointsReIndexer>(MODULES::TOOLS::UUID::KEYPOINTS_REINDEXER);
-    SRef<solver::pose::I3DTransformFinder> poseEstimation = opencvModule.createComponent<solver::pose::I3DTransformFinder>(MODULES::OPENCV::UUID::POSE_ESTIMATION);
+    SRef<solver::pose::I3DTransformFinder> poseEstimation = opencvModule.createComponent<solver::pose::I3DTransformFinder>(MODULES::OPENCV::UUID::POSE_ESTIMATION_PNP);
     SRef<display::I2DOverlay> overlay2DComponent = opencvModule.createComponent<display::I2DOverlay>(MODULES::OPENCV::UUID::OVERLAY2D);
     SRef<display::ISideBySideOverlay> overlaySBSComponent = opencvModule.createComponent<display::ISideBySideOverlay>(MODULES::OPENCV::UUID::OVERLAYSBS);
     SRef<display::I3DOverlay> overlay3DComponent = opencvModule.createComponent<display::I3DOverlay>(MODULES::OPENCV::UUID::OVERLAY3D);
@@ -267,7 +267,7 @@ int main(int argc, char *argv[])
 
             Transform2DFinder::RetCode res = homographyEstimation->find(ref2Dpoints, cam2Dpoints, Hm);
 			//test if a meaningful matrix has been obtained
-			if (res == HomographyEstimation::RetCode::HOMOGRAPHY_ESTIMATION_OK)
+            if (res == Transform2DFinder::RetCode::TRANSFORM2D_ESTIMATION_OK)
 			{
 				//poseEstimation->poseFromHomography(Hm,pose,objectCorners,sceneCorners);
 				// vector of 2D corners in camera image

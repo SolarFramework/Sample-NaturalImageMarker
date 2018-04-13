@@ -20,7 +20,7 @@ using namespace std;
 #include "SolARHomographyEstimationOpencv.h"
 #include "SolARHomographyValidation.h"
 #include "SolARKeypointsReIndexer.h"
-#include "SolARPoseEstimationOpencv.h"
+#include "SolARPoseEstimationPnpOpencv.h"
 #include "SolAR2DOverlayOpencv.h"
 #include "SolAR3DOverlayOpencv.h"
 #include "SolARImage2WorldMapper4Marker2D.h"
@@ -111,7 +111,7 @@ int main(int argc, char *argv[])
     xpcf::ComponentFactory::createComponent<SolAR2DTransform>(gen(geom::I2DTransform::UUID ), transform2D);
     xpcf::ComponentFactory::createComponent<SolARHomographyEstimationOpencv>(gen(solver::pose::I2DTransformFinder::UUID ), homographyEstimation);
     xpcf::ComponentFactory::createComponent<SolARHomographyValidation>(gen(solver::pose::IHomographyValidation::UUID ), homographyValidation);
-    xpcf::ComponentFactory::createComponent<SolARPoseEstimationOpencv>(gen(solver::pose::I3DTransformFinder::UUID ), poseEstimation);
+    xpcf::ComponentFactory::createComponent<SolARPoseEstimationPnpOpencv>(gen(solver::pose::I3DTransformFinder::UUID ), poseEstimation);
     xpcf::ComponentFactory::createComponent<SolARImageViewerOpencv>(gen(display::IImageViewer::UUID ), imageViewer);
     xpcf::ComponentFactory::createComponent<SolAR2DOverlayOpencv>(gen(display::I2DOverlay::UUID ), overlay2DComponent);
     xpcf::ComponentFactory::createComponent<SolAR3DOverlayOpencv>(gen(display::I3DOverlay::UUID ), overlay3DComponent);
