@@ -84,7 +84,7 @@ int main(int argc, char *argv[])
     SRef<input::files::IMarker2DNaturalImage> marker = opencvModule.createComponent<input::files::IMarker2DNaturalImage>(MODULES::OPENCV::UUID::MARKER2D_NATURAL_IMAGE);
     SRef<features::IKeypointDetector> kpDetector = opencvModule.createComponent<features::IKeypointDetector>(MODULES::OPENCV::UUID::KEYPOINT_DETECTOR);
 	SRef<features::IDescriptorMatcher>  matcher = opencvModule.createComponent<features::IDescriptorMatcher>(MODULES::OPENCV::UUID::DESCRIPTOR_MATCHER_KNN);
-    SRef<features::IMatchesFilter> basicMatchesFilter = opencvModule.createComponent<features::IMatchesFilter>(MODULES::OPENCV::UUID::BASIC_MATCHES_FILTER);
+    SRef<features::IMatchesFilter> basicMatchesFilter = toolsModule.createComponent<features::IMatchesFilter>(MODULES::TOOLS::UUID::BASIC_MATCHES_FILTER);
     SRef<features::IMatchesFilter> geomMatchesFilter = opencvModule.createComponent<features::IMatchesFilter>(MODULES::OPENCV::UUID::GEOMETRIC_MATCHES_FILTER);
     SRef<solver::pose::I2DTransformFinder> homographyEstimation = opencvModule.createComponent<solver::pose::I2DTransformFinder>(MODULES::OPENCV::UUID::HOMOGRAPHY_ESTIMATION);
     SRef<solver::pose::IHomographyValidation> homographyValidation = toolsModule.createComponent<solver::pose::IHomographyValidation>(MODULES::TOOLS::UUID::HOMOGRAPHY_VALIDATION);

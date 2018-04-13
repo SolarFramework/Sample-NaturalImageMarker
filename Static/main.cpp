@@ -15,7 +15,7 @@ using namespace std;
 #include "SolARDescriptorsExtractorAKAZEOpencv.h"
 #endif
 #include "SolARDescriptorMatcherKNNOpencv.h"
-#include "SolARBasicMatchesFilterOpencv.h"
+#include "SolARBasicMatchesFilter.h"
 #include "SolARGeometricMatchesFilterOpencv.h"
 #include "SolARHomographyEstimationOpencv.h"
 #include "SolARHomographyValidation.h"
@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
 	xpcf::ComponentFactory::createComponent<SolARDescriptorsExtractorAKAZEOpencv>(gen(features::IDescriptorsExtractor::UUID), descriptorExtractor);
 #endif
     xpcf::ComponentFactory::createComponent<SolARDescriptorMatcherKNNOpencv>(gen(features::IDescriptorMatcher::UUID ), matcher);
-    xpcf::ComponentFactory::createComponent<SolARBasicMatchesFilterOpencv>(gen(features::IMatchesFilter::UUID ), basicMatchesFilter);
+    xpcf::ComponentFactory::createComponent<SolARBasicMatchesFilter>(gen(features::IMatchesFilter::UUID ), basicMatchesFilter);
     xpcf::ComponentFactory::createComponent<SolARGeometricMatchesFilterOpencv>(gen(features::IMatchesFilter::UUID ), geomMatchesFilter);
 
     xpcf::ComponentFactory::createComponent<SolARKeypointsReIndexer>(gen(features::IKeypointsReIndexer::UUID ), keypointsReindexer);
