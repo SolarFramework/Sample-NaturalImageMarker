@@ -15,6 +15,8 @@ using namespace std;
 #include "SolARDescriptorsExtractorAKAZEOpencv.h"
 #endif
 #include "SolARDescriptorMatcherKNNOpencv.h"
+#include "SolARBasicMatchesFilterOpencv.h"
+#include "SolARGeometricMatchesFilterOpencv.h"
 #include "SolARHomographyEstimationOpencv.h"
 #include "SolARHomographyValidation.h"
 #include "SolARKeypointsReIndexer.h"
@@ -79,6 +81,8 @@ int main(int argc, char *argv[])
     SRef<features::IKeypointDetector>           kpDetector;
     SRef<features::IDescriptorsExtractor>       descriptorExtractor;
     SRef<features::IDescriptorMatcher>          matcher;
+    SRef<features::IMatchesFilter>              basicMatchesFilter;
+    SRef<features::IMatchesFilter>              geomMatchesFilter;
     SRef<features::IKeypointsReIndexer>         keypointsReindexer;
     SRef<geom::IImage2WorldMapper>              img_mapper;
     SRef<geom::I2DTransform>                    transform2D;
@@ -99,6 +103,9 @@ int main(int argc, char *argv[])
 	xpcf::ComponentFactory::createComponent<SolARDescriptorsExtractorAKAZEOpencv>(gen(features::IDescriptorsExtractor::UUID), descriptorExtractor);
 #endif
     xpcf::ComponentFactory::createComponent<SolARDescriptorMatcherKNNOpencv>(gen(features::IDescriptorMatcher::UUID ), matcher);
+    xpcf::ComponentFactory::createComponent<SolARBasicMatchesFilterOpencv>(gen(features::IMatchesFilter::UUID ), basicMatchesFilter);
+    xpcf::ComponentFactory::createComponent<SolARGeometricMatchesFilterOpencv>(gen(features::IMatchesFilter::UUID ), geomMatchesFilter);
+
     xpcf::ComponentFactory::createComponent<SolARKeypointsReIndexer>(gen(features::IKeypointsReIndexer::UUID ), keypointsReindexer);
     xpcf::ComponentFactory::createComponent<SolARImage2WorldMapper4Marker2D>(gen(geom::IImage2WorldMapper::UUID ), img_mapper);
     xpcf::ComponentFactory::createComponent<SolAR2DTransform>(gen(geom::I2DTransform::UUID ), transform2D);
@@ -233,6 +240,9 @@ int main(int argc, char *argv[])
         /*compute matches between reference image and camera image*/
         matcher->match(refDescriptors, camDescriptors,matches);
 
+        /* filter matches to remove redundancy and check geometric validity */
+        basicMatchesFilter->filter(matches, matches, refKeypoints, camKeypoints);
+        geomMatchesFilter->filter(matches, matches, refKeypoints, camKeypoints);
 
         /* we declare here the Solar datastucture we will need for homography*/
         std::vector <SRef<Point2Df>> ref2Dpoints;

@@ -83,8 +83,9 @@ int main(int argc, char *argv[])
     SRef<display::IImageViewer> imageViewer = opencvModule.createComponent<display::IImageViewer>(MODULES::OPENCV::UUID::IMAGE_VIEWER);
     SRef<input::files::IMarker2DNaturalImage> marker = opencvModule.createComponent<input::files::IMarker2DNaturalImage>(MODULES::OPENCV::UUID::MARKER2D_NATURAL_IMAGE);
     SRef<features::IKeypointDetector> kpDetector = opencvModule.createComponent<features::IKeypointDetector>(MODULES::OPENCV::UUID::KEYPOINT_DETECTOR);
-
 	SRef<features::IDescriptorMatcher>  matcher = opencvModule.createComponent<features::IDescriptorMatcher>(MODULES::OPENCV::UUID::DESCRIPTOR_MATCHER_KNN);
+    SRef<features::IMatchesFilter> basicMatchesFilter = opencvModule.createComponent<features::IMatchesFilter>(MODULES::OPENCV::UUID::BASIC_MATCHES_FILTER);
+    SRef<features::IMatchesFilter> geomMatchesFilter = opencvModule.createComponent<features::IMatchesFilter>(MODULES::OPENCV::UUID::GEOMETRIC_MATCHES_FILTER);
     SRef<solver::pose::I2DTransformFinder> homographyEstimation = opencvModule.createComponent<solver::pose::I2DTransformFinder>(MODULES::OPENCV::UUID::HOMOGRAPHY_ESTIMATION);
     SRef<solver::pose::IHomographyValidation> homographyValidation = toolsModule.createComponent<solver::pose::IHomographyValidation>(MODULES::TOOLS::UUID::HOMOGRAPHY_VALIDATION);
     SRef<features::IKeypointsReIndexer>   keypointsReindexer = toolsModule.createComponent<features::IKeypointsReIndexer>(MODULES::TOOLS::UUID::KEYPOINTS_REINDEXER);
@@ -103,8 +104,8 @@ int main(int argc, char *argv[])
 
     /* in dynamic mode, we need to check that components are well created*/
     /* this is needed in dynamic mode */
-    if (!camera || !imageViewer || !marker || !kpDetector || !descriptorExtractor || !matcher || !homographyEstimation || !homographyValidation ||
-        !keypointsReindexer || !poseEstimation || !overlay2DComponent || !overlaySBSComponent || !overlay3DComponent || !img_mapper || !transform2D )
+    if (!camera || !imageViewer || !marker || !kpDetector || !descriptorExtractor || !matcher || !basicMatchesFilter || !geomMatchesFilter || !homographyEstimation ||
+        !homographyValidation ||!keypointsReindexer || !poseEstimation || !overlay2DComponent || !overlaySBSComponent || !overlay3DComponent || !img_mapper || !transform2D )
     {
         LOG_ERROR("One or more component creations have failed");
         return -1;
@@ -239,6 +240,9 @@ int main(int argc, char *argv[])
 		/*compute matches between reference image and camera image*/
 		matcher->match(refDescriptors, camDescriptors, matches);
 
+        /* filter matches to remove redundancy and check geometric validity */
+        basicMatchesFilter->filter(matches, matches, refKeypoints, camKeypoints);
+        geomMatchesFilter->filter(matches, matches, refKeypoints, camKeypoints);
 
 		/* we declare here the Solar datastucture we will need for homography*/
 		std::vector <SRef<Point2Df>> ref2Dpoints;
