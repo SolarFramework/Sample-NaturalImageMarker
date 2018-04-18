@@ -15,10 +15,12 @@ using namespace std;
 #include "SolARDescriptorsExtractorAKAZEOpencv.h"
 #endif
 #include "SolARDescriptorMatcherKNNOpencv.h"
+#include "SolARBasicMatchesFilter.h"
+#include "SolARGeometricMatchesFilterOpencv.h"
 #include "SolARHomographyEstimationOpencv.h"
 #include "SolARHomographyValidation.h"
 #include "SolARKeypointsReIndexer.h"
-#include "SolARPoseEstimationOpencv.h"
+#include "SolARPoseEstimationPnpOpencv.h"
 #include "SolAR2DOverlayOpencv.h"
 #include "SolAR3DOverlayOpencv.h"
 #include "SolARImage2WorldMapper4Marker2D.h"
@@ -79,12 +81,14 @@ int main(int argc, char *argv[])
     SRef<features::IKeypointDetector>           kpDetector;
     SRef<features::IDescriptorsExtractor>       descriptorExtractor;
     SRef<features::IDescriptorMatcher>          matcher;
+    SRef<features::IMatchesFilter>              basicMatchesFilter;
+    SRef<features::IMatchesFilter>              geomMatchesFilter;
     SRef<features::IKeypointsReIndexer>         keypointsReindexer;
     SRef<geom::IImage2WorldMapper>              img_mapper;
     SRef<geom::I2DTransform>                    transform2D;
-    SRef<solver::pose::IHomographyEstimation>   homographyEstimation;
+    SRef<solver::pose::I2DTransformFinder>      homographyEstimation;
     SRef<solver::pose::IHomographyValidation>   homographyValidation;
-    SRef<solver::pose::IPoseEstimation>         poseEstimation;
+    SRef<solver::pose::I3DTransformFinder>      poseEstimation;
     SRef<display::IImageViewer>                 imageViewer;
     SRef<display::I2DOverlay>                   overlay2DComponent;
     SRef<display::I3DOverlay>                   overlay3DComponent;
@@ -99,12 +103,15 @@ int main(int argc, char *argv[])
 	xpcf::ComponentFactory::createComponent<SolARDescriptorsExtractorAKAZEOpencv>(gen(features::IDescriptorsExtractor::UUID), descriptorExtractor);
 #endif
     xpcf::ComponentFactory::createComponent<SolARDescriptorMatcherKNNOpencv>(gen(features::IDescriptorMatcher::UUID ), matcher);
+    xpcf::ComponentFactory::createComponent<SolARBasicMatchesFilter>(gen(features::IMatchesFilter::UUID ), basicMatchesFilter);
+    xpcf::ComponentFactory::createComponent<SolARGeometricMatchesFilterOpencv>(gen(features::IMatchesFilter::UUID ), geomMatchesFilter);
+
     xpcf::ComponentFactory::createComponent<SolARKeypointsReIndexer>(gen(features::IKeypointsReIndexer::UUID ), keypointsReindexer);
     xpcf::ComponentFactory::createComponent<SolARImage2WorldMapper4Marker2D>(gen(geom::IImage2WorldMapper::UUID ), img_mapper);
     xpcf::ComponentFactory::createComponent<SolAR2DTransform>(gen(geom::I2DTransform::UUID ), transform2D);
-    xpcf::ComponentFactory::createComponent<SolARHomographyEstimationOpencv>(gen(solver::pose::IHomographyEstimation::UUID ), homographyEstimation);
+    xpcf::ComponentFactory::createComponent<SolARHomographyEstimationOpencv>(gen(solver::pose::I2DTransformFinder::UUID ), homographyEstimation);
     xpcf::ComponentFactory::createComponent<SolARHomographyValidation>(gen(solver::pose::IHomographyValidation::UUID ), homographyValidation);
-    xpcf::ComponentFactory::createComponent<SolARPoseEstimationOpencv>(gen(solver::pose::IPoseEstimation::UUID ), poseEstimation);
+    xpcf::ComponentFactory::createComponent<SolARPoseEstimationPnpOpencv>(gen(solver::pose::I3DTransformFinder::UUID ), poseEstimation);
     xpcf::ComponentFactory::createComponent<SolARImageViewerOpencv>(gen(display::IImageViewer::UUID ), imageViewer);
     xpcf::ComponentFactory::createComponent<SolAR2DOverlayOpencv>(gen(display::I2DOverlay::UUID ), overlay2DComponent);
     xpcf::ComponentFactory::createComponent<SolAR3DOverlayOpencv>(gen(display::I3DOverlay::UUID ), overlay3DComponent);
@@ -184,7 +191,6 @@ int main(int argc, char *argv[])
     // initialize pose estimation
     poseEstimation->setCameraParameters(camera->getIntrinsicsParameters(),camera->getDistorsionParameters());
 
-
     // initialize image mapper with the reference image size and marker size
     img_mapper->setParameters(refImage->getSize(), marker->getSize());
 
@@ -234,6 +240,9 @@ int main(int argc, char *argv[])
         /*compute matches between reference image and camera image*/
         matcher->match(refDescriptors, camDescriptors,matches);
 
+        /* filter matches to remove redundancy and check geometric validity */
+        basicMatchesFilter->filter(matches, matches, refKeypoints, camKeypoints);
+        geomMatchesFilter->filter(matches, matches, refKeypoints, camKeypoints);
 
         /* we declare here the Solar datastucture we will need for homography*/
         std::vector <SRef<Point2Df>> ref2Dpoints;
@@ -256,9 +265,9 @@ int main(int argc, char *argv[])
             // mapping to 3D points
             img_mapper->map(ref2Dpoints,ref3Dpoints);
 
-			HomographyEstimation::RetCode res = homographyEstimation->findHomography(ref2Dpoints, cam2Dpoints, Hm);
+            Transform2DFinder::RetCode res = homographyEstimation->find(ref2Dpoints, cam2Dpoints, Hm);
 			//test if a meaningful matrix has been obtained
-            if (res == HomographyEstimation::RetCode::HOMOGRAPHY_ESTIMATION_OK)
+            if (res == Transform2DFinder::RetCode::TRANSFORM2D_ESTIMATION_OK)
             {
                 //poseEstimation->poseFromHomography(Hm,pose,objectCorners,sceneCorners);
                 // vector of 2D corners in camera image
@@ -275,7 +284,7 @@ int main(int argc, char *argv[])
 
                     // pose from solvePNP using 4 points.
                     /* The pose could also be estimated from all the points used to estimate the homography */
-                    poseEstimation->poseFromSolvePNP(pose, markerCornersinCamImage,markerCornersinWorld);
+                    poseEstimation->estimate(markerCornersinCamImage,markerCornersinWorld, pose);
 
 
                     //LOG_INFO("Pose : {}", pose.toString());

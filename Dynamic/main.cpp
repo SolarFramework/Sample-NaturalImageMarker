@@ -83,12 +83,13 @@ int main(int argc, char *argv[])
     SRef<display::IImageViewer> imageViewer = opencvModule.createComponent<display::IImageViewer>(MODULES::OPENCV::UUID::IMAGE_VIEWER);
     SRef<input::files::IMarker2DNaturalImage> marker = opencvModule.createComponent<input::files::IMarker2DNaturalImage>(MODULES::OPENCV::UUID::MARKER2D_NATURAL_IMAGE);
     SRef<features::IKeypointDetector> kpDetector = opencvModule.createComponent<features::IKeypointDetector>(MODULES::OPENCV::UUID::KEYPOINT_DETECTOR);
-
 	SRef<features::IDescriptorMatcher>  matcher = opencvModule.createComponent<features::IDescriptorMatcher>(MODULES::OPENCV::UUID::DESCRIPTOR_MATCHER_KNN);
-    SRef<solver::pose::IHomographyEstimation> homographyEstimation = opencvModule.createComponent<solver::pose::IHomographyEstimation>(MODULES::OPENCV::UUID::HOMOGRAPHY_ESTIMATION);
+    SRef<features::IMatchesFilter> basicMatchesFilter = toolsModule.createComponent<features::IMatchesFilter>(MODULES::TOOLS::UUID::BASIC_MATCHES_FILTER);
+    SRef<features::IMatchesFilter> geomMatchesFilter = opencvModule.createComponent<features::IMatchesFilter>(MODULES::OPENCV::UUID::GEOMETRIC_MATCHES_FILTER);
+    SRef<solver::pose::I2DTransformFinder> homographyEstimation = opencvModule.createComponent<solver::pose::I2DTransformFinder>(MODULES::OPENCV::UUID::HOMOGRAPHY_ESTIMATION);
     SRef<solver::pose::IHomographyValidation> homographyValidation = toolsModule.createComponent<solver::pose::IHomographyValidation>(MODULES::TOOLS::UUID::HOMOGRAPHY_VALIDATION);
     SRef<features::IKeypointsReIndexer>   keypointsReindexer = toolsModule.createComponent<features::IKeypointsReIndexer>(MODULES::TOOLS::UUID::KEYPOINTS_REINDEXER);
-    SRef<solver::pose::IPoseEstimation> poseEstimation = opencvModule.createComponent<solver::pose::IPoseEstimation>(MODULES::OPENCV::UUID::POSE_ESTIMATION);
+    SRef<solver::pose::I3DTransformFinder> poseEstimation = opencvModule.createComponent<solver::pose::I3DTransformFinder>(MODULES::OPENCV::UUID::POSE_ESTIMATION_PNP);
     SRef<display::I2DOverlay> overlay2DComponent = opencvModule.createComponent<display::I2DOverlay>(MODULES::OPENCV::UUID::OVERLAY2D);
     SRef<display::ISideBySideOverlay> overlaySBSComponent = opencvModule.createComponent<display::ISideBySideOverlay>(MODULES::OPENCV::UUID::OVERLAYSBS);
     SRef<display::I3DOverlay> overlay3DComponent = opencvModule.createComponent<display::I3DOverlay>(MODULES::OPENCV::UUID::OVERLAY3D);
@@ -103,8 +104,8 @@ int main(int argc, char *argv[])
 
     /* in dynamic mode, we need to check that components are well created*/
     /* this is needed in dynamic mode */
-    if (!camera || !imageViewer || !marker || !kpDetector || !descriptorExtractor || !matcher || !homographyEstimation || !homographyValidation ||
-        !keypointsReindexer || !poseEstimation || !overlay2DComponent || !overlaySBSComponent || !overlay3DComponent || !img_mapper || !transform2D )
+    if (!camera || !imageViewer || !marker || !kpDetector || !descriptorExtractor || !matcher || !basicMatchesFilter || !geomMatchesFilter || !homographyEstimation ||
+        !homographyValidation ||!keypointsReindexer || !poseEstimation || !overlay2DComponent || !overlaySBSComponent || !overlay3DComponent || !img_mapper || !transform2D )
     {
         LOG_ERROR("One or more component creations have failed");
         return -1;
@@ -239,6 +240,9 @@ int main(int argc, char *argv[])
 		/*compute matches between reference image and camera image*/
 		matcher->match(refDescriptors, camDescriptors, matches);
 
+        /* filter matches to remove redundancy and check geometric validity */
+        basicMatchesFilter->filter(matches, matches, refKeypoints, camKeypoints);
+        geomMatchesFilter->filter(matches, matches, refKeypoints, camKeypoints);
 
 		/* we declare here the Solar datastucture we will need for homography*/
 		std::vector <SRef<Point2Df>> ref2Dpoints;
@@ -261,9 +265,9 @@ int main(int argc, char *argv[])
 			// mapping to 3D points
 			img_mapper->map(ref2Dpoints, ref3Dpoints);
 
-			HomographyEstimation::RetCode res = homographyEstimation->findHomography(ref2Dpoints, cam2Dpoints, Hm);
+            Transform2DFinder::RetCode res = homographyEstimation->find(ref2Dpoints, cam2Dpoints, Hm);
 			//test if a meaningful matrix has been obtained
-			if (res == HomographyEstimation::RetCode::HOMOGRAPHY_ESTIMATION_OK)
+            if (res == Transform2DFinder::RetCode::TRANSFORM2D_ESTIMATION_OK)
 			{
 				//poseEstimation->poseFromHomography(Hm,pose,objectCorners,sceneCorners);
 				// vector of 2D corners in camera image
@@ -280,7 +284,7 @@ int main(int argc, char *argv[])
 
 					// pose from solvePNP using 4 points.
 					/* The pose could also be estimated from all the points used to estimate the homography */
-					poseEstimation->poseFromSolvePNP(pose, markerCornersinCamImage, markerCornersinWorld);
+                    poseEstimation->estimate(markerCornersinCamImage, markerCornersinWorld, pose);
 
 
 					//LOG_INFO("Pose : {}", pose.toString());
