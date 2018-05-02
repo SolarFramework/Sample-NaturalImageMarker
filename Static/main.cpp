@@ -4,6 +4,8 @@
 
 #include <iostream>
 
+#include <boost/log/core.hpp>
+
 using namespace std;
 #include "SolARCameraOpencv.h"
 #include "SolARImageViewerOpencv.h"
@@ -63,6 +65,10 @@ int printHelp(){
 int main(int argc, char *argv[])
 {
 
+#if NDEBUG
+    boost::log::core::get()->set_logging_enabled(false);
+#endif
+
     LOG_ADD_LOG_TO_CONSOLE();
 	LOG_ADD_LOG_TO_FILE("./logAkaze.log");
 
@@ -75,7 +81,7 @@ int main(int argc, char *argv[])
 
     // declare components
     LOG_INFO("Start creating components");
-    boost::uuids::string_generator gen;
+
     SRef<input::devices::ICamera>                camera;
     SRef<input::files::IMarker2DNaturalImage>   marker;
     SRef<features::IKeypointDetector>           kpDetector;
@@ -94,27 +100,29 @@ int main(int argc, char *argv[])
     SRef<display::I3DOverlay>                   overlay3DComponent;
 
     // create components
-    xpcf::ComponentFactory::createComponent<SolARCameraOpencv>(gen(input::devices::ICamera::UUID ), camera);
-    xpcf::ComponentFactory::createComponent<SolARMarker2DNaturalImageOpencv>(gen(input::files::IMarker2DNaturalImage::UUID ), marker);
-    xpcf::ComponentFactory::createComponent<SolARKeypointDetectorOpencv>(gen(features::IKeypointDetector::UUID ), kpDetector);
-#ifdef USE_AKAZE2
-    xpcf::ComponentFactory::createComponent<SolARDescriptorsExtractorAKAZE2Opencv>(gen(features::IDescriptorsExtractor::UUID ), descriptorExtractor);
-#else
-	xpcf::ComponentFactory::createComponent<SolARDescriptorsExtractorAKAZEOpencv>(gen(features::IDescriptorsExtractor::UUID), descriptorExtractor);
-#endif
-    xpcf::ComponentFactory::createComponent<SolARDescriptorMatcherKNNOpencv>(gen(features::IDescriptorMatcher::UUID ), matcher);
-    xpcf::ComponentFactory::createComponent<SolARBasicMatchesFilter>(gen(features::IMatchesFilter::UUID ), basicMatchesFilter);
-    xpcf::ComponentFactory::createComponent<SolARGeometricMatchesFilterOpencv>(gen(features::IMatchesFilter::UUID ), geomMatchesFilter);
 
-    xpcf::ComponentFactory::createComponent<SolARKeypointsReIndexer>(gen(features::IKeypointsReIndexer::UUID ), keypointsReindexer);
-    xpcf::ComponentFactory::createComponent<SolARImage2WorldMapper4Marker2D>(gen(geom::IImage2WorldMapper::UUID ), img_mapper);
-    xpcf::ComponentFactory::createComponent<SolAR2DTransform>(gen(geom::I2DTransform::UUID ), transform2D);
-    xpcf::ComponentFactory::createComponent<SolARHomographyEstimationOpencv>(gen(solver::pose::I2DTransformFinder::UUID ), homographyEstimation);
-    xpcf::ComponentFactory::createComponent<SolARHomographyValidation>(gen(solver::pose::IHomographyValidation::UUID ), homographyValidation);
-    xpcf::ComponentFactory::createComponent<SolARPoseEstimationPnpOpencv>(gen(solver::pose::I3DTransformFinder::UUID ), poseEstimation);
-    xpcf::ComponentFactory::createComponent<SolARImageViewerOpencv>(gen(display::IImageViewer::UUID ), imageViewer);
-    xpcf::ComponentFactory::createComponent<SolAR2DOverlayOpencv>(gen(display::I2DOverlay::UUID ), overlay2DComponent);
-    xpcf::ComponentFactory::createComponent<SolAR3DOverlayOpencv>(gen(display::I3DOverlay::UUID ), overlay3DComponent);
+    xpcf::ComponentFactory::createComponent<SolARCameraOpencv>(xpcf::toUUID<input::devices::ICamera>(), camera);
+
+    xpcf::ComponentFactory::createComponent<SolARMarker2DNaturalImageOpencv>(xpcf::toUUID<input::files::IMarker2DNaturalImage>(), marker);
+    xpcf::ComponentFactory::createComponent<SolARKeypointDetectorOpencv>(xpcf::toUUID<features::IKeypointDetector>(), kpDetector);
+#ifdef USE_AKAZE2
+    xpcf::ComponentFactory::createComponent<SolARDescriptorsExtractorAKAZE2Opencv>(xpcf::toUUID<features::IDescriptorsExtractor>(), descriptorExtractor);
+#else
+    xpcf::ComponentFactory::createComponent<SolARDescriptorsExtractorAKAZEOpencv>(xpcf::toUUID<features::IDescriptorsExtractor::UUID), descriptorExtractor);
+#endif
+    xpcf::ComponentFactory::createComponent<SolARDescriptorMatcherKNNOpencv>(xpcf::toUUID<features::IDescriptorMatcher>(), matcher);
+    xpcf::ComponentFactory::createComponent<SolARBasicMatchesFilter>(xpcf::toUUID<features::IMatchesFilter>(), basicMatchesFilter);
+    xpcf::ComponentFactory::createComponent<SolARGeometricMatchesFilterOpencv>(xpcf::toUUID<features::IMatchesFilter>(), geomMatchesFilter);
+
+    xpcf::ComponentFactory::createComponent<SolARKeypointsReIndexer>(xpcf::toUUID<features::IKeypointsReIndexer>(), keypointsReindexer);
+    xpcf::ComponentFactory::createComponent<SolARImage2WorldMapper4Marker2D>(xpcf::toUUID<geom::IImage2WorldMapper>(), img_mapper);
+    xpcf::ComponentFactory::createComponent<SolAR2DTransform>(xpcf::toUUID<geom::I2DTransform>(), transform2D);
+    xpcf::ComponentFactory::createComponent<SolARHomographyEstimationOpencv>(xpcf::toUUID<solver::pose::I2DTransformFinder>(), homographyEstimation);
+    xpcf::ComponentFactory::createComponent<SolARHomographyValidation>(xpcf::toUUID<solver::pose::IHomographyValidation>(), homographyValidation);
+    xpcf::ComponentFactory::createComponent<SolARPoseEstimationPnpOpencv>(xpcf::toUUID<solver::pose::I3DTransformFinder>(), poseEstimation);
+    xpcf::ComponentFactory::createComponent<SolARImageViewerOpencv>(xpcf::toUUID<display::IImageViewer>(), imageViewer);
+    xpcf::ComponentFactory::createComponent<SolAR2DOverlayOpencv>(xpcf::toUUID<display::I2DOverlay>(), overlay2DComponent);
+    xpcf::ComponentFactory::createComponent<SolAR3DOverlayOpencv>(xpcf::toUUID<display::I3DOverlay>(), overlay3DComponent);
 
     LOG_INFO("All components have been created");
 
