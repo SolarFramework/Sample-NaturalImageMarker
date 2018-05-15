@@ -216,7 +216,7 @@ int main(int argc, char *argv[])
 	while (true) {
 		count++;
 		LOG_DEBUG("count : {}", count);
-		Pose pose;
+        Transform3Df pose;
 		if (camera->getNextImage(camImage) == SolAR::FrameworkReturnCode::_ERROR_)
 			break;
 
@@ -293,7 +293,7 @@ int main(int argc, char *argv[])
 					Transform3Df affineTransform = Transform3Df::Identity();
 
 					/* The pose last parameter can not be 0, so this is an error case*/
-					if (pose.getPoseTransform()(3, 3) != 0.0)
+                    if (pose(3, 3) != 0.0)
 					{
 						/* We draw a box on the place of the recognized natural marker*/
 #ifdef DEBUG
