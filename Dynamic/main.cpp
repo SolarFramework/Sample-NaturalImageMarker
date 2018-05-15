@@ -69,27 +69,6 @@ int printHelp(){
 }
 
 
-
-int intConfig(const char* initFile,SRef<xpcf::IComponentManager>& xpcfComponentManager){
-    FILE *pf=fopen(initFile,"r");
-    if(!pf)
-       return -1;
-    char l[256];
-    int ret;
-    while ((ret = fscanf (pf,"%s",&l)) != EOF && ret != 0){
-        xpcfComponentManager->load(l);
-        // instantiate module managers
-        if (!xpcfComponentManager->isLoaded()) // xpcf library load has failed
-        {
-            LOG_ERROR("XPCF library load has failed")
-            fclose(pf);
-            return -1;
-        }
-    }
-    fclose(pf);
-    return 0;
-}
-
 int main(int argc, char *argv[])
 {
 
@@ -102,7 +81,7 @@ int main(int argc, char *argv[])
     LOG_ADD_LOG_TO_CONSOLE();
 //LOG_ADD_LOG_TO_FILE(".SolarLog.log","r");
 
-    if(argc<5) {
+    if(argc<4) {
         printHelp();
          return -1;
     }
@@ -114,8 +93,12 @@ int main(int argc, char *argv[])
     /* this is needed in dynamic mode */
     SRef<xpcf::IComponentManager> xpcfComponentManager = xpcf::getComponentManagerInstance();
 
-    if( intConfig(argv[4],xpcfComponentManager)!=0 )
+    xpcfComponentManager->load("$BCOMDEVROOT/.xpcf/SolAR/", true);
+    if (!xpcfComponentManager->isLoaded()) // xpcf library load has failed
+    {
+        LOG_ERROR("XPCF library load has failed")
         return -1;
+    }
 
     // declare and create components
     LOG_INFO("Start creating components");
