@@ -53,3 +53,8 @@
 .vs*
 x64*
 *.vcxproj.user
+build-SolARNaturalImageMarkerStatic/logAkaze.log
+build-SolARNaturalImageMarkerStatic/graf1.png
+build-SolARNaturalImageMarkerStatic/Makefile
+build-SolARNaturalImageMarkerStatic/camera_calibration.yml
+build-SolARNaturalImageMarkerStatic/grafMarker.yml
