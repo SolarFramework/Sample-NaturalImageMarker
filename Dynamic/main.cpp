@@ -170,7 +170,7 @@ int main(int argc, char *argv[])
 	descriptorExtractor->extract(refImage, refKeypoints, refDescriptors);
 	LOG_INFO("EXTRACT MARKER DESCRIPTORS COMPUTED");
 
-#ifdef DEBUG
+#ifndef NDEBUG
 	// display keypoints in reference image
 	// copy reference image
 	SRef<Image> kpImage = refImage->copy();
@@ -249,7 +249,7 @@ int main(int argc, char *argv[])
 		// detect keypoints in camera image
 		kpDetector->detect(camImage, camKeypoints);
 		// Not working, C2664 : cannot convert argument 1 from std::vector<boost_shared_ptr<Keypoint>> to std::vector<boost_shared_ptr<Point2Df>> !
-#ifdef DEBUG
+#ifndef NDEBUG
         kpImageCam = camImage->copy();
 		overlay2DComponent->drawCircles(camKeypoints, 3, 1, kpImageCam);
 #endif
@@ -319,7 +319,7 @@ int main(int argc, char *argv[])
                     if (pose(3, 3) != 0.0)
 					{
 						/* We draw a box on the place of the recognized natural marker*/
-#ifdef DEBUG
+#ifndef NDEBUG
                         overlay3DComponent->drawBox(pose, marker->getWidth(), marker->getHeight(), marker->getWidth()*0.5f, affineTransform, kpImageCam);
 #else
                         overlay3DComponent->drawBox(pose, marker->getWidth(), marker->getHeight(), marker->getWidth()*0.5f, affineTransform, camImage);
@@ -338,7 +338,7 @@ int main(int argc, char *argv[])
 
 
 		}
-#ifdef DEBUG
+#ifndef NDEBUG
         if (imageViewer->display("Natural Image Marker", kpImageCam, &escape_key) == SolAR::FrameworkReturnCode::_STOP)
 #else
         if (imageViewer->display("Natural Image Marker", camImage, &escape_key) == SolAR::FrameworkReturnCode::_STOP)
