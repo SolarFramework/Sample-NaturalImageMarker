@@ -4,6 +4,8 @@
 
 #include <iostream>
 
+#include <boost/log/core.hpp>
+
 using namespace std;
 #include "SolARCameraOpencv.h"
 #include "SolARImageViewerOpencv.h"
@@ -63,6 +65,10 @@ int printHelp(){
 int main(int argc, char *argv[])
 {
 
+#if NDEBUG
+    boost::log::core::get()->set_logging_enabled(false);
+#endif
+
     LOG_ADD_LOG_TO_CONSOLE();
 	LOG_ADD_LOG_TO_FILE("./logAkaze.log");
 
@@ -75,46 +81,28 @@ int main(int argc, char *argv[])
 
     // declare components
     LOG_INFO("Start creating components");
-    boost::uuids::string_generator gen;
-    SRef<input::devices::ICamera>                camera;
-    SRef<input::files::IMarker2DNaturalImage>   marker;
-    SRef<features::IKeypointDetector>           kpDetector;
-    SRef<features::IDescriptorsExtractor>       descriptorExtractor;
-    SRef<features::IDescriptorMatcher>          matcher;
-    SRef<features::IMatchesFilter>              basicMatchesFilter;
-    SRef<features::IMatchesFilter>              geomMatchesFilter;
-    SRef<features::IKeypointsReIndexer>         keypointsReindexer;
-    SRef<geom::IImage2WorldMapper>              img_mapper;
-    SRef<geom::I2DTransform>                    transform2D;
-    SRef<solver::pose::I2DTransformFinder>      homographyEstimation;
-    SRef<solver::pose::IHomographyValidation>   homographyValidation;
-    SRef<solver::pose::I3DTransformFinder>      poseEstimation;
-    SRef<display::IImageViewer>                 imageViewer;
-    SRef<display::I2DOverlay>                   overlay2DComponent;
-    SRef<display::I3DOverlay>                   overlay3DComponent;
 
-    // create components
-    xpcf::ComponentFactory::createComponent<SolARCameraOpencv>(gen(input::devices::ICamera::UUID ), camera);
-    xpcf::ComponentFactory::createComponent<SolARMarker2DNaturalImageOpencv>(gen(input::files::IMarker2DNaturalImage::UUID ), marker);
-    xpcf::ComponentFactory::createComponent<SolARKeypointDetectorOpencv>(gen(features::IKeypointDetector::UUID ), kpDetector);
+    auto camera =xpcf::ComponentFactory::createInstance<SolARCameraOpencv>()->bindTo<input::devices::ICamera>();
+    auto imageViewer =xpcf::ComponentFactory::createInstance<SolARImageViewerOpencv>()->bindTo<display::IImageViewer>();
+    auto marker =xpcf::ComponentFactory::createInstance<SolARMarker2DNaturalImageOpencv>()->bindTo<input::files::IMarker2DNaturalImage>();
+    auto kpDetector =xpcf::ComponentFactory::createInstance<SolARKeypointDetectorOpencv>()->bindTo<features::IKeypointDetector>();
+    auto  matcher =xpcf::ComponentFactory::createInstance<SolARDescriptorMatcherKNNOpencv>()->bindTo<features::IDescriptorMatcher>();
+    auto basicMatchesFilter =xpcf::ComponentFactory::createInstance<SolARBasicMatchesFilter>()->bindTo<features::IMatchesFilter>();
+    auto geomMatchesFilter =xpcf::ComponentFactory::createInstance<SolARGeometricMatchesFilterOpencv>()->bindTo<features::IMatchesFilter>();
+    auto homographyEstimation =xpcf::ComponentFactory::createInstance<SolARHomographyEstimationOpencv>()->bindTo<solver::pose::I2DTransformFinder>();
+    auto homographyValidation =xpcf::ComponentFactory::createInstance<SolARHomographyValidation>()->bindTo<solver::pose::IHomographyValidation>();
+    auto keypointsReindexer =xpcf::ComponentFactory::createInstance<SolARKeypointsReIndexer>()->bindTo<features::IKeypointsReIndexer>();
+    auto poseEstimation =xpcf::ComponentFactory::createInstance<SolARPoseEstimationPnpOpencv>()->bindTo<solver::pose::I3DTransformFinder>();
+    auto overlay2DComponent =xpcf::ComponentFactory::createInstance<SolAR2DOverlayOpencv>()->bindTo<display::I2DOverlay>();
+    auto overlay3DComponent =xpcf::ComponentFactory::createInstance<SolAR3DOverlayOpencv>()->bindTo<display::I3DOverlay>();
+    auto img_mapper =xpcf::ComponentFactory::createInstance<SolARImage2WorldMapper4Marker2D>()->bindTo<geom::IImage2WorldMapper>();
+    auto transform2D =xpcf::ComponentFactory::createInstance<SolAR2DTransform>()->bindTo<geom::I2DTransform>();
+
 #ifdef USE_AKAZE2
-    xpcf::ComponentFactory::createComponent<SolARDescriptorsExtractorAKAZE2Opencv>(gen(features::IDescriptorsExtractor::UUID ), descriptorExtractor);
+    auto descriptorExtractor =  xpcf::ComponentFactory::createInstance<SolARDescriptorsExtractorAKAZE2Opencv>()->bindTo<features::IDescriptorsExtractor>();
 #else
-	xpcf::ComponentFactory::createComponent<SolARDescriptorsExtractorAKAZEOpencv>(gen(features::IDescriptorsExtractor::UUID), descriptorExtractor);
+    auto descriptorExtractor = xpcf::ComponentFactory::createInstance<SolARDescriptorsExtractorAKAZEOpencv>()->bindTo<features::IDescriptorsExtractor>();
 #endif
-    xpcf::ComponentFactory::createComponent<SolARDescriptorMatcherKNNOpencv>(gen(features::IDescriptorMatcher::UUID ), matcher);
-    xpcf::ComponentFactory::createComponent<SolARBasicMatchesFilter>(gen(features::IMatchesFilter::UUID ), basicMatchesFilter);
-    xpcf::ComponentFactory::createComponent<SolARGeometricMatchesFilterOpencv>(gen(features::IMatchesFilter::UUID ), geomMatchesFilter);
-
-    xpcf::ComponentFactory::createComponent<SolARKeypointsReIndexer>(gen(features::IKeypointsReIndexer::UUID ), keypointsReindexer);
-    xpcf::ComponentFactory::createComponent<SolARImage2WorldMapper4Marker2D>(gen(geom::IImage2WorldMapper::UUID ), img_mapper);
-    xpcf::ComponentFactory::createComponent<SolAR2DTransform>(gen(geom::I2DTransform::UUID ), transform2D);
-    xpcf::ComponentFactory::createComponent<SolARHomographyEstimationOpencv>(gen(solver::pose::I2DTransformFinder::UUID ), homographyEstimation);
-    xpcf::ComponentFactory::createComponent<SolARHomographyValidation>(gen(solver::pose::IHomographyValidation::UUID ), homographyValidation);
-    xpcf::ComponentFactory::createComponent<SolARPoseEstimationPnpOpencv>(gen(solver::pose::I3DTransformFinder::UUID ), poseEstimation);
-    xpcf::ComponentFactory::createComponent<SolARImageViewerOpencv>(gen(display::IImageViewer::UUID ), imageViewer);
-    xpcf::ComponentFactory::createComponent<SolAR2DOverlayOpencv>(gen(display::I2DOverlay::UUID ), overlay2DComponent);
-    xpcf::ComponentFactory::createComponent<SolAR3DOverlayOpencv>(gen(display::I3DOverlay::UUID ), overlay3DComponent);
 
     LOG_INFO("All components have been created");
 

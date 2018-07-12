@@ -3,20 +3,44 @@
 
 #include <iostream>
 
-using namespace std;
-#include "IComponentManager.h"
+#include <boost/log/core.hpp>
 
-#include "SolARModuleManagerOpencv.h"
-#include "SolARModuleManagerTools.h"
+using namespace std;
+#include "SolARModuleOpencv_traits.h"
+
+#include "SolARModuleTools_traits.h"
+
+#include "xpcf/component/ComponentBase.h"
+#include "api/display/IImageViewer.h"
+#include "api/input/devices/ICamera.h"
+#include "api/display/IImageViewer.h"
+#include "api/input/files/IMarker2DNaturalImage.h"
+#include "api/features/IKeypointDetector.h"
+#include "api/features/IDescriptorMatcher.h"
+#include "api/features/IDescriptorsExtractor.h"
+#include "api/features/IMatchesFilter.h"
+#include "api/features/IMatchesFilter.h"
+#include "api/solver/pose/I2DTransformFinder.h"
+#include "api/solver/pose/IHomographyValidation.h"
+#include "api/features/IKeypointsReIndexer.h"
+#include "api/solver/pose/I3DTransformFinder.h"
+#include "api/display/I2DOverlay.h"
+#include "api/display/ISideBySideOverlay.h"
+#include "api/display/I3DOverlay.h"
+#include "api/geom/IImage2WorldMapper.h"
+#include "api/geom/I2DTransform.h"
+
 #include "SolAROpenCVHelper.h"
 
-//#include "datastructure/SolARDescriptorMatch.h"
+
 #include "SharedBuffer.hpp"
 
 #include <boost/timer/timer.hpp>
 #include <boost/chrono.hpp>
 
 using namespace SolAR;
+using namespace SolAR::MODULES::OPENCV;
+using namespace SolAR::MODULES::TOOLS;
 using namespace SolAR::datastructure;
 using namespace SolAR::api;
 using namespace SolAR::api::solver::pose;
@@ -45,15 +69,19 @@ int printHelp(){
 }
 
 
-
 int main(int argc, char *argv[])
 {
+
+#if NDEBUG
+    boost::log::core::get()->set_logging_enabled(false);
+#endif
+
 
 //    SolARLog::init();
     LOG_ADD_LOG_TO_CONSOLE();
 //LOG_ADD_LOG_TO_FILE(".SolarLog.log","r");
 
-    if(argc<5) {
+    if(argc<4) {
         printHelp();
          return -1;
     }
@@ -61,17 +89,16 @@ int main(int argc, char *argv[])
     LOG_INFO("program is running");
 
 
-    /* instantiate module manager*/
+    /* instantiate component manager*/
     /* this is needed in dynamic mode */
-    MODULES::OPENCV::SolARModuleManagerOpencv opencvModule(argv[4]);
-    if (!opencvModule.isLoaded()) // xpcf library load has failed
+    SRef<xpcf::IComponentManager> xpcfComponentManager = xpcf::getComponentManagerInstance();
+
+    if(xpcfComponentManager->load("$BCOMDEVROOT/.xpcf/SolAR/xpcf_SolARModuleOpenCV_registry.xml")!=org::bcom::xpcf::_SUCCESS)
     {
         LOG_ERROR("XPCF library load has failed")
         return -1;
     }
-
-    MODULES::TOOLS::SolARModuleManagerTools toolsModule(argv[4]);
-    if (!toolsModule.isLoaded()) // xpcf library load has failed
+    if(xpcfComponentManager->load("$BCOMDEVROOT/.xpcf/SolAR/xpcf_SolARModuleTools_registry.xml")!=org::bcom::xpcf::_SUCCESS)
     {
         LOG_ERROR("XPCF library load has failed")
         return -1;
@@ -79,27 +106,28 @@ int main(int argc, char *argv[])
 
     // declare and create components
     LOG_INFO("Start creating components");
-    SRef<input::devices::ICamera> camera = opencvModule.createComponent<input::devices::ICamera>(MODULES::OPENCV::UUID::CAMERA);
-    SRef<display::IImageViewer> imageViewer = opencvModule.createComponent<display::IImageViewer>(MODULES::OPENCV::UUID::IMAGE_VIEWER);
-    SRef<input::files::IMarker2DNaturalImage> marker = opencvModule.createComponent<input::files::IMarker2DNaturalImage>(MODULES::OPENCV::UUID::MARKER2D_NATURAL_IMAGE);
-    SRef<features::IKeypointDetector> kpDetector = opencvModule.createComponent<features::IKeypointDetector>(MODULES::OPENCV::UUID::KEYPOINT_DETECTOR);
-	SRef<features::IDescriptorMatcher>  matcher = opencvModule.createComponent<features::IDescriptorMatcher>(MODULES::OPENCV::UUID::DESCRIPTOR_MATCHER_KNN);
-    SRef<features::IMatchesFilter> basicMatchesFilter = toolsModule.createComponent<features::IMatchesFilter>(MODULES::TOOLS::UUID::BASIC_MATCHES_FILTER);
-    SRef<features::IMatchesFilter> geomMatchesFilter = opencvModule.createComponent<features::IMatchesFilter>(MODULES::OPENCV::UUID::GEOMETRIC_MATCHES_FILTER);
-    SRef<solver::pose::I2DTransformFinder> homographyEstimation = opencvModule.createComponent<solver::pose::I2DTransformFinder>(MODULES::OPENCV::UUID::HOMOGRAPHY_ESTIMATION);
-    SRef<solver::pose::IHomographyValidation> homographyValidation = toolsModule.createComponent<solver::pose::IHomographyValidation>(MODULES::TOOLS::UUID::HOMOGRAPHY_VALIDATION);
-    SRef<features::IKeypointsReIndexer>   keypointsReindexer = toolsModule.createComponent<features::IKeypointsReIndexer>(MODULES::TOOLS::UUID::KEYPOINTS_REINDEXER);
-    SRef<solver::pose::I3DTransformFinder> poseEstimation = opencvModule.createComponent<solver::pose::I3DTransformFinder>(MODULES::OPENCV::UUID::POSE_ESTIMATION_PNP);
-    SRef<display::I2DOverlay> overlay2DComponent = opencvModule.createComponent<display::I2DOverlay>(MODULES::OPENCV::UUID::OVERLAY2D);
-    SRef<display::ISideBySideOverlay> overlaySBSComponent = opencvModule.createComponent<display::ISideBySideOverlay>(MODULES::OPENCV::UUID::OVERLAYSBS);
-    SRef<display::I3DOverlay> overlay3DComponent = opencvModule.createComponent<display::I3DOverlay>(MODULES::OPENCV::UUID::OVERLAY3D);
-    SRef<geom::IImage2WorldMapper> img_mapper = toolsModule.createComponent<geom::IImage2WorldMapper>(MODULES::TOOLS::UUID::IMAGE2WORLD_MAPPER);
-    SRef<geom::I2DTransform> transform2D = toolsModule.createComponent<geom::I2DTransform>(MODULES::TOOLS::UUID::TRANSFORM2D);
+
+    auto camera = xpcfComponentManager->create<SolARCameraOpencv>()->bindTo<input::devices::ICamera>();
+    auto imageViewer = xpcfComponentManager->create<SolARImageViewerOpencv>()->bindTo<display::IImageViewer>();
+    auto marker = xpcfComponentManager->create<SolARMarker2DNaturalImageOpencv>()->bindTo<input::files::IMarker2DNaturalImage>();
+    auto kpDetector = xpcfComponentManager->create<SolARKeypointDetectorOpencv>()->bindTo<features::IKeypointDetector>();
+    auto  matcher = xpcfComponentManager->create<SolARDescriptorMatcherKNNOpencv>()->bindTo<features::IDescriptorMatcher>();
+    auto basicMatchesFilter = xpcfComponentManager->create<SolARBasicMatchesFilter>()->bindTo<features::IMatchesFilter>();
+    auto geomMatchesFilter = xpcfComponentManager->create<SolARGeometricMatchesFilterOpencv>()->bindTo<features::IMatchesFilter>();
+    auto homographyEstimation = xpcfComponentManager->create<SolARHomographyEstimationOpencv>()->bindTo<solver::pose::I2DTransformFinder>();
+    auto homographyValidation = xpcfComponentManager->create<SolARHomographyValidation>()->bindTo<solver::pose::IHomographyValidation>();
+    auto keypointsReindexer = xpcfComponentManager->create<SolARKeypointsReIndexer>()->bindTo<features::IKeypointsReIndexer>();
+    auto poseEstimation = xpcfComponentManager->create<SolARPoseEstimationPnpOpencv>()->bindTo<solver::pose::I3DTransformFinder>();
+    auto overlay2DComponent = xpcfComponentManager->create<SolAR2DOverlayOpencv>()->bindTo<display::I2DOverlay>();
+    auto overlaySBSComponent = xpcfComponentManager->create<SolARSideBySideOverlayOpencv>()->bindTo<display::ISideBySideOverlay>();
+    auto overlay3DComponent = xpcfComponentManager->create<SolAR3DOverlayOpencv>()->bindTo<display::I3DOverlay>();
+    auto img_mapper = xpcfComponentManager->create<SolARImage2WorldMapper4Marker2D>()->bindTo<geom::IImage2WorldMapper>();
+    auto transform2D = xpcfComponentManager->create<SolAR2DTransform>()->bindTo<geom::I2DTransform>();
 
 #ifdef USE_AKAZE2
-    SRef<features::IDescriptorsExtractor> descriptorExtractor = opencvModule.createComponent<features::IDescriptorsExtractor>(MODULES::OPENCV::UUID::DESCRIPTORS_EXTRACTOR_AKAZE2);
+    auto descriptorExtractor =  xpcfComponentManager->create<SolARDescriptorsExtractorAKAZE2Opencv>()->bindTo<features::IDescriptorsExtractor>();
 #else
-  	SRef<features::IDescriptorsExtractor> descriptorExtractor = opencvModule.createComponent<features::IDescriptorsExtractor>(MODULES::OPENCV::UUID::DESCRIPTORS_EXTRACTOR_AKAZE);
+    auto descriptorExtractor = xpcfComponentManager->create<SolARDescriptorsExtractorAKAZEOpencv>()->bindTo<features::IDescriptorsExtractor>();
 #endif
 
     /* in dynamic mode, we need to check that components are well created*/
