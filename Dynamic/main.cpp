@@ -1,5 +1,18 @@
-#define USE_AKAZE2
-
+/**
+ * @copyright Copyright (c) 2017 B-com http://www.b-com.com/
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #include <iostream>
 
@@ -81,7 +94,7 @@ int main(int argc, char *argv[])
     LOG_ADD_LOG_TO_CONSOLE();
 //LOG_ADD_LOG_TO_FILE(".SolarLog.log","r");
 
-    if(argc<4) {
+    if(argc<2) {
         printHelp();
          return -1;
     }
@@ -93,25 +106,20 @@ int main(int argc, char *argv[])
     /* this is needed in dynamic mode */
     SRef<xpcf::IComponentManager> xpcfComponentManager = xpcf::getComponentManagerInstance();
 
-    if(xpcfComponentManager->load("$BCOMDEVROOT/.xpcf/SolAR/xpcf_SolARModuleOpenCV_registry.xml")!=org::bcom::xpcf::_SUCCESS)
+    if(xpcfComponentManager->load(argv[1])!=org::bcom::xpcf::_SUCCESS)
     {
-        LOG_ERROR("XPCF library load has failed")
+        LOG_ERROR("Failed to load the configuration file {}", argv[1])
         return -1;
     }
-    if(xpcfComponentManager->load("$BCOMDEVROOT/.xpcf/SolAR/xpcf_SolARModuleTools_registry.xml")!=org::bcom::xpcf::_SUCCESS)
-    {
-        LOG_ERROR("XPCF library load has failed")
-        return -1;
-    }
-
     // declare and create components
     LOG_INFO("Start creating components");
 
     auto camera = xpcfComponentManager->create<SolARCameraOpencv>()->bindTo<input::devices::ICamera>();
-    auto imageViewer = xpcfComponentManager->create<SolARImageViewerOpencv>()->bindTo<display::IImageViewer>();
+    auto imageViewerKeypoints = xpcfComponentManager->create<SolARImageViewerOpencv>("keypoints")->bindTo<display::IImageViewer>();
+    auto imageViewerResult = xpcfComponentManager->create<SolARImageViewerOpencv>()->bindTo<display::IImageViewer>();
     auto marker = xpcfComponentManager->create<SolARMarker2DNaturalImageOpencv>()->bindTo<input::files::IMarker2DNaturalImage>();
     auto kpDetector = xpcfComponentManager->create<SolARKeypointDetectorOpencv>()->bindTo<features::IKeypointDetector>();
-    auto  matcher = xpcfComponentManager->create<SolARDescriptorMatcherKNNOpencv>()->bindTo<features::IDescriptorMatcher>();
+    auto matcher = xpcfComponentManager->create<SolARDescriptorMatcherKNNOpencv>()->bindTo<features::IDescriptorMatcher>();
     auto basicMatchesFilter = xpcfComponentManager->create<SolARBasicMatchesFilter>()->bindTo<features::IMatchesFilter>();
     auto geomMatchesFilter = xpcfComponentManager->create<SolARGeometricMatchesFilterOpencv>()->bindTo<features::IMatchesFilter>();
     auto homographyEstimation = xpcfComponentManager->create<SolARHomographyEstimationOpencv>()->bindTo<solver::pose::I2DTransformFinder>();
@@ -123,16 +131,11 @@ int main(int argc, char *argv[])
     auto overlay3DComponent = xpcfComponentManager->create<SolAR3DOverlayOpencv>()->bindTo<display::I3DOverlay>();
     auto img_mapper = xpcfComponentManager->create<SolARImage2WorldMapper4Marker2D>()->bindTo<geom::IImage2WorldMapper>();
     auto transform2D = xpcfComponentManager->create<SolAR2DTransform>()->bindTo<geom::I2DTransform>();
-
-#ifdef USE_AKAZE2
     auto descriptorExtractor =  xpcfComponentManager->create<SolARDescriptorsExtractorAKAZE2Opencv>()->bindTo<features::IDescriptorsExtractor>();
-#else
-    auto descriptorExtractor = xpcfComponentManager->create<SolARDescriptorsExtractorAKAZEOpencv>()->bindTo<features::IDescriptorsExtractor>();
-#endif
 
     /* in dynamic mode, we need to check that components are well created*/
     /* this is needed in dynamic mode */
-    if (!camera || !imageViewer || !marker || !kpDetector || !descriptorExtractor || !matcher || !basicMatchesFilter || !geomMatchesFilter || !homographyEstimation ||
+    if (!camera || !imageViewerKeypoints || !imageViewerResult || !marker || !kpDetector || !descriptorExtractor || !matcher || !basicMatchesFilter || !geomMatchesFilter || !homographyEstimation ||
         !homographyValidation ||!keypointsReindexer || !poseEstimation || !overlay2DComponent || !overlaySBSComponent || !overlay3DComponent || !img_mapper || !transform2D )
     {
         LOG_ERROR("One or more component creations have failed");
@@ -148,27 +151,17 @@ int main(int argc, char *argv[])
 	SRef<DescriptorBuffer> refDescriptors, camDescriptors;
 	std::vector<DescriptorMatch> matches;
 
-
 	Transform2Df Hm;
 	std::vector< SRef<Keypoint> > refKeypoints, camKeypoints;  // where to store detected keypoints in ref image and camera image
 
-															   // initialize keypoint detector
-	#ifdef USE_AKAZE2
-		kpDetector->setType(features::KeypointDetectorType::AKAZE2);
-	#else
-		kpDetector->setType(features::KeypointDetectorType::AKAZE);
-	#endif
-
 	// load marker
 	LOG_INFO("LOAD MARKER IMAGE ");
-	marker->loadMarker(argv[1]);
+    marker->loadMarker();
 	marker->getImage(refImage);
-
 
 	// detect keypoints in reference image
 	LOG_INFO("DETECT MARKER KEYPOINTS ");
 	kpDetector->detect(refImage, refKeypoints);
-
 
 	// extract descriptors in reference image
 	LOG_INFO("EXTRACT MARKER DESCRIPTORS ");
@@ -181,40 +174,22 @@ int main(int argc, char *argv[])
 	SRef<Image> kpImage = refImage->copy();
 	// draw circles on keypoints
 
-	overlay2DComponent->drawCircles(refKeypoints, 3, 1, kpImage);
+    overlay2DComponent->drawCircles(refKeypoints, kpImage);
 	// displays the image with circles in an imageviewer
-	imageViewer->display("reference keypoints", kpImage);
+    imageViewerKeypoints->display(kpImage);
 #endif
 
-	//  initalizes camera with the 3rd parameter of the program
-	std::string cameraArg = std::string(argv[3]);
-
-	//  checks if a video is given in parameters
-	if (cameraArg.find("mp4") != std::string::npos || cameraArg.find("wmv") != std::string::npos || cameraArg.find("avi") != std::string::npos)
-	{
-		if (camera->start(argv[3]) != FrameworkReturnCode::_SUCCESS) // videoFile
-		{
-			LOG_ERROR("Video with url {} does not exist", argv[3]);
-			return -1;
-		}
-	}
-	else
-	{  //no video in parameters, then the input camera is used
-		if (camera->start(atoi(argv[3])) != FrameworkReturnCode::_SUCCESS) // Camera
-		{
-			LOG_ERROR("Camera with id {} does not exist", argv[3]);
-			return -1;
-		}
-	}
-        // load camera parameters from yml input file
-        camera->loadCameraParameters(argv[2]);
+    if (camera->start() != FrameworkReturnCode::_SUCCESS) // videoFile
+    {
+        LOG_ERROR("Camera cannot start");
+        return -1;
+    }
 
 	// initialize overlay 3D component with the camera intrinsec parameters (please refeer to the use of intrinsec parameters file)
 	overlay3DComponent->setCameraParameters(camera->getIntrinsicsParameters(), camera->getDistorsionParameters());
 
 	// initialize pose estimation
 	poseEstimation->setCameraParameters(camera->getIntrinsicsParameters(), camera->getDistorsionParameters());
-
 
 	// initialize image mapper with the reference image size and marker size
 	img_mapper->setParameters(refImage->getSize(), marker->getSize());
@@ -224,9 +199,6 @@ int main(int argc, char *argv[])
 	clock_t start, end;
 	int count = 0;
 	start = clock();
-
-	// The escape key to exit the sample
-	char escape_key = 27;
 
 	// vector of 4 corners in the marker
 	std::vector<SRef <Point2Df>> refImgCorners;
@@ -256,7 +228,7 @@ int main(int argc, char *argv[])
 		// Not working, C2664 : cannot convert argument 1 from std::vector<boost_shared_ptr<Keypoint>> to std::vector<boost_shared_ptr<Point2Df>> !
 #ifndef NDEBUG
         kpImageCam = camImage->copy();
-		overlay2DComponent->drawCircles(camKeypoints, 3, 1, kpImageCam);
+        overlay2DComponent->drawCircles(camKeypoints, kpImageCam);
 #endif
 		/* you can either draw keypoints */
 		// kpDetector->drawKeypoints(camImage,camKeypoints,kpImageCam);
@@ -344,9 +316,9 @@ int main(int argc, char *argv[])
 
 		}
 #ifndef NDEBUG
-        if (imageViewer->display("Natural Image Marker", kpImageCam, &escape_key) == SolAR::FrameworkReturnCode::_STOP)
+        if (imageViewerResult->display(kpImageCam) == SolAR::FrameworkReturnCode::_STOP)
 #else
-        if (imageViewer->display("Natural Image Marker", camImage, &escape_key) == SolAR::FrameworkReturnCode::_STOP)
+        if (imageViewerResult->display(camImage) == SolAR::FrameworkReturnCode::_STOP)
 #endif
         break;
 	}
