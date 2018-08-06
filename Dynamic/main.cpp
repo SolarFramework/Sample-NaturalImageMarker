@@ -66,24 +66,6 @@ namespace xpcf  = org::bcom::xpcf;
 #include <thread>         // std::this_thread::sleep_for
 #include <chrono>         // std::chrono::seconds
 
-/* print this help message to explain which arguments to pass*/
-/* the content of the message displayed is in the readme.adoc file*/
-int printHelp(){
-    LOG_INFO("Missing parameters");
-    const char *filename = "readme.adoc";
-    std::ifstream ifs(filename);
-    if(!ifs){
-        LOG_ERROR("File {} does not exist", filename)
-        return 1;
-    }
-    std::string line;
-    while(std::getline(ifs,line))
-        LOG_INFO("{}", line)
-    ifs.close();
-    return 1;
-}
-
-
 int main(int argc, char *argv[])
 {
 
@@ -96,11 +78,6 @@ int main(int argc, char *argv[])
     LOG_ADD_LOG_TO_CONSOLE();
 //LOG_ADD_LOG_TO_FILE(".SolarLog.log","r");
 
-    if(argc<2) {
-        printHelp();
-         return -1;
-    }
-
     LOG_INFO("program is running");
 
 
@@ -108,9 +85,9 @@ int main(int argc, char *argv[])
     /* this is needed in dynamic mode */
     SRef<xpcf::IComponentManager> xpcfComponentManager = xpcf::getComponentManagerInstance();
 
-    if(xpcfComponentManager->load(argv[1])!=org::bcom::xpcf::_SUCCESS)
+    if(xpcfComponentManager->load("conf_NaturalImageMarker.xml")!=org::bcom::xpcf::_SUCCESS)
     {
-        LOG_ERROR("Failed to load the configuration file {}", argv[1])
+        LOG_ERROR("Failed to load the configuration file conf_NaturalImageMarker.xml", argv[1])
         return -1;
     }
     // declare and create components
@@ -161,7 +138,7 @@ int main(int argc, char *argv[])
     marker->loadMarker();
 	marker->getImage(refImage);
 
-    // Set the size of the box to the size of the natural image marker
+    // NOT WORKING ! Set the size of the box to the size of the natural image marker
     overlay3DComponent->bindTo<xpcf::IConfigurable>()->getProperty("size")->setFloatingValue(marker->getWidth(),0);
     overlay3DComponent->bindTo<xpcf::IConfigurable>()->getProperty("size")->setFloatingValue(marker->getHeight(),1);
     overlay3DComponent->bindTo<xpcf::IConfigurable>()->getProperty("size")->setFloatingValue(marker->getHeight()/2.0f,2);
