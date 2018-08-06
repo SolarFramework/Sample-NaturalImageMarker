@@ -102,6 +102,46 @@
 			<property name="imageRatio" type="Float" value="0.5"/>
 			<property name="nbDescriptors" type="Integer" value="1000"/>
         </component>
+		<component uuid="7823dac8-1597-41cf-bdef-59aa22f3d40a"> <!-- SolARDescriptorMatcherKNNOpencv -->
+			<property name="distanceRatio" type="Float" value="0.75"/>
+		</component>
+		<component uuid="3731691e-2c4c-4d37-a2ce-06d1918f8d41"> <!-- SolARGeometricMatchesFilterOpencv -->
+            <property name="m_confidenceLevel" type="Double" value="0.99"/>
+			<property name="m_outlierDistanceRatio" type="Double" value="0.006"/>
+        </component>
+		<component uuid="fb9dac20-2a44-44b2-aa42-2871eec31427"> <!-- SolARHomographyEstimationOpencv -->
+            <property name="ransacReprojThreshold" type="Double" value="8.0"/>
+        </component>
+		<component uuid="31188e79-6bd5-43df-9633-6d6c5d7afb5c"> <!--SolARFundamentalMatrixDecompisitionValidationOpencv -->
+            <property name="oppositeSideRatio" type="Float" value="0.5"/>
+			<property name="surfaceRatio" type="Float" value="0.15"/>
+			<property name="maxOppositeDotProduct" type="Float" value="0.9"/>
+        </component>
+		<component uuid="0753ade1-7932-4e29-a71c-66155e309a53"> <!-- SolARPoseEstimationPnpOpencv -->
+            <property name="iterationsCount" type="Integer" value="1000"/>
+			<property name="reprojError" type="Float" value="4.0"/>
+			<property name="confidence" type="Float" value="0.99"/>
+        </component>
+		<component uuid="21238c00-26dd-11e8-b467-0ed5f89f718b"> <!-- SolARDescriptorsExtractorAKAZE2Opencv -->
+            <property name="threshold" type="Float" value="3e-4"/>
+        </component>
+		<component uuid="2db01f59-9793-4cd5-8e13-b25d0ed5735b"> <!-- SolAR3DOverlayBoxOpencv -->
+            <property name="position"  type="Float">
+				<value>0</value>
+				<value>0</value>
+				<value>0</value>
+			</property>
+			<property name="orientation"  type="Float">
+				<value>0.0</value>
+				<value>0.0</value>
+				<value>0.0</value>
+			</property>
+			<property name="size"  type="Float">
+				<value>0.285</value>
+				<value>0.197</value>
+				<value>0.1</value>
+			</property>
+        </component>
 		<component uuid="cc51d685-9797-4ffd-a9dd-cec4f367fa6a"> <!-- SolAROverlay2DOpencv -->
 			<property name="thickness" type="UnsignedInteger" value="1"/>
 			<property name="radius" type="UnsignedInteger" value="3"/>

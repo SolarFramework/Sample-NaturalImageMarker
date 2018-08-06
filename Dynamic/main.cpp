@@ -23,6 +23,8 @@ using namespace std;
 
 #include "SolARModuleTools_traits.h"
 
+#include "xpcf/xpcf.h"
+
 #include "xpcf/component/ComponentBase.h"
 #include "api/display/IImageViewer.h"
 #include "api/input/devices/ICamera.h"
@@ -128,7 +130,7 @@ int main(int argc, char *argv[])
     auto poseEstimation = xpcfComponentManager->create<SolARPoseEstimationPnpOpencv>()->bindTo<solver::pose::I3DTransformFinder>();
     auto overlay2DComponent = xpcfComponentManager->create<SolAR2DOverlayOpencv>()->bindTo<display::I2DOverlay>();
     auto overlaySBSComponent = xpcfComponentManager->create<SolARSideBySideOverlayOpencv>()->bindTo<display::ISideBySideOverlay>();
-    auto overlay3DComponent = xpcfComponentManager->create<SolAR3DOverlayOpencv>()->bindTo<display::I3DOverlay>();
+    auto overlay3DComponent = xpcfComponentManager->create<SolAR3DOverlayBoxOpencv>()->bindTo<display::I3DOverlay>();
     auto img_mapper = xpcfComponentManager->create<SolARImage2WorldMapper4Marker2D>()->bindTo<geom::IImage2WorldMapper>();
     auto transform2D = xpcfComponentManager->create<SolAR2DTransform>()->bindTo<geom::I2DTransform>();
     auto descriptorExtractor =  xpcfComponentManager->create<SolARDescriptorsExtractorAKAZE2Opencv>()->bindTo<features::IDescriptorsExtractor>();
@@ -158,6 +160,11 @@ int main(int argc, char *argv[])
 	LOG_INFO("LOAD MARKER IMAGE ");
     marker->loadMarker();
 	marker->getImage(refImage);
+
+    // Set the size of the box to the size of the natural image marker
+    overlay3DComponent->bindTo<xpcf::IConfigurable>()->getProperty("size")->setFloatingValue(marker->getWidth(),0);
+    overlay3DComponent->bindTo<xpcf::IConfigurable>()->getProperty("size")->setFloatingValue(marker->getHeight(),1);
+    overlay3DComponent->bindTo<xpcf::IConfigurable>()->getProperty("size")->setFloatingValue(marker->getHeight()/2.0f,2);
 
 	// detect keypoints in reference image
 	LOG_INFO("DETECT MARKER KEYPOINTS ");
@@ -192,7 +199,10 @@ int main(int argc, char *argv[])
 	poseEstimation->setCameraParameters(camera->getIntrinsicsParameters(), camera->getDistorsionParameters());
 
 	// initialize image mapper with the reference image size and marker size
-	img_mapper->setParameters(refImage->getSize(), marker->getSize());
+    img_mapper->bindTo<xpcf::IConfigurable>()->getProperty("digitalWidth")->setIntegerValue(refImage->getSize().width);
+    img_mapper->bindTo<xpcf::IConfigurable>()->getProperty("digitalHeight")->setIntegerValue(refImage->getSize().height);
+    img_mapper->bindTo<xpcf::IConfigurable>()->getProperty("worldWidth")->setFloatingValue(marker->getSize().width);
+    img_mapper->bindTo<xpcf::IConfigurable>()->getProperty("worldHeight")->setFloatingValue(marker->getSize().height);
 
 	// to count the average number of processed frames per seconds
 	boost::timer::cpu_timer mytimer;
@@ -253,9 +263,6 @@ int main(int argc, char *argv[])
 		std::vector <SRef<Point2Df>> markerCornersinCamImage;
 		std::vector <SRef<Point3Df>> markerCornersinWorld;
 
-		std::vector<unsigned int> bgrValues;
-
-
 		/*we consider that, if we have less than 10 matches (arbitrarily), we can't compute homography for the current frame */
 
 		if (matches.size()> 10) {
@@ -286,20 +293,14 @@ int main(int argc, char *argv[])
 					/* The pose could also be estimated from all the points used to estimate the homography */
                     poseEstimation->estimate(markerCornersinCamImage, markerCornersinWorld, pose);
 
-
-					//LOG_INFO("Pose : {}", pose.toString());
-					//poseEstimation->poseFromSolvePNP(pose, cam2Dpoints,ref3Dpoints);
-
-					Transform3Df affineTransform = Transform3Df::Identity();
-
 					/* The pose last parameter can not be 0, so this is an error case*/
                     if (pose(3, 3) != 0.0)
 					{
 						/* We draw a box on the place of the recognized natural marker*/
 #ifndef NDEBUG
-                        overlay3DComponent->drawBox(pose, marker->getWidth(), marker->getHeight(), marker->getWidth()*0.5f, affineTransform, kpImageCam);
+                        overlay3DComponent->draw(pose, kpImageCam);
 #else
-                        overlay3DComponent->drawBox(pose, marker->getWidth(), marker->getHeight(), marker->getWidth()*0.5f, affineTransform, camImage);
+                        overlay3DComponent->draw(pose, camImage);
 #endif
                     }
 					else
