@@ -38,7 +38,7 @@ using namespace std;
 #include "api/solver/pose/I2DTransformFinder.h"
 #include "api/solver/pose/IHomographyValidation.h"
 #include "api/features/IKeypointsReIndexer.h"
-#include "api/solver/pose/I3DTransformFinder.h"
+#include "api/solver/pose/I3DTransformFinderFrom2D3D.h"
 #include "api/display/I2DOverlay.h"
 #include "api/display/ISideBySideOverlay.h"
 #include "api/display/I3DOverlay.h"
@@ -73,10 +73,8 @@ int main(int argc, char *argv[])
     boost::log::core::get()->set_logging_enabled(false);
 #endif
 
-
 //    SolARLog::init();
     LOG_ADD_LOG_TO_CONSOLE();
-//LOG_ADD_LOG_TO_FILE(".SolarLog.log","r");
 
     LOG_INFO("program is running");
 
@@ -104,7 +102,7 @@ int main(int argc, char *argv[])
     auto homographyEstimation = xpcfComponentManager->create<SolARHomographyEstimationOpencv>()->bindTo<solver::pose::I2DTransformFinder>();
     auto homographyValidation = xpcfComponentManager->create<SolARHomographyValidation>()->bindTo<solver::pose::IHomographyValidation>();
     auto keypointsReindexer = xpcfComponentManager->create<SolARKeypointsReIndexer>()->bindTo<features::IKeypointsReIndexer>();
-    auto poseEstimation = xpcfComponentManager->create<SolARPoseEstimationPnpOpencv>()->bindTo<solver::pose::I3DTransformFinder>();
+    auto poseEstimation = xpcfComponentManager->create<SolARPoseEstimationPnpOpencv>()->bindTo<solver::pose::I3DTransformFinderFrom2D3D>();
     auto overlay2DComponent = xpcfComponentManager->create<SolAR2DOverlayOpencv>()->bindTo<display::I2DOverlay>();
     auto overlaySBSComponent = xpcfComponentManager->create<SolARSideBySideOverlayOpencv>()->bindTo<display::ISideBySideOverlay>();
     auto overlay3DComponent = xpcfComponentManager->create<SolAR3DOverlayBoxOpencv>()->bindTo<display::I3DOverlay>();
@@ -290,15 +288,13 @@ int main(int argc, char *argv[])
 					LOG_INFO("Wrong homography for this frame");
 
 			}
-
-
 		}
 #ifndef NDEBUG
         if (imageViewerResult->display(kpImageCam) == SolAR::FrameworkReturnCode::_STOP)
 #else
         if (imageViewerResult->display(camImage) == SolAR::FrameworkReturnCode::_STOP)
 #endif
-        break;
+            break;
 	}
 
 	end = clock();
