@@ -40,6 +40,10 @@
                 <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" description="IComponentIntrospect"/>
                 <interface uuid="77281cda-47c2-4bb7-bde6-5b0d02e75dae" description="I3DTransformFinder"/>
         </component>
+		<component uuid="a38edf79-f0dc-45ca-92fc-2b336fceedf9" description="SolARPoseEstimationPnpEPFL">
+                <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" description="IComponentIntrospect"/>
+                <interface uuid="77281cda-47c2-4bb7-bde6-5b0d02e75dae" description="I3DTransformFinderFrom2D3D"/>
+        </component>
 		<component uuid="cc51d685-9797-4ffd-a9dd-cec4f367fa6a" description="SolAR2DOverlayOpencv">
                 <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" description="IComponentIntrospect"/>
                 <interface uuid="62b8b0b5-9344-40e6-a288-e609eb3ff0f1" description="I2DOverlay"/>
@@ -121,6 +125,9 @@
             <property name="iterationsCount" type="Integer" value="1000"/>
 			<property name="reprojError" type="Float" value="4.0"/>
 			<property name="confidence" type="Float" value="0.99"/>
+        </component>
+		<component uuid="a38edf79-f0dc-45ca-92fc-2b336fceedf9"> <!-- SolARPoseEstimationPnpEPFL -->
+            <property name="maxNumberCorrespondences" type="Integer" value="200"/>
         </component>
 		<component uuid="21238c00-26dd-11e8-b467-0ed5f89f718b"> <!-- SolARDescriptorsExtractorAKAZE2Opencv -->
             <property name="threshold" type="Float" value="3e-4"/>
