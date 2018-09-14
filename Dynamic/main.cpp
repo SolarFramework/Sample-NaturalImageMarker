@@ -25,7 +25,6 @@ using namespace std;
 
 #include "xpcf/xpcf.h"
 
-#include "xpcf/component/ComponentBase.h"
 #include "api/display/IImageViewer.h"
 #include "api/input/devices/ICamera.h"
 #include "api/display/IImageViewer.h"
