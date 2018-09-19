@@ -27,25 +27,21 @@ using namespace std;
 
 #include "api/display/IImageViewer.h"
 #include "api/input/devices/ICamera.h"
-#include "api/display/IImageViewer.h"
 #include "api/input/files/IMarker2DNaturalImage.h"
 #include "api/features/IKeypointDetector.h"
 #include "api/features/IDescriptorMatcher.h"
 #include "api/features/IDescriptorsExtractor.h"
-#include "api/features/IMatchesFilter.h"
 #include "api/features/IMatchesFilter.h"
 #include "api/solver/pose/I2DTransformFinder.h"
 #include "api/solver/pose/IHomographyValidation.h"
 #include "api/features/IKeypointsReIndexer.h"
 #include "api/solver/pose/I3DTransformFinderFrom2D3D.h"
 #include "api/display/I2DOverlay.h"
-#include "api/display/ISideBySideOverlay.h"
 #include "api/display/I3DOverlay.h"
 #include "api/geom/IImage2WorldMapper.h"
 #include "api/geom/I2DTransform.h"
 
 #include "SolAROpenCVHelper.h"
-
 
 #include "SharedBuffer.hpp"
 
@@ -104,7 +100,6 @@ int main(int argc, char *argv[])
     auto poseEstimation = xpcfComponentManager->create<SolARPoseEstimationPnpOpencv>()->bindTo<solver::pose::I3DTransformFinderFrom2D3D>();
     //auto poseEstimation =xpcfComponentManager->create<SolARPoseEstimationPnpEPFL>()->bindTo<solver::pose::I3DTransformFinderFrom2D3D>();
     auto overlay2DComponent = xpcfComponentManager->create<SolAR2DOverlayOpencv>()->bindTo<display::I2DOverlay>();
-    auto overlaySBSComponent = xpcfComponentManager->create<SolARSideBySideOverlayOpencv>()->bindTo<display::ISideBySideOverlay>();
     auto overlay3DComponent = xpcfComponentManager->create<SolAR3DOverlayBoxOpencv>()->bindTo<display::I3DOverlay>();
     auto img_mapper = xpcfComponentManager->create<SolARImage2WorldMapper4Marker2D>()->bindTo<geom::IImage2WorldMapper>();
     auto transform2D = xpcfComponentManager->create<SolAR2DTransform>()->bindTo<geom::I2DTransform>();
@@ -113,7 +108,7 @@ int main(int argc, char *argv[])
     /* in dynamic mode, we need to check that components are well created*/
     /* this is needed in dynamic mode */
     if (!camera || !imageViewerKeypoints || !imageViewerResult || !marker || !kpDetector || !descriptorExtractor || !matcher || !basicMatchesFilter || !geomMatchesFilter || !homographyEstimation ||
-        !homographyValidation ||!keypointsReindexer || !poseEstimation || !overlay2DComponent || !overlaySBSComponent || !overlay3DComponent || !img_mapper || !transform2D )
+        !homographyValidation ||!keypointsReindexer || !poseEstimation || !overlay2DComponent || !overlay3DComponent || !img_mapper || !transform2D )
     {
         LOG_ERROR("One or more component creations have failed");
         return -1;
