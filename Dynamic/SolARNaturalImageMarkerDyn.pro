@@ -37,6 +37,10 @@ CONFIG(release,debug|release) {
     DEFINES += NDEBUG=1
 }
 
+
+DEFINES += BOOST_ALL_NO_LIB
+DEFINES += BOOST_ALL_DYN_LINK
+
 win32:CONFIG -= static
 win32:CONFIG += shared
 QMAKE_TARGET.arch = x86_64 #must be defined prior to include
@@ -49,6 +53,7 @@ DEPENDENCIESCONFIG = sharedlib
 
 unix {
     LIBS += -ldl
+    QMAKE_CXXFLAGS += -DBOOST_LOG_DYN_LINK
 }
 
 macx {
