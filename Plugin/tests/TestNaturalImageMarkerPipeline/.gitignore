@@ -1,0 +1,58 @@
+
+*.pro.user
+
+*-Debug
+
+*-Release
+
+
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+#others
+
+*.rej
+*.stash
+*.rc
+*.res
+*.exp
+*.ilk
+*.pdb
+
+# Visual Studio files
+.vs*
+x64*
+*.vcxproj.user
+
+#generated files
+solar_cloud*
