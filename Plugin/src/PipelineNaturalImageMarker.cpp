@@ -346,7 +346,7 @@ void PipelineNaturalImageMarker::updateFrameDataOGL(int enventID)
     return m_sink->updateFrameDataOGL(enventID);
 }
 
-SinkReturnCode PipelineFiducialMarker::update(Transform3Df& pose)
+SinkReturnCode PipelineNaturalImageMarker::update(Transform3Df& pose)
 {
     return m_sink->tryUpdate(pose);
 }
