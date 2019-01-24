@@ -22,8 +22,6 @@
 
 namespace xpcf=org::bcom::xpcf;
 
-//#define USE_OPENGL
-
 // Declaration of the module embedding the fiducial marker pipeline
 XPCF_DECLARE_MODULE("5bbc1452-8d7f-4512-83f1-7bf48453809f", "FiducialMarkerModule", "The module embedding a pipeline to estimate the pose based on a squared fiducial marker")
 
@@ -109,13 +107,7 @@ FrameworkReturnCode PipelineNaturalImageMarker::init(SRef<xpcf::IComponentManage
      m_keypointsReindexer = xpcfComponentManager->create<MODULES::TOOLS::SolARKeypointsReIndexer>()->bindTo<features::IKeypointsReIndexer>();
      if (m_keypointsReindexer)
          LOG_INFO("Keypoint Reindexer component loaded");
-
-
-#ifdef USE_OPENGL
-    m_sink = xpcfComponentManager->create<MODULES::OPENGL::SinkPoseTextureBuffer>()->bindTo<sink::ISinkPoseTextureBuffer>();
-#else
     m_sink = xpcfComponentManager->create<MODULES::TOOLS::SolARBasicSink>()->bindTo<sink::ISinkPoseImage>();
-#endif
     if (m_sink)
         LOG_INFO("Pose Texture Buffer Sink component loaded");
 
@@ -283,12 +275,7 @@ bool PipelineNaturalImageMarker::processCamImage()
 
     return true;
 }
-
-#ifdef USE_OPENGL
-FrameworkReturnCode PipelineNaturalImageMarker::start(void* textureHandle)
-#else
 FrameworkReturnCode PipelineNaturalImageMarker::start(void* imageDataBuffer)
-#endif
 {
     if (m_initOK==false)
     {
@@ -296,11 +283,7 @@ FrameworkReturnCode PipelineNaturalImageMarker::start(void* imageDataBuffer)
         return FrameworkReturnCode::_ERROR_;
     }
     m_stopFlag=false;
-#ifdef USE_OPENGL
-    m_sink->setTextureBuffer(textureHandle);
-#else
     m_sink->setImageBuffer((unsigned char*)imageDataBuffer);
-#endif
     if (m_camera->start() != FrameworkReturnCode::_SUCCESS)
     {
         LOG_ERROR("Camera cannot start")
@@ -339,29 +322,10 @@ FrameworkReturnCode PipelineNaturalImageMarker::stop()
     return FrameworkReturnCode::_SUCCESS;
 }
 
-
-#ifdef USE_OPENGL
-void PipelineNaturalImageMarker::updateFrameDataOGL(int enventID)
-{
-    return m_sink->updateFrameDataOGL(enventID);
-}
-
-SinkReturnCode PipelineNaturalImageMarker::update(Transform3Df& pose)
-{
-    return m_sink->tryUpdate(pose);
-}
-
-#else
-void PipelineNaturalImageMarker::updateFrameDataOGL(int enventID)
-{
-    return ;
-}
-
 SinkReturnCode PipelineNaturalImageMarker::update(Transform3Df& pose)
 {
     return m_sink->tryGet(pose);
 }
-#endif
 
 }
 }
