@@ -52,6 +52,7 @@ PipelineNaturalImageMarker::PipelineNaturalImageMarker():ConfigurableBase(xpcf::
    m_initOK = false;
    m_startedOK = false;
    m_stopFlag = false;
+   m_haveToBeFlip = false;
    m_taskProcess = nullptr;
    LOG_DEBUG(" Pipeline constructor");
 }
@@ -110,9 +111,12 @@ FrameworkReturnCode PipelineNaturalImageMarker::init(SRef<xpcf::IComponentManage
     m_sink = xpcfComponentManager->create<MODULES::TOOLS::SolARBasicSink>()->bindTo<sink::ISinkPoseImage>();
     if (m_sink)
         LOG_INFO("Pose Texture Buffer Sink component loaded");
+    m_source = xpcfComponentManager->create<MODULES::TOOLS::SolARBasicSource>()->bindTo<source::ISourceImage>();
+    if (m_source)
+        LOG_INFO("Source image component loaded");
 
     if (m_camera && m_kpDetector && m_naturalImagemarker && m_geomMatchesFilter && m_homographyEstimation && m_poseEstimation && m_descriptorExtractor &&
-        m_basicMatchesFilter && m_img_mapper && m_transform2D && m_homographyValidation && m_keypointsReindexer && m_sink)
+        m_basicMatchesFilter && m_img_mapper && m_transform2D && m_homographyValidation && m_keypointsReindexer && m_sink && m_source)
     {
         LOG_DEBUG("All components have been created");
     }
@@ -193,7 +197,11 @@ bool PipelineNaturalImageMarker::processCamImage()
 
     bool poseComputed = false;
 
-    if (m_camera->getNextImage(m_camImage) == SolAR::FrameworkReturnCode::_ERROR_LOAD_IMAGE)
+    if(m_haveToBeFlip)
+    {
+        m_source->getNextImage(m_camImage);
+    }
+    else if (m_camera->getNextImage(m_camImage) == SolAR::FrameworkReturnCode::_ERROR_LOAD_IMAGE)
     {
         LOG_WARNING("The camera cannot load any image");
         m_stopFlag = true;
@@ -275,6 +283,15 @@ bool PipelineNaturalImageMarker::processCamImage()
 
     return true;
 }
+//////////////////////////////// ADD
+SourceReturnCode PipelineNaturalImageMarker::loadSourceImage(void* sourceTextureHandle, int width, int height)
+{
+   m_haveToBeFlip = true;
+   return m_source->setInputTexture((unsigned char *)sourceTextureHandle, width, height);
+}
+////////////////////////////////////
+
+
 FrameworkReturnCode PipelineNaturalImageMarker::start(void* imageDataBuffer)
 {
     if (m_initOK==false)
@@ -284,7 +301,7 @@ FrameworkReturnCode PipelineNaturalImageMarker::start(void* imageDataBuffer)
     }
     m_stopFlag=false;
     m_sink->setImageBuffer((unsigned char*)imageDataBuffer);
-    if (m_camera->start() != FrameworkReturnCode::_SUCCESS)
+    if (!m_haveToBeFlip && (m_camera->start() != FrameworkReturnCode::_SUCCESS))
     {
         LOG_ERROR("Camera cannot start")
         return FrameworkReturnCode::_ERROR_;
@@ -302,6 +319,9 @@ FrameworkReturnCode PipelineNaturalImageMarker::start(void* imageDataBuffer)
 
 FrameworkReturnCode PipelineNaturalImageMarker::stop()
 {
+    if( !m_haveToBeFlip)
+        m_camera->stop();
+
     if (m_taskProcess != nullptr)
         m_taskProcess->stop();
 

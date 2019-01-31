@@ -65,6 +65,7 @@
 #include "api/geom/IImage2WorldMapper.h"
 #include "api/geom/I2DTransform.h"
 #include "api/sink/ISinkPoseImage.h"
+#include "api/source/ISourceImage.h"
 #include "xpcf/threading/SharedBuffer.h"
 #include "xpcf/threading/DropBuffer.h"
 #include "xpcf/threading/BaseTask.h"
@@ -73,6 +74,7 @@ namespace SolAR {
 using namespace datastructure;
 using namespace api;
 using namespace api::sink;
+using namespace api::source;
 using namespace api::pipeline;
 namespace PIPELINES {
 
@@ -108,6 +110,9 @@ public:
     /// Get the new pose and update the texture buffer with the image that has to be displayed
     SinkReturnCode update(Transform3Df& pose) override;
 
+    /// @brief load the source image
+    SourceReturnCode loadSourceImage(void* sourceTextureHandle, int width, int height) override;
+
     void unloadComponent () override final;
 
 private:
@@ -142,8 +147,10 @@ private:
     SRef<geom::IImage2WorldMapper> m_img2worldMapper;
     SRef<solver::pose::I3DTransformFinderFrom2D3D> m_PnP;
     SRef<sink::ISinkPoseImage> m_sink;
+    SRef<source::ISourceImage> m_source;
+
     // State flag of the pipeline
-    bool m_stopFlag, m_initOK, m_startedOK;
+    bool m_stopFlag, m_initOK, m_startedOK,m_haveToBeFlip;
 
     // Threads
     bool processCamImage();
