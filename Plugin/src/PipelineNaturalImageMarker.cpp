@@ -317,6 +317,7 @@ FrameworkReturnCode PipelineNaturalImageMarker::start(void* imageDataBuffer)
 
 FrameworkReturnCode PipelineNaturalImageMarker::stop()
 {
+    m_stopFlag=true;
     if( !m_haveToBeFlip)
         m_camera->stop();
 
@@ -333,7 +334,6 @@ FrameworkReturnCode PipelineNaturalImageMarker::stop()
         LOG_WARNING("Try to stop a pipeline that has not been started");
         return FrameworkReturnCode::_ERROR_;
     }
-    m_stopFlag=true;
 
     LOG_INFO("Pipeline has stopped: \n");
 
