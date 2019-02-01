@@ -133,7 +133,7 @@ FrameworkReturnCode PipelineNaturalImageMarker::init(SRef<xpcf::IComponentManage
 
     // detect keypoints in reference image
     LOG_INFO("DETECT MARKER KEYPOINTS ");
-    m_kpDetector->detect(m_refImage, m_refKeypoints);
+    m_kpDetector->detect(m_refImage, m_refKeypoints, m_haveToBeFlip);
 
     // extract descriptors in reference image
     LOG_INFO("EXTRACT MARKER DESCRIPTORS ");
@@ -198,9 +198,7 @@ bool PipelineNaturalImageMarker::processCamImage()
     bool poseComputed = false;
 
     if(m_haveToBeFlip)
-    {
         m_source->getNextImage(m_camImage);
-    }
     else if (m_camera->getNextImage(m_camImage) == SolAR::FrameworkReturnCode::_ERROR_LOAD_IMAGE)
     {
         LOG_WARNING("The camera cannot load any image");
@@ -210,7 +208,7 @@ bool PipelineNaturalImageMarker::processCamImage()
 
 
     // detect keypoints in camera image
-    m_kpDetector->detect(m_camImage, m_camKeypoints);
+    m_kpDetector->detect(m_camImage, m_camKeypoints,m_haveToBeFlip);
 
     /* extract descriptors in camera image*/
     m_descriptorExtractor->extract(m_camImage, m_camKeypoints, m_camDescriptors);
