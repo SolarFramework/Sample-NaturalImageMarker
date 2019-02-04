@@ -114,9 +114,12 @@ FrameworkReturnCode PipelineNaturalImageMarker::init(SRef<xpcf::IComponentManage
     m_source = xpcfComponentManager->create<MODULES::TOOLS::SolARBasicSource>()->bindTo<source::ISourceImage>();
     if (m_source)
         LOG_INFO("Source image component loaded");
+    m_imageConvertorUnity =xpcfComponentManager->create<MODULES::OPENCV::SolARImageConvertorUnity>()->bindTo<image::IImageConvertor>();
+    if (m_imageConvertorUnity)
+        LOG_INFO("Image Convertor Unity component loaded");
 
     if (m_camera && m_kpDetector && m_naturalImagemarker && m_geomMatchesFilter && m_homographyEstimation && m_poseEstimation && m_descriptorExtractor &&
-        m_basicMatchesFilter && m_img_mapper && m_transform2D && m_homographyValidation && m_keypointsReindexer && m_sink && m_source)
+        m_basicMatchesFilter && m_img_mapper && m_transform2D && m_homographyValidation && m_keypointsReindexer && m_sink && m_source && m_imageConvertorUnity)
     {
         LOG_DEBUG("All components have been created");
     }
@@ -133,7 +136,7 @@ FrameworkReturnCode PipelineNaturalImageMarker::init(SRef<xpcf::IComponentManage
 
     // detect keypoints in reference image
     LOG_INFO("DETECT MARKER KEYPOINTS ");
-    m_kpDetector->detect(m_refImage, m_refKeypoints, m_haveToBeFlip);
+    m_kpDetector->detect(m_refImage, m_refKeypoints);
 
     // extract descriptors in reference image
     LOG_INFO("EXTRACT MARKER DESCRIPTORS ");
@@ -198,7 +201,10 @@ bool PipelineNaturalImageMarker::processCamImage()
     bool poseComputed = false;
 
     if(m_haveToBeFlip)
+    {
         m_source->getNextImage(m_camImage);
+        m_imageConvertorUnity->convert(m_camImage,m_camImage,Image::ImageLayout::LAYOUT_RGB);
+    }
     else if (m_camera->getNextImage(m_camImage) == SolAR::FrameworkReturnCode::_ERROR_LOAD_IMAGE)
     {
         LOG_WARNING("The camera cannot load any image");
@@ -206,9 +212,8 @@ bool PipelineNaturalImageMarker::processCamImage()
         return false;
     }
 
-
     // detect keypoints in camera image
-    m_kpDetector->detect(m_camImage, m_camKeypoints,m_haveToBeFlip);
+    m_kpDetector->detect(m_camImage, m_camKeypoints);
 
     /* extract descriptors in camera image*/
     m_descriptorExtractor->extract(m_camImage, m_camKeypoints, m_camDescriptors);

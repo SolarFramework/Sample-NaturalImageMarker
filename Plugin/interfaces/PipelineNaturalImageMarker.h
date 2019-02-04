@@ -148,6 +148,8 @@ private:
     SRef<solver::pose::I3DTransformFinderFrom2D3D> m_PnP;
     SRef<sink::ISinkPoseImage> m_sink;
     SRef<source::ISourceImage> m_source;
+    SRef<image::IImageConvertor> m_imageConvertorUnity;
+
 
     // State flag of the pipeline
     bool m_stopFlag, m_initOK, m_startedOK,m_haveToBeFlip;
