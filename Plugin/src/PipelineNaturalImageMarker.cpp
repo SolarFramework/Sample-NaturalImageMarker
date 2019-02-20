@@ -67,67 +67,62 @@ PipelineNaturalImageMarker::~PipelineNaturalImageMarker()
 FrameworkReturnCode PipelineNaturalImageMarker::init(SRef<xpcf::IComponentManager> xpcfComponentManager)
 {
     LOG_DEBUG("Start init")
-    m_camera = xpcfComponentManager->create<MODULES::OPENCV::SolARCameraOpencv>()->bindTo<input::devices::ICamera>();
-    if (m_camera)
-        LOG_INFO("Camera component loaded");
-
-    m_kpDetector = xpcfComponentManager->create<MODULES::OPENCV::SolARKeypointDetectorOpencv>()->bindTo<features::IKeypointDetector>();
-    if (m_kpDetector)
-        LOG_INFO("Keypoint detector component loaded");
-    m_naturalImagemarker = xpcfComponentManager->create<MODULES::OPENCV::SolARMarker2DNaturalImageOpencv>()->bindTo<input::files::IMarker2DNaturalImage>();
-    if (m_naturalImagemarker)
-        LOG_INFO("Natural Image Marker component loaded");
-    m_geomMatchesFilter = xpcfComponentManager->create<MODULES::OPENCV::SolARGeometricMatchesFilterOpencv>()->bindTo<features::IMatchesFilter>();
-    if (m_geomMatchesFilter)
-        LOG_INFO("geometric matcher component loaded");
-    m_matcher = xpcfComponentManager->create<MODULES::OPENCV::SolARDescriptorMatcherKNNOpencv>()->bindTo<features::IDescriptorMatcher>();
-    if (m_matcher)
-        LOG_INFO("descriptor matcher component loaded");
-    m_homographyEstimation = xpcfComponentManager->create<MODULES::OPENCV::SolARHomographyEstimationOpencv>()->bindTo<solver::pose::I2DTransformFinder>();
-    if (m_homographyEstimation)
-        LOG_INFO("Homography Estimation component loaded");
-    m_poseEstimation = xpcfComponentManager->create<MODULES::OPENCV::SolARPoseEstimationPnpOpencv>()->bindTo<solver::pose::I3DTransformFinderFrom2D3D>();
-    if (m_poseEstimation)
-        LOG_INFO("Pose estimation component loaded");
-    m_descriptorExtractor =  xpcfComponentManager->create<MODULES::OPENCV::SolARDescriptorsExtractorAKAZE2Opencv>()->bindTo<features::IDescriptorsExtractor>();
-    if (m_descriptorExtractor)
-        LOG_INFO("Descriptor extractor component loaded");
-
-    m_basicMatchesFilter = xpcfComponentManager->create<MODULES::TOOLS::SolARBasicMatchesFilter>()->bindTo<features::IMatchesFilter>();
-     if (m_basicMatchesFilter)
-         LOG_INFO("Basic matcher component loaded");
-     m_img_mapper = xpcfComponentManager->create<MODULES::TOOLS::SolARImage2WorldMapper4Marker2D>()->bindTo<geom::IImage2WorldMapper>();
-     if (m_img_mapper)
-         LOG_INFO("Image Mapper component loaded");
-     m_transform2D = xpcfComponentManager->create<MODULES::TOOLS::SolAR2DTransform>()->bindTo<geom::I2DTransform>();
-     if (m_transform2D)
-         LOG_INFO("Transform 2D component loaded");
-     m_homographyValidation = xpcfComponentManager->create<MODULES::TOOLS::SolARHomographyValidation>()->bindTo<solver::pose::IHomographyValidation>();
-     if (m_homographyValidation)
-         LOG_INFO("Homography validation component loaded");
-     m_keypointsReindexer = xpcfComponentManager->create<MODULES::TOOLS::SolARKeypointsReIndexer>()->bindTo<features::IKeypointsReIndexer>();
-     if (m_keypointsReindexer)
-         LOG_INFO("Keypoint Reindexer component loaded");
-    m_sink = xpcfComponentManager->create<MODULES::TOOLS::SolARBasicSink>()->bindTo<sink::ISinkPoseImage>();
-    if (m_sink)
-        LOG_INFO("Pose Texture Buffer Sink component loaded");
-    m_source = xpcfComponentManager->create<MODULES::TOOLS::SolARBasicSource>()->bindTo<source::ISourceImage>();
-    if (m_source)
-        LOG_INFO("Source image component loaded");
-    m_imageConvertorUnity =xpcfComponentManager->create<MODULES::OPENCV::SolARImageConvertorUnity>()->bindTo<image::IImageConvertor>();
-    if (m_imageConvertorUnity)
-        LOG_INFO("Image Convertor Unity component loaded");
-
-    if (m_camera && m_kpDetector && m_naturalImagemarker && m_geomMatchesFilter && m_homographyEstimation && m_poseEstimation && m_descriptorExtractor &&
-        m_basicMatchesFilter && m_img_mapper && m_transform2D && m_homographyValidation && m_keypointsReindexer && m_sink && m_source && m_imageConvertorUnity)
-    {
-        LOG_DEBUG("All components have been created");
+    try {
+        m_camera = xpcfComponentManager->create<MODULES::OPENCV::SolARCameraOpencv>()->bindTo<input::devices::ICamera>();
+        if (m_camera)
+            LOG_INFO("Camera component loaded");
+        m_kpDetector = xpcfComponentManager->create<MODULES::OPENCV::SolARKeypointDetectorOpencv>()->bindTo<features::IKeypointDetector>();
+        if (m_kpDetector)
+            LOG_INFO("Keypoint detector component loaded");
+        m_naturalImagemarker = xpcfComponentManager->create<MODULES::OPENCV::SolARMarker2DNaturalImageOpencv>()->bindTo<input::files::IMarker2DNaturalImage>();
+        if (m_naturalImagemarker)
+            LOG_INFO("Natural Image Marker component loaded");
+        m_geomMatchesFilter = xpcfComponentManager->create<MODULES::OPENCV::SolARGeometricMatchesFilterOpencv>()->bindTo<features::IMatchesFilter>();
+        if (m_geomMatchesFilter)
+            LOG_INFO("geometric matcher component loaded");
+        m_matcher = xpcfComponentManager->create<MODULES::OPENCV::SolARDescriptorMatcherKNNOpencv>()->bindTo<features::IDescriptorMatcher>();
+        if (m_matcher)
+            LOG_INFO("descriptor matcher component loaded");
+        m_homographyEstimation = xpcfComponentManager->create<MODULES::OPENCV::SolARHomographyEstimationOpencv>()->bindTo<solver::pose::I2DTransformFinder>();
+        if (m_homographyEstimation)
+            LOG_INFO("Homography Estimation component loaded");
+        m_poseEstimation = xpcfComponentManager->create<MODULES::OPENCV::SolARPoseEstimationPnpOpencv>()->bindTo<solver::pose::I3DTransformFinderFrom2D3D>();
+        if (m_poseEstimation)
+            LOG_INFO("Pose estimation component loaded");
+        m_descriptorExtractor =  xpcfComponentManager->create<MODULES::OPENCV::SolARDescriptorsExtractorAKAZE2Opencv>()->bindTo<features::IDescriptorsExtractor>();
+        if (m_descriptorExtractor)
+            LOG_INFO("Descriptor extractor component loaded");
+        m_basicMatchesFilter = xpcfComponentManager->create<MODULES::TOOLS::SolARBasicMatchesFilter>()->bindTo<features::IMatchesFilter>();
+         if (m_basicMatchesFilter)
+             LOG_INFO("Basic matcher component loaded");
+         m_img_mapper = xpcfComponentManager->create<MODULES::TOOLS::SolARImage2WorldMapper4Marker2D>()->bindTo<geom::IImage2WorldMapper>();
+         if (m_img_mapper)
+             LOG_INFO("Image Mapper component loaded");
+         m_transform2D = xpcfComponentManager->create<MODULES::TOOLS::SolAR2DTransform>()->bindTo<geom::I2DTransform>();
+         if (m_transform2D)
+             LOG_INFO("Transform 2D component loaded");
+         m_homographyValidation = xpcfComponentManager->create<MODULES::TOOLS::SolARHomographyValidation>()->bindTo<solver::pose::IHomographyValidation>();
+         if (m_homographyValidation)
+             LOG_INFO("Homography validation component loaded");
+         m_keypointsReindexer = xpcfComponentManager->create<MODULES::TOOLS::SolARKeypointsReIndexer>()->bindTo<features::IKeypointsReIndexer>();
+         if (m_keypointsReindexer)
+             LOG_INFO("Keypoint Reindexer component loaded");
+        m_sink = xpcfComponentManager->create<MODULES::TOOLS::SolARBasicSink>()->bindTo<sink::ISinkPoseImage>();
+        if (m_sink)
+            LOG_INFO("Pose Texture Buffer Sink component loaded");
+        m_source = xpcfComponentManager->create<MODULES::TOOLS::SolARBasicSource>()->bindTo<source::ISourceImage>();
+        if (m_source)
+            LOG_INFO("Source image component loaded");
+        m_imageConvertorUnity =xpcfComponentManager->create<MODULES::OPENCV::SolARImageConvertorUnity>()->bindTo<image::IImageConvertor>();
+        if (m_imageConvertorUnity)
+            LOG_INFO("Image Convertor Unity component loaded");
     }
-    else
+    catch (xpcf::Exception e)
     {
-        LOG_DEBUG("One or more components cannot be created");
-        return FrameworkReturnCode::_ERROR_;
+       LOG_WARNING("One or more components cannot be created: {}", e.what());
+       return FrameworkReturnCode::_ERROR_;
     }
+    LOG_INFO("All components have been created");
 
     // load marker
     LOG_INFO("LOAD MARKER IMAGE ");
