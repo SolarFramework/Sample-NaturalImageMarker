@@ -15,6 +15,11 @@
  */
 
 #include <iostream>
+#include <vector>
+#include <numeric>
+#include <string>
+#include <functional>
+
 
 #include <boost/log/core.hpp>
 
@@ -48,6 +53,15 @@ using namespace std;
 #include <boost/timer/timer.hpp>
 #include <boost/chrono.hpp>
 
+#include "opencv2/core.hpp"
+#include "opencv2/imgproc.hpp"
+#include "opencv2/features2d.hpp"
+#include "opencv2/highgui.hpp"
+#include "opencv2/calib3d.hpp"
+//#include "opencv2/xfeatures2d.hpp"
+#include "opencv2/video/tracking.hpp"
+
+
 using namespace SolAR;
 using namespace SolAR::MODULES::OPENCV;
 using namespace SolAR::MODULES::TOOLS;
@@ -61,6 +75,63 @@ namespace xpcf  = org::bcom::xpcf;
 #include <thread>         // std::this_thread::sleep_for
 #include <chrono>         // std::chrono::seconds
 
+
+const int THRES_TRACK1 = 80;
+const int THRES_TRACK2 = 200;
+const int THRES_AR = 80;
+//const int THRES_TO_TRACK = 80;
+const int THRES_TO_TRACK = 30;
+const int MIN_HEIGHT_DETECT = 480;
+
+
+const cv::Scalar				RED(0, 0, 255);
+const cv::Scalar				GREEN(0, 255, 0);
+const cv::Scalar				BLUE(255, 0, 0);
+const cv::Scalar				YELLOW(0, 255, 255);
+
+
+bool checkUpdate(cv::Mat &rvec, cv::Mat &tvec, std::vector<cv::Point2f> &curPts);
+void get2D3DPoints(cv::Mat &img, std::vector<cv::Point2f> &pts2D, std::vector<cv::Point2f> &pts3D);
+void getProj(cv::Mat &proj);
+bool computeCameraPose(std::vector<cv::Point2f> &pts2D_obj, std::vector<cv::Point2f> &pts2D, cv::Mat &rvec, cv::Mat &tvec, cv::Mat &inliers);
+
+void matchFeatures(cv::Mat &img_sce, std::vector<cv::Point2f> &pts2D, std::vector<cv::Point2f> &pts2D_obj);
+
+void visualAR(cv::Mat &img,cv::Mat &rvec, cv::Mat &tvec,cv::Mat &cameraMatrix,cv::Mat &distCoeffs);
+
+/*	====================================================================== Variables ==============================================================================								
+*/
+
+// camera parameters
+int index_camera, width_camera, height_camera;
+std::string pIntrinsic;
+cv::Mat cameraMatrix = (cv::Mat_<double>(3, 3) << 649.7, 0.0, 319.5, 0.0, 649.7, 239.5, 0.0, 0.0, 1.0);
+cv::Mat distCoeffs = cv::Mat::zeros(5, 1, CV_64FC1);
+
+// Marker
+std::string pMarker;
+cv::Mat img_object;
+std::vector<cv::KeyPoint> kps_object;
+cv::Mat des_object;
+float size_x;
+float size_y;
+float size_z;
+
+// feature detector
+std::string featureType;
+cv::Ptr<cv::FeatureDetector> detector;
+
+// optical flow
+cv::TermCriteria termcrit(cv::TermCriteria::COUNT | cv::TermCriteria::EPS, 20, 0.03);
+cv::Size subPixWinSize(10, 10), winSize(31, 31);
+
+// pose and results
+cv::Mat							rvec, tvec, inliers;
+float							reprojErr, confidence;
+bool							isPose, isTrack;
+std::vector<cv::Point3f>		point3DAR;
+
+
 int main(int argc, char *argv[])
 {
 
@@ -70,7 +141,6 @@ int main(int argc, char *argv[])
 
 //    SolARLog::init();
     LOG_ADD_LOG_TO_CONSOLE();
-
     LOG_INFO("program is running");
 
 
@@ -113,6 +183,7 @@ int main(int argc, char *argv[])
         LOG_ERROR("One or more component creations have failed");
         return -1;
     }
+
     LOG_INFO("All components have been created");
 
 	// the following code is common to the 3 samples (simple, compile-time, run-time)
@@ -192,6 +263,20 @@ int main(int argc, char *argv[])
 	refImgCorners.push_back(xpcf::utils::make_shared<Point2Df>(corner3));
 
 
+	// Marker tracking
+	std::vector<cv::Point2f> pts3D;
+	cv::Mat frame, gray, prevGray;
+	std::vector<cv::Point2f> prePts, curPts;
+	isTrack = false;
+
+    //detector = cv::AKAZE::create(5, 0, 3, 0.0001);
+    detector = cv::ORB::create(1500);
+
+    img_object = SolAR::MODULES::OPENCV::SolAROpenCVHelper::mapToOpenCV(refImage);
+    detector->detectAndCompute(img_object, cv::Mat(), kps_object, des_object);
+
+
+
 	// get images from camera in loop, and display them
 	while (true) {
 		count++;
@@ -233,9 +318,64 @@ int main(int argc, char *argv[])
 		std::vector <SRef<Point2Df>> markerCornersinCamImage;
 		std::vector <SRef<Point3Df>> markerCornersinWorld;
 
-		/*we consider that, if we have less than 10 matches (arbitrarily), we can't compute homography for the current frame */
+        gray = SolAR::MODULES::OPENCV::SolAROpenCVHelper::mapToOpenCV(camImage);
+        /*
+		prevGray = SolAR::MODULES::OPENCV::SolAROpenCVHelper::mapToOpenCV(camImage);
 
+		if(gray.empty()){
+			cv::swap(prevGray, gray);
+			prevGray = SolAR::MODULES::OPENCV::SolAROpenCVHelper::mapToOpenCV(camImage);
+		}
+        */
+		if (isTrack) {
+            std::cout<< "  Tracking  Status "<<std::endl;
+			std::vector<uchar> status;
+			std::vector<float> err;
+			// tracking 2D-2D
+			
+			cv::calcOpticalFlowPyrLK(prevGray, gray, prePts, curPts, status, err, winSize,
+				3, termcrit, 0, 0.001);
+
+			size_t i, k;
+			for (i = k = 0; i < curPts.size(); i++)
+			{
+				if (!status[i]) {
+					continue;
+				}
+
+				curPts[k] = curPts[i];
+				pts3D[k] = pts3D[i];
+				k++;
+
+				circle(frame, curPts[i], 3, cv::Scalar(0, 255, 0), -1, 8);
+			}
+			curPts.resize(k);
+			pts3D.resize(k);			
+
+			// calculate camera pose
+			isPose = computeCameraPose(pts3D, curPts, rvec, tvec, inliers);
+			std::cout << "Number of Inliers: " << inliers.rows << std::endl;
+
+			if (inliers.rows < THRES_TRACK1) {
+				prePts.clear();
+				curPts.clear();
+				isTrack = false;
+			}
+			else {
+				if ((inliers.rows < THRES_TRACK2) || checkUpdate(rvec, tvec, curPts)) {
+					get2D3DPoints(gray, prePts, pts3D);
+				}
+				else {
+					std::swap(curPts, prePts);
+				}
+				cv::swap(prevGray, gray);
+			}								
+		}
+        else
+        {
+		/*we consider that, if we have less than 10 matches (arbitrarily), we can't compute homography for the current frame */
 		if (matches.size()> 10) {
+
 			// reindex the keypoints with established correspondence after the matching
 			keypointsReindexer->reindex(refKeypoints, camKeypoints, matches, ref2Dpoints, cam2Dpoints);
 
@@ -272,6 +412,33 @@ int main(int argc, char *argv[])
 #else
                         overlay3DComponent->draw(pose, camImage);
 #endif
+                        //find the first pose....
+
+                        //--------------------from Optical flow
+
+						// Detect extract descriptors and Matching descriptor vectors
+						std::vector<cv::Point2f> tmpPts2D;
+						std::vector<cv::Point2f> tmpPts2D_obj;
+
+
+
+						matchFeatures(gray, tmpPts2D, tmpPts2D_obj);
+                        std::cout << "OF>Number of good matches: " << tmpPts2D_obj.size() << std::endl;
+
+						// calculate camera pose
+						isPose = computeCameraPose(tmpPts2D_obj, tmpPts2D, rvec, tvec, inliers);
+                        std::cout << "OF> Number of inliers: " << inliers.rows << std::endl;
+
+						if (inliers.rows > THRES_TO_TRACK){
+
+							pts3D.clear();
+							get2D3DPoints(gray, prePts, pts3D);
+							prevGray = gray.clone();
+							isTrack = true;
+
+						}
+
+						//-------------------
                     }
 					else
 					{
@@ -284,6 +451,7 @@ int main(int argc, char *argv[])
 
 			}
 		}
+		}//end of detector once
 #ifndef NDEBUG
         if (imageViewerResult->display(kpImageCam) == SolAR::FrameworkReturnCode::_STOP)
 #else
@@ -303,4 +471,271 @@ int main(int argc, char *argv[])
 	//
 	// end of the common code (simple,compile-time, run-time)
      return 0;
+}
+
+
+
+/*	Compute pose
+*/
+
+bool computeCameraPose(std::vector<cv::Point2f> &pts2D_obj, std::vector<cv::Point2f> &pts2D, cv::Mat &rvec, cv::Mat &tvec, cv::Mat &inliers)
+{
+	/* calculate camera pose
+	*/
+	inliers = cv::Mat();
+	bool pnp = false;
+	if (pts2D_obj.size() < 10){
+		return false;
+	}
+
+	std::vector<cv::Point2f> imagePoints;
+	cv::undistortPoints(pts2D, imagePoints, cameraMatrix, distCoeffs);
+
+	cv::Mat status;
+	cv::Mat oHw = findHomography(pts2D_obj, imagePoints, cv::RANSAC, 0.1, status);
+
+	for (int i = 0; i < status.rows; ++i)
+		if (status.at<uchar>(i, 0) == 1)
+			inliers.push_back(i);
+	if (inliers.rows < THRES_AR)
+		return false;
+	{
+		std::vector<cv::Point2f> tmp_pts1, tmp_pts2;
+		for (int i = 0; i < inliers.rows; ++i) {
+			int j = inliers.at<int>(i, 0);
+			tmp_pts1.push_back(pts2D_obj[j]);
+			tmp_pts2.push_back(imagePoints[j]);
+		}
+		oHw = cv::findHomography(tmp_pts1, tmp_pts2);
+	}
+	 
+	// Normalization to ensure that ||c1|| = 1
+	double norm = sqrt(oHw.at<double>(0, 0)*oHw.at<double>(0, 0)
+		+ oHw.at<double>(1, 0)*oHw.at<double>(1, 0)
+		+ oHw.at<double>(2, 0)*oHw.at<double>(2, 0));
+	oHw /= norm;
+
+	cv::Mat c1 = oHw.col(0);
+	cv::Mat c2 = oHw.col(1);
+	cv::Mat c3 = c1.cross(c2);
+	cv::Mat otw(3, 1, CV_64F); // Translation vector
+	cv::Mat oRw(3, 3, CV_64F); // Rotation matrix
+	otw = oHw.col(2);
+
+	for (int i = 0; i < 3; i++) {
+		oRw.at<double>(i, 0) = c1.at<double>(i, 0);
+		oRw.at<double>(i, 1) = c2.at<double>(i, 0);
+		oRw.at<double>(i, 2) = c3.at<double>(i, 0);
+	}
+
+	cv::Mat W, U, Vt;
+
+	SVDecomp(oRw, W, U, Vt);
+	oRw = U*Vt;
+	tvec = otw.clone();	
+	Rodrigues(oRw, rvec);
+	
+	return true;
+}
+
+void getProj(cv::Mat &proj) {
+	cv::Mat rotW2C;
+	cv::Rodrigues(rvec, rotW2C);
+	cv::Mat ext = (cv::Mat_<double>(3, 3) <<
+		rotW2C.at<double>(0, 0), rotW2C.at<double>(0, 1), tvec.at<double>(0, 0),
+		rotW2C.at<double>(1, 0), rotW2C.at<double>(1, 1), tvec.at<double>(1, 0),
+		rotW2C.at<double>(2, 0), rotW2C.at<double>(2, 1), tvec.at<double>(2, 0));
+	cv::Mat proj_mat = cameraMatrix * ext;
+	proj = proj_mat.inv();
+}
+
+void get2D3DPoints(cv::Mat &img, std::vector<cv::Point2f> &pts2D, std::vector<cv::Point2f> &pts3D) {
+
+	pts2D.clear();
+	pts3D.clear();
+	// get project matrix
+	cv::Mat proj;
+	getProj(proj);
+
+	// get bouding box
+	std::vector<cv::Point2f> corners;
+	cv::projectPoints(std::vector<cv::Point3f>(point3DAR.begin(), point3DAR.begin() + 4), rvec, tvec, cameraMatrix, distCoeffs, corners);
+	
+	for (int i = 0; i < corners.size(); ++i) {
+		corners[i].x = std::min(corners[i].x, width_camera - 2.f);
+		corners[i].x = std::max(corners[i].x, 2.f);
+		corners[i].y = std::min(corners[i].y, height_camera - 2.f);
+		corners[i].y = std::max(corners[i].y, 2.f);
+	}
+
+	cv::Rect box = cv::boundingRect(corners);
+	cv::Mat roi = img(box);
+
+	int MAX_COUNT = 1500;
+	std::vector<cv::Point2f> lPts2D;
+
+	// Next step: set adaptive parameter based on size of marker
+	//cv::goodFeaturesToTrack(roi, corners, MAX_COUNT, 0.01, 9, cv::Mat(), 3, false, 0.001);
+	cv::goodFeaturesToTrack(roi, lPts2D, MAX_COUNT, 0.01, 9, cv::Mat(), 3, false, 0.001);
+	cornerSubPix(roi, lPts2D, subPixWinSize, cv::Size(-1, -1), termcrit);
+
+	//rectangle(img, box, cv::Scalar(255), 2);
+
+	for (int i = 0; i < lPts2D.size(); ++i) {
+		
+		lPts2D[i] = lPts2D[i] + (cv::Point2f)box.tl();
+		cv::Mat p2D = (cv::Mat_<double>(3, 1) << lPts2D[i].x, lPts2D[i].y, 1.f);
+		cv::Mat p3D = proj * p2D;
+		
+		double x = p3D.at<double>(0, 0) / p3D.at<double>(2, 0);
+		double y = p3D.at<double>(1, 0) / p3D.at<double>(2, 0);
+		
+		if ((x > 0) && (x < size_x) && (y > 0) && (y < size_y)) {
+
+			pts2D.push_back(lPts2D[i]);
+			pts3D.push_back(cv::Point2f(x, y));
+			//circle(img, lPts2D[i], 3, Scalar(0, 255, 0), -1, 8);
+		
+		}
+	}	
+	//std::cout << "Number of new point: " << pts3D.size() << std::endl;
+}
+
+bool checkUpdate(
+	cv::Mat &rvec,
+	cv::Mat &tvec,
+	std::vector<cv::Point2f> &curPts)
+{
+
+	cv::Point2f sum = std::accumulate( curPts.begin(), curPts.end(),  cv::Point2f(0.0f, 0.0f),  std::plus<cv::Point2f>());
+	cv::Point2f mean1 = sum / (int)curPts.size(); // Divide by count to get mean
+
+	std::vector<cv::Point2f> corners;
+	cv::projectPoints(std::vector<cv::Point3f>(point3DAR.begin(), point3DAR.begin() + 4), rvec, tvec, cameraMatrix, distCoeffs, corners);
+	float disThres = 0.06 * (cv::norm(corners[0] - corners[1]) + cv::norm(corners[1] - corners[2]));
+	for (int i = 0; i < corners.size(); ++i) {
+		corners[i].x = std::min(corners[i].x, width_camera - 2.f);
+		corners[i].x = std::max(corners[i].x, 2.f);
+		corners[i].y = std::min(corners[i].y, height_camera - 2.f);
+		corners[i].y = std::max(corners[i].y, 2.f);
+	}
+	sum = std::accumulate(corners.begin(), corners.end(), cv::Point2f(0.0f, 0.0f),  std::plus<cv::Point2f>());
+	cv::Point2f mean2 = sum / (int)corners.size(); // Divide by count to get mean
+
+	if (cv::norm(mean1 - mean2) > disThres) {
+		return true;
+	}
+	else
+		return false;
+}
+
+
+void matchFeatures(cv::Mat &img_sce, std::vector<cv::Point2f> &pts2D, std::vector<cv::Point2f> &pts2D_obj)
+{
+	// resize of image to accelerate 
+	cv::Mat tmp_img;
+	float scale;
+	if (img_sce.rows > MIN_HEIGHT_DETECT) {
+
+		scale = (float)img_sce.rows / MIN_HEIGHT_DETECT;
+		cv::resize(img_sce, tmp_img, cv::Size((int)(img_sce.cols / scale), MIN_HEIGHT_DETECT));
+	}
+	else {
+		tmp_img = img_sce;
+		scale = 1.0;
+	}
+
+	// extract feature of current frame
+	std::vector<cv::KeyPoint>	kps_sce;
+	cv::Mat						des_sce;
+
+	detector->detect(tmp_img, kps_sce);
+	
+	if (kps_sce.size() == 0)
+		return;
+
+	detector->compute(tmp_img, kps_sce, des_sce);
+
+	for(unsigned int k = 0; k < kps_sce.size(); k++){
+		kps_sce[k].pt *= scale ; 
+	}
+/*
+	for each (auto kp in kps_sce){
+		kp.pt = kp.pt * scale;
+	}	
+*/
+
+	cv::BFMatcher* matcher = new cv::BFMatcher(cv::NORM_L2, false);
+	
+	std::vector< std::vector<cv::DMatch> > matches_2nn_12;
+	std::vector< std::vector<cv::DMatch> > matches_2nn_21;
+	
+	matcher->knnMatch(des_object, des_sce, matches_2nn_12, 2);	
+	matcher->knnMatch(des_sce, des_object, matches_2nn_21, 2);
+	
+	const double ratio = 0.7;
+	std::vector< cv::DMatch > good_matches;
+	
+	for (int i = 0; i < matches_2nn_12.size(); i++) {
+		// i is queryIdx
+		if ((matches_2nn_12[i][0].distance / matches_2nn_12[i][1].distance < ratio)
+			&&
+			(matches_2nn_21[matches_2nn_12[i][0].trainIdx][0].distance / matches_2nn_21[matches_2nn_12[i][0].trainIdx][1].distance < ratio))
+		{
+			if (matches_2nn_21[matches_2nn_12[i][0].trainIdx][0].trainIdx == matches_2nn_12[i][0].queryIdx)
+			{
+				cv::Point2f pts_obj = kps_object[matches_2nn_12[i][0].queryIdx].pt;
+				cv::Point2f pts_sce = kps_sce[matches_2nn_21[matches_2nn_12[i][0].trainIdx][0].queryIdx].pt;
+				pts2D_obj.push_back(cv::Point2f(pts_obj.x / (float)img_object.cols * size_x, pts_obj.y / (float)img_object.rows * size_y));
+				pts2D.push_back(pts_sce);
+				good_matches.push_back(matches_2nn_12[i][0]);
+			}
+		}
+	}
+
+	//-- Draw only "good" matches (i.e. whose distance is less than 3*min_dist )				
+	cv::Mat img_matches;
+	drawMatches(img_object, kps_object, img_sce, kps_sce,
+	good_matches, img_matches, cv::Scalar::all(-1), cv::Scalar::all(-1),
+	std::vector<char>(), cv::DrawMatchesFlags::NOT_DRAW_SINGLE_POINTS);
+
+	cv::imshow("Matches", img_matches);
+
+}
+
+
+
+void visualAR(
+	cv::Mat &img,
+	cv::Mat &rvec,
+	cv::Mat &tvec,
+	cv::Mat &cameraMatrix,
+	cv::Mat &distCoeffs)
+{
+	int lineSize = 8;
+	int circleSize = 6;
+	std::vector<cv::Point2f> point2D;
+	cv::projectPoints(point3DAR, rvec, tvec, cameraMatrix, distCoeffs, point2D);
+
+	cv::line(img, point2D[0], point2D[1], YELLOW, lineSize);
+	cv::line(img, point2D[1], point2D[2], YELLOW, lineSize);
+	cv::line(img, point2D[2], point2D[3], YELLOW, lineSize);
+	cv::line(img, point2D[3], point2D[0], YELLOW, lineSize);
+	cv::line(img, point2D[4], point2D[5], GREEN, lineSize);
+	cv::line(img, point2D[5], point2D[6], GREEN, lineSize);
+	cv::line(img, point2D[6], point2D[7], GREEN, lineSize);
+	cv::line(img, point2D[7], point2D[4], GREEN, lineSize);
+	cv::line(img, point2D[0], point2D[4], BLUE, lineSize);
+	cv::line(img, point2D[1], point2D[5], BLUE, lineSize);
+	cv::line(img, point2D[2], point2D[6], BLUE, lineSize);
+	cv::line(img, point2D[3], point2D[7], BLUE, lineSize);
+
+	cv::circle(img, point2D[0], circleSize, RED, cv::FILLED);
+	cv::circle(img, point2D[1], circleSize, RED, cv::FILLED);
+	cv::circle(img, point2D[2], circleSize, RED, cv::FILLED);
+	cv::circle(img, point2D[3], circleSize, RED, cv::FILLED);
+	cv::circle(img, point2D[4], circleSize, RED, cv::FILLED);
+	cv::circle(img, point2D[5], circleSize, RED, cv::FILLED);
+	cv::circle(img, point2D[6], circleSize, RED, cv::FILLED);
+	cv::circle(img, point2D[7], circleSize, RED, cv::FILLED);
 }
