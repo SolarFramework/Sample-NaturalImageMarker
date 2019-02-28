@@ -298,7 +298,7 @@ int main(int argc, char *argv[])
 
         std::cout << "this is the end..." << '\n';
     }
-    catch (xpcf::Exception)
+    catch (xpcf::Exception e)
     {
         LOG_ERROR ("The following exception has been catch : {}", e.what());
         return -1;
