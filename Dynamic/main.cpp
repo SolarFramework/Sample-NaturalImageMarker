@@ -40,6 +40,7 @@ using namespace std;
 #include "api/display/I3DOverlay.h"
 #include "api/geom/IImage2WorldMapper.h"
 #include "api/geom/I2DTransform.h"
+#include "core/Log.h"
 
 #include "SolAROpenCVHelper.h"
 
