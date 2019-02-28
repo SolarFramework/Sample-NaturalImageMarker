@@ -6,7 +6,7 @@ CONFIG += c++11
 CONFIG -= qt
 CONFIG += console
 CONFIG -= app_bundle
-TARGET = SolARNaturalImageMarkerDyn
+TARGET = SolARNaturalImageMarkerStandAlone
 
 TEMPLATE = app
 
