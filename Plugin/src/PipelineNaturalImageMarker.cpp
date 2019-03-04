@@ -301,16 +301,16 @@ FrameworkReturnCode PipelineNaturalImageMarker::start(void* imageDataBuffer)
     m_sink->setImageBuffer((unsigned char*)imageDataBuffer);
     if (!m_haveToBeFlip && (m_camera->start() != FrameworkReturnCode::_SUCCESS))
     {
-        LOG_ERROR("Camera cannot start")
+        LOG_ERROR("Camera cannot start");
         return FrameworkReturnCode::_ERROR_;
     }
-
     // create and start a thread to process the images
     auto processCamImageThread = [this](){;processCamImage();};
 
     m_taskProcess = new xpcf::DelegateTask(processCamImageThread);
     m_taskProcess->start();
-    LOG_DEBUG("Fiducial marker pipeline has started");
+    //LOG_DEBUG("Fiducial marker pipeline has started");
+
     m_startedOK = true;
     return FrameworkReturnCode::_SUCCESS;
 }
