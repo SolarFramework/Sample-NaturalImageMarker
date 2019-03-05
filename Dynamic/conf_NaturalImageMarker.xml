@@ -92,7 +92,7 @@
 	<configuration>
 		<component uuid="5B7396F4-A804-4F3C-A0EB-FB1D56042BB4"> <!-- SolARCameraOpencv -->
 			<property name="calibrationFile" type="string" value="camera_calibration.yml"/>
-			<property name="deviceID" type="UnsignedInteger" value="0"/>
+			<property name="deviceID" type="UnsignedInteger" value="1"/>
 		</component>
 		<component uuid="fa4a780a-9720-11e8-9eb6-529269fb1459"> <!-- SolARVideoAsCameraOpencv -->
 			<property name="calibrationFile" type="string" value="camera_calibration.yml"/>
