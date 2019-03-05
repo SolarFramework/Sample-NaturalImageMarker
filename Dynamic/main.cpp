@@ -76,9 +76,13 @@ namespace xpcf  = org::bcom::xpcf;
 #include <chrono>         // std::chrono::seconds
 
 
-const int THRES_TRACK1 = 80;
+//const int THRES_TRACK1 = 80;
+
+const int THRES_TRACK1 = 30;
 const int THRES_TRACK2 = 200;
-const int THRES_AR = 80;
+//const int THRES_AR = 80;
+//const int THRES_AR = 20;
+const int THRES_AR = 10;
 //const int THRES_TO_TRACK = 80;
 const int THRES_TO_TRACK = 30;
 const int MIN_HEIGHT_DETECT = 480;
@@ -103,19 +107,20 @@ void visualAR(cv::Mat &img,cv::Mat &rvec, cv::Mat &tvec,cv::Mat &cameraMatrix,cv
 */
 
 // camera parameters
-int index_camera, width_camera, height_camera;
+int width_camera;
+int height_camera;
 std::string pIntrinsic;
-cv::Mat cameraMatrix = (cv::Mat_<double>(3, 3) << 649.7, 0.0, 319.5, 0.0, 649.7, 239.5, 0.0, 0.0, 1.0);
-cv::Mat distCoeffs = cv::Mat::zeros(5, 1, CV_64FC1);
+cv::Mat cameraMatrix;// = (cv::Mat_<double>(3, 3) << 649.7, 0.0, 319.5, 0.0, 649.7, 239.5, 0.0, 0.0, 1.0);
+cv::Mat distCoeffs;// = cv::Mat::zeros(5, 1, CV_64FC1);
 
 // Marker
 std::string pMarker;
 cv::Mat img_object;
 std::vector<cv::KeyPoint> kps_object;
 cv::Mat des_object;
-float size_x;
-float size_y;
-float size_z;
+float size_x = 0.285f;
+float size_y= 0.197f;
+float size_z=1.0f;
 
 // feature detector
 std::string featureType;
@@ -132,6 +137,7 @@ bool							isPose, isTrack;
 std::vector<cv::Point3f>		point3DAR;
 
 
+bool valid_pose = false;
 int main(int argc, char *argv[])
 {
 
@@ -186,9 +192,46 @@ int main(int argc, char *argv[])
 
     LOG_INFO("All components have been created");
 
-	// the following code is common to the 3 samples (simple, compile-time, run-time)
-	// 
-	//
+    //setup variable
+    width_camera = camera->getResolution().width;
+    height_camera = camera->getResolution().height;
+
+    cameraMatrix.create(3, 3, CV_64FC1);
+    distCoeffs.create(5, 1, CV_64FC1);
+
+
+    rvec= cv::Mat::ones(3, 3, CV_64FC1);
+    tvec= cv::Mat::zeros(3, 1, CV_64FC1);
+
+    distCoeffs.at<double>(0, 0) = camera->getDistorsionParameters()(0);
+    distCoeffs.at<double>(1, 0) = camera->getDistorsionParameters()(1);
+    distCoeffs.at<double>(2, 0) = camera->getDistorsionParameters()(2);
+    distCoeffs.at<double>(3, 0) = camera->getDistorsionParameters()(3);
+    distCoeffs.at<double>(4, 0) = camera->getDistorsionParameters()(4);
+
+    cameraMatrix.at<double>(0, 0) = camera->getIntrinsicsParameters()(0, 0);
+    cameraMatrix.at<double>(0, 1) = camera->getIntrinsicsParameters()(0, 1);
+    cameraMatrix.at<double>(0, 2) = camera->getIntrinsicsParameters()(0, 2);
+    cameraMatrix.at<double>(1, 0) = camera->getIntrinsicsParameters()(1, 0);
+    cameraMatrix.at<double>(1, 1) = camera->getIntrinsicsParameters()(1, 1);
+    cameraMatrix.at<double>(1, 2) = camera->getIntrinsicsParameters()(1, 2);
+    cameraMatrix.at<double>(2, 0) = camera->getIntrinsicsParameters()(2, 0);
+    cameraMatrix.at<double>(2, 1) = camera->getIntrinsicsParameters()(2, 1);
+    cameraMatrix.at<double>(2, 2) = camera->getIntrinsicsParameters()(2, 2);
+
+
+    point3DAR = {
+        cv::Point3f(0.f, 0.f, 0.f),
+        cv::Point3f(size_x, 0.f, 0.f),
+        cv::Point3f(size_x, size_y, 0.f),
+        cv::Point3f(0.f, size_y, 0.f),
+        cv::Point3f(0.f, 0.f, size_z),
+        cv::Point3f(size_x, 0.f, size_z),
+        cv::Point3f(size_x, size_y, size_z),
+        cv::Point3f(0.f, size_y, size_z)
+    };
+
+
 	// Declare data structures used to exchange information between components
 	SRef<Image> refImage, camImage, kpImageCam;
 	SRef<DescriptorBuffer> refDescriptors, camDescriptors;
@@ -270,7 +313,7 @@ int main(int argc, char *argv[])
 	isTrack = false;
 
     //detector = cv::AKAZE::create(5, 0, 3, 0.0001);
-    detector = cv::ORB::create(1500);
+    detector = cv::ORB::create(15000);
 
     img_object = SolAR::MODULES::OPENCV::SolAROpenCVHelper::mapToOpenCV(refImage);
     detector->detectAndCompute(img_object, cv::Mat(), kps_object, des_object);
@@ -279,7 +322,10 @@ int main(int argc, char *argv[])
 
 	// get images from camera in loop, and display them
 	while (true) {
+
+        valid_pose = false;
 		count++;
+
 		LOG_DEBUG("count : {}", count);
         Transform3Df pose;
 		if (camera->getNextImage(camImage) == SolAR::FrameworkReturnCode::_ERROR_)
@@ -318,17 +364,12 @@ int main(int argc, char *argv[])
 		std::vector <SRef<Point2Df>> markerCornersinCamImage;
 		std::vector <SRef<Point3Df>> markerCornersinWorld;
 
-        gray = SolAR::MODULES::OPENCV::SolAROpenCVHelper::mapToOpenCV(camImage);
-        /*
-		prevGray = SolAR::MODULES::OPENCV::SolAROpenCVHelper::mapToOpenCV(camImage);
+        frame = SolAR::MODULES::OPENCV::SolAROpenCVHelper::mapToOpenCV(camImage);
 
-		if(gray.empty()){
-			cv::swap(prevGray, gray);
-			prevGray = SolAR::MODULES::OPENCV::SolAROpenCVHelper::mapToOpenCV(camImage);
-		}
-        */
+        cv::cvtColor(frame, gray, cv::COLOR_BGR2GRAY);
+
 		if (isTrack) {
-            std::cout<< "  Tracking  Status "<<std::endl;
+
 			std::vector<uchar> status;
 			std::vector<float> err;
 			// tracking 2D-2D
@@ -349,12 +390,13 @@ int main(int argc, char *argv[])
 
 				circle(frame, curPts[i], 3, cv::Scalar(0, 255, 0), -1, 8);
 			}
+
 			curPts.resize(k);
 			pts3D.resize(k);			
 
 			// calculate camera pose
 			isPose = computeCameraPose(pts3D, curPts, rvec, tvec, inliers);
-			std::cout << "Number of Inliers: " << inliers.rows << std::endl;
+			std::cout << "OF>> Number of Inliers: " << inliers.rows << std::endl;
 
 			if (inliers.rows < THRES_TRACK1) {
 				prePts.clear();
@@ -403,55 +445,45 @@ int main(int argc, char *argv[])
 					/* The pose could also be estimated from all the points used to estimate the homography */
                     poseEstimation->estimate(markerCornersinCamImage, markerCornersinWorld, pose);
 
-					/* The pose last parameter can not be 0, so this is an error case*/
-                    if (pose(3, 3) != 0.0)
-					{
-						/* We draw a box on the place of the recognized natural marker*/
-#ifndef NDEBUG
-                        overlay3DComponent->draw(pose, kpImageCam);
-#else
-                        overlay3DComponent->draw(pose, camImage);
-#endif
-                        //find the first pose....
 
-                        //--------------------from Optical flow
+                    std::vector<cv::Point2f> tmpPts2D;
+                    std::vector<cv::Point2f> tmpPts2D_obj;
+                    matchFeatures(gray, tmpPts2D, tmpPts2D_obj);
 
-						// Detect extract descriptors and Matching descriptor vectors
-						std::vector<cv::Point2f> tmpPts2D;
-						std::vector<cv::Point2f> tmpPts2D_obj;
-
-
-
-						matchFeatures(gray, tmpPts2D, tmpPts2D_obj);
-                        std::cout << "OF>Number of good matches: " << tmpPts2D_obj.size() << std::endl;
-
-						// calculate camera pose
-						isPose = computeCameraPose(tmpPts2D_obj, tmpPts2D, rvec, tvec, inliers);
-                        std::cout << "OF> Number of inliers: " << inliers.rows << std::endl;
-
-						if (inliers.rows > THRES_TO_TRACK){
-
-							pts3D.clear();
-							get2D3DPoints(gray, prePts, pts3D);
-							prevGray = gray.clone();
-							isTrack = true;
-
-						}
-
-						//-------------------
+                    computeCameraPose(tmpPts2D_obj, tmpPts2D, rvec, tvec, inliers);
+                    std::cout<<"INLIERS "<< inliers.rows << std::endl;
+                    if (inliers.rows > THRES_TO_TRACK) {
+                                    pts3D.clear();
+                                    get2D3DPoints(gray, prePts, pts3D);
+                                    prevGray = gray.clone();
+                                    isTrack = true;
+                                   // std::cout<<"START TRACKING"<<std::endl;
+                                   // cv::waitKey(0);
                     }
-					else
-					{
-						/* The pose estimated is false: error case*/
-						LOG_INFO("no pose detected for this frame");
-					}
+                    valid_pose = true;
+
 				}
 				else /* when homography is not valid*/
 					LOG_INFO("Wrong homography for this frame");
 
 			}
+
+
 		}
 		}//end of detector once
+
+        //draw if valid pose
+        if (pose(3, 3) != 0.0 && valid_pose)
+        {
+            // We draw a box on the place of the recognized natural marker
+             #ifndef NDEBUG
+            overlay3DComponent->draw(pose, kpImageCam);
+            #else
+            overlay3DComponent->draw(pose, camImage);
+            #endif
+        }
+
+
 #ifndef NDEBUG
         if (imageViewerResult->display(kpImageCam) == SolAR::FrameworkReturnCode::_STOP)
 #else
@@ -480,10 +512,10 @@ int main(int argc, char *argv[])
 
 bool computeCameraPose(std::vector<cv::Point2f> &pts2D_obj, std::vector<cv::Point2f> &pts2D, cv::Mat &rvec, cv::Mat &tvec, cv::Mat &inliers)
 {
-	/* calculate camera pose
+    /* calculate camera pose
 	*/
 	inliers = cv::Mat();
-	bool pnp = false;
+    bool pnp = false;
 	if (pts2D_obj.size() < 10){
 		return false;
 	}
@@ -491,15 +523,24 @@ bool computeCameraPose(std::vector<cv::Point2f> &pts2D_obj, std::vector<cv::Poin
 	std::vector<cv::Point2f> imagePoints;
 	cv::undistortPoints(pts2D, imagePoints, cameraMatrix, distCoeffs);
 
-	cv::Mat status;
-	cv::Mat oHw = findHomography(pts2D_obj, imagePoints, cv::RANSAC, 0.1, status);
+    std::cout<<"cameraMatrix >> :"<< cameraMatrix<<std::endl;
 
-	for (int i = 0; i < status.rows; ++i)
+	cv::Mat status;
+    cv::Mat oHw = findHomography(pts2D_obj, imagePoints, cv::RANSAC, 100.0, status);
+
+
+    std::cout<<"oHw >> :"<< oHw<<std::endl;
+
+    for (int i = 0; i < status.rows; ++i){
 		if (status.at<uchar>(i, 0) == 1)
 			inliers.push_back(i);
-	if (inliers.rows < THRES_AR)
-		return false;
-	{
+    }
+
+    if (inliers.rows < THRES_AR)
+
+        return false;
+
+    {
 		std::vector<cv::Point2f> tmp_pts1, tmp_pts2;
 		for (int i = 0; i < inliers.rows; ++i) {
 			int j = inliers.at<int>(i, 0);
@@ -508,7 +549,7 @@ bool computeCameraPose(std::vector<cv::Point2f> &pts2D_obj, std::vector<cv::Poin
 		}
 		oHw = cv::findHomography(tmp_pts1, tmp_pts2);
 	}
-	 
+
 	// Normalization to ensure that ||c1|| = 1
 	double norm = sqrt(oHw.at<double>(0, 0)*oHw.at<double>(0, 0)
 		+ oHw.at<double>(1, 0)*oHw.at<double>(1, 0)
@@ -659,12 +700,6 @@ void matchFeatures(cv::Mat &img_sce, std::vector<cv::Point2f> &pts2D, std::vecto
 	for(unsigned int k = 0; k < kps_sce.size(); k++){
 		kps_sce[k].pt *= scale ; 
 	}
-/*
-	for each (auto kp in kps_sce){
-		kp.pt = kp.pt * scale;
-	}	
-*/
-
 	cv::BFMatcher* matcher = new cv::BFMatcher(cv::NORM_L2, false);
 	
 	std::vector< std::vector<cv::DMatch> > matches_2nn_12;
