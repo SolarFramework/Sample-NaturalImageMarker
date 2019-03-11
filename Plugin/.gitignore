@@ -1,10 +1,10 @@
-
-*.pro.user
+*.user
 
 *-Debug
 
 *-Release
 
+*.vcxproj*
 
 # Prerequisites
 *.d
@@ -14,6 +14,8 @@
 *.lo
 *.o
 *.obj
+
+.\build
 
 # Precompiled Headers
 *.gch
@@ -52,10 +54,10 @@
 # Visual Studio files
 .vs*
 x64*
-*.vcxproj.user
-build-SolARNaturalImageMarkerStatic/logAkaze.log
-build-SolARNaturalImageMarkerStatic/graf1.png
-build-SolARNaturalImageMarkerStatic/Makefile
-build-SolARNaturalImageMarkerStatic/camera_calibration.yml
-build-SolARNaturalImageMarkerStatic/grafMarker.yml
-Plugin/PipelineNaturalImageMarker.pro.user.9582bec
+
+*.log
+*.tlog
+*.TMP
+*.tmp
+
+
