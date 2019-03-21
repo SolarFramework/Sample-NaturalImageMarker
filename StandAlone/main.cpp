@@ -61,6 +61,9 @@ namespace xpcf = org::bcom::xpcf;
 #include <thread> // std::this_thread::sleep_for
 #include <chrono> // std::chrono::seconds
 
+#define TRACKING
+
+
 int main(int argc, char *argv[])
 {
 
@@ -213,9 +216,11 @@ int main(int argc, char *argv[])
                     }
                     else
                     {
-                        //isTrack = true;
+#ifdef TRACKING
+                        isTrack = true;
+#endif
                         valid_pose = true;
-                        previousCamImage = camImage;
+                        previousCamImage= camImage->copy();
                         LOG_DEBUG("pose :\n {}", pose.matrix());
                     }
                 }
@@ -252,7 +257,7 @@ int main(int argc, char *argv[])
                 else
                 {
                     valid_pose = true;
-                    previousCamImage = camImage;
+                    previousCamImage = camImage->copy();
                 }
             }
 
@@ -261,14 +266,14 @@ int main(int argc, char *argv[])
             {
                 // We draw a box on the place of the recognized natural marker
 #ifndef NDEBUG
-                overlay3DComponent->draw(pose, kpImageCam);
+                overlay3DComponent->draw(pose, camImage);
 #else
                 overlay3DComponent->draw(pose, camImage);
 #endif
             }
 
 #ifndef NDEBUG
-            if (imageViewerResult->display(kpImageCam) == SolAR::FrameworkReturnCode::_STOP)
+            if (imageViewerResult->display(camImage) == SolAR::FrameworkReturnCode::_STOP)
 #else
             if (imageViewerResult->display(camImage) == SolAR::FrameworkReturnCode::_STOP)
 #endif

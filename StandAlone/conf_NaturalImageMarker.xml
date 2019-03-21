@@ -73,7 +73,7 @@
 	<configuration>
 		<component uuid="5B7396F4-A804-4F3C-A0EB-FB1D56042BB4"> <!-- SolARCameraOpencv -->
 			<property name="calibrationFile" type="string" value="camera_calibration.yml"/>
-			<property name="deviceID" type="UnsignedInteger" value="0"/>
+			<property name="deviceID" type="UnsignedInteger" value="1"/>
 		</component>
 		<component uuid="efcdb590-c570-11e7-abc4-cec278b6b50a"> <!-- SolARMarker2DNaturalImageOpencv -->
             <property name="filePath" type="string" value="grafMarker.yml"/>
@@ -94,8 +94,8 @@
 			<property name="m_outlierDistanceRatio" type="Double" value="0.006"/>
         </component>
 		<component uuid="9fbadf80-251f-4160-94f8-a64dc3d40a2f"> <!-- SolARPoseEstimationPlanarPointsOpencv -->
-            <property name="minNbInliers" type="Integer" value="10"/>
-			<property name="minNbInliers" type="Float" value="0.1"/>
+            <property name="minNbInliers" type="Integer" value="20"/>
+			<property name="m_reprojErrorThreshold" type="Float" value="0.1"/>
         </component>
 		<component uuid="e81c7e4e-7da6-476a-8eba-078b43071272"> <!-- SolAROpticalFlowPyrLKOpencv -->
 			<property name="searchWinWidth" type="Integer" value="21"/>
