@@ -65,6 +65,7 @@ namespace xpcf = org::bcom::xpcf;
 #include <chrono> // std::chrono::seconds
 
 #define TRACKING
+
 int updateTrackedPointThreshold = 60;
 
 int main(int argc, char *argv[])
@@ -115,6 +116,7 @@ int main(int argc, char *argv[])
         std::vector<SRef<Keypoint>> refKeypoints;
         SRef<DescriptorBuffer> refDescriptors;
         std::vector<SRef<Point3Df>> markerWorldCorners;
+        std::vector<SRef<Point2Df>> projectedMarkerCorners;
         std::vector<SRef<Point2Df>> imagePoints_inliers;
         std::vector<SRef<Point3Df>> worldPoints_inliers;
         Transform3Df pose;
@@ -249,7 +251,10 @@ int main(int argc, char *argv[])
 
                 // tracking 2D-2D
                 opticalFlowEstimator->estimate(previousCamImage, camImage, imagePoints_inliers, trackedPoints, status, err);
-
+#ifndef NDEBUG
+                kpImageCam = camImage->copy();
+                overlay2DComponent->drawCircles(trackedPoints, kpImageCam);
+#endif
                 for (int i = 0; i < status.size(); i++)
                 {
                     if (!status[i])
@@ -274,17 +279,20 @@ int main(int argc, char *argv[])
                 {
                     valid_pose = true;
                     previousCamImage = camImage->copy();
-                    if (worldPoints_inliers.size() < updateTrackedPointThreshold)
+                   // if (worldPoints_inliers.size() < updateTrackedPointThreshold)
                         needNewTrackedPoints = true;
                 }
             }
 
             if (needNewTrackedPoints)
             {
-                std::vector<SRef<Point2Df>> projectedMarkerCorners;
                 std::vector<SRef<Keypoint>> newKeypoints;
                 // Get the projection of the corner of the marker in the current image
                 projection->project(markerWorldCorners, projectedMarkerCorners, pose);
+
+#ifndef NDEBUG
+                overlay2DComponent->drawContour(projectedMarkerCorners, kpImageCam);
+#endif
 
                 // Detect the keypoints within the contours of the marker defined by the projected corners
                 kpDetectorRegion->detect(camImage, projectedMarkerCorners, newKeypoints);
@@ -303,7 +311,7 @@ int main(int argc, char *argv[])
             {
                 // We draw a box on the place of the recognized natural marker
 #ifndef NDEBUG
-                overlay3DComponent->draw(pose, camImage);
+                overlay3DComponent->draw(pose, kpImageCam);
 #else
                 overlay3DComponent->draw(pose, camImage);
 #endif
