@@ -251,10 +251,7 @@ int main(int argc, char *argv[])
 
                 // tracking 2D-2D
                 opticalFlowEstimator->estimate(previousCamImage, camImage, imagePoints_inliers, trackedPoints, status, err);
-#ifndef NDEBUG
-                kpImageCam = camImage->copy();
-                overlay2DComponent->drawCircles(trackedPoints, kpImageCam);
-#endif
+
                 for (int i = 0; i < status.size(); i++)
                 {
                     if (!status[i])
@@ -265,6 +262,11 @@ int main(int argc, char *argv[])
                     pts2D.push_back(trackedPoints[i]);
                     pts3D.push_back(worldPoints_inliers[i]);
                 }
+
+#ifndef NDEBUG
+                kpImageCam = camImage->copy();
+                overlay2DComponent->drawCircles(pts2D, kpImageCam);
+#endif
 
                 // calculate camera pose
                 // Estimate the pose from the 2D-3D planar correspondence
@@ -279,11 +281,10 @@ int main(int argc, char *argv[])
                 {
                     valid_pose = true;
                     previousCamImage = camImage->copy();
-                   // if (worldPoints_inliers.size() < updateTrackedPointThreshold)
+                    if (worldPoints_inliers.size() < updateTrackedPointThreshold)
                         needNewTrackedPoints = true;
                 }
             }
-
             if (needNewTrackedPoints)
             {
                 std::vector<SRef<Keypoint>> newKeypoints;
@@ -305,7 +306,6 @@ int main(int argc, char *argv[])
                 unprojection->unproject(imagePoints_inliers, worldPoints_inliers, pose);
             }
 
-
             //draw a cube if the pose if valid
             if (valid_pose)
             {
@@ -318,7 +318,7 @@ int main(int argc, char *argv[])
             }
 
 #ifndef NDEBUG
-            if (imageViewerResult->display(camImage) == SolAR::FrameworkReturnCode::_STOP)
+            if (imageViewerResult->display(kpImageCam) == SolAR::FrameworkReturnCode::_STOP)
 #else
             if (imageViewerResult->display(camImage) == SolAR::FrameworkReturnCode::_STOP)
 #endif
