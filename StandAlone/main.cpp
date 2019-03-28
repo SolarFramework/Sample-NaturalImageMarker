@@ -66,12 +66,12 @@ namespace xpcf = org::bcom::xpcf;
 
 #define TRACKING
 
-int updateTrackedPointThreshold = 60;
+int updateTrackedPointThreshold = 500;
 
 int main(int argc, char *argv[])
 {
 
-#if NDEBUG
+#ifdef NDEBUG
 	boost::log::core::get()->set_logging_enabled(false);
 #endif
 
@@ -202,7 +202,7 @@ int main(int argc, char *argv[])
 
 #ifndef NDEBUG
                 kpImageCam = camImage->copy();
-                overlay2DComponent->drawCircles(camKeypoints, kpImageCam);
+                //overlay2DComponent->drawCircles(camKeypoints, kpImageCam);
 #endif
 
                 /* extract descriptors in camera image*/
@@ -235,10 +235,11 @@ int main(int argc, char *argv[])
                     {
 #ifdef TRACKING
                         isTrack = true;
+						needNewTrackedPoints = true;
 #endif
                         valid_pose = true;
                         previousCamImage= camImage->copy();
-                        LOG_DEBUG("pose :\n {}", pose.matrix());
+                        LOG_INFO("Start tracking", pose.matrix());
                     }
                 }
             }
@@ -254,13 +255,11 @@ int main(int argc, char *argv[])
 
                 for (int i = 0; i < status.size(); i++)
                 {
-                    if (!status[i])
+                    if (status[i])
                     {
-                        continue;
-                    }
-
-                    pts2D.push_back(trackedPoints[i]);
-                    pts3D.push_back(worldPoints_inliers[i]);
+						pts2D.push_back(trackedPoints[i]);
+						pts3D.push_back(worldPoints_inliers[i]);
+                    }                    
                 }
 
 #ifndef NDEBUG
@@ -285,26 +284,30 @@ int main(int argc, char *argv[])
                         needNewTrackedPoints = true;
                 }
             }
+
+#ifdef TRACKING
             if (needNewTrackedPoints)
             {
+				imagePoints_inliers.clear();
+				worldPoints_inliers.clear();
                 std::vector<SRef<Keypoint>> newKeypoints;
                 // Get the projection of the corner of the marker in the current image
                 projection->project(markerWorldCorners, projectedMarkerCorners, pose);
-
 #ifndef NDEBUG
                 overlay2DComponent->drawContour(projectedMarkerCorners, kpImageCam);
-#endif
-
+#endif				
                 // Detect the keypoints within the contours of the marker defined by the projected corners
                 kpDetectorRegion->detect(camImage, projectedMarkerCorners, newKeypoints);
-
-                imagePoints_inliers.clear();
+                
                 for (auto keypoint : newKeypoints)
                     imagePoints_inliers.push_back(xpcf::utils::make_shared<Point2Df>(keypoint->getX(), keypoint->getY()));
 
                 // get back the 3D positions of the detected keypoints in world space
                 unprojection->unproject(imagePoints_inliers, worldPoints_inliers, pose);
+				needNewTrackedPoints = false;
+				LOG_INFO("Reinitialize points to track");
             }
+#endif
 
             //draw a cube if the pose if valid
             if (valid_pose)
