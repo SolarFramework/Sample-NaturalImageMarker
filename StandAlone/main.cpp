@@ -47,7 +47,6 @@ using namespace std;
 
 
 #include "core/Log.h"
-#include "SharedBuffer.hpp"
 
 #include <boost/timer/timer.hpp>
 #include <boost/chrono.hpp>
