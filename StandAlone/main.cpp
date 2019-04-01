@@ -229,7 +229,7 @@ int main(int argc, char *argv[])
                     if (poseEstimationPlanar->estimate(camMatched2Dpoints, ref3Dpoints, imagePoints_inliers, worldPoints_inliers, pose) != FrameworkReturnCode::_SUCCESS)
                     {
                         valid_pose = false;
-                        LOG_INFO("Wrong homography for this frame");
+                        LOG_DEBUG("Wrong homography for this frame");
                     }
                     else
                     {
@@ -305,7 +305,7 @@ int main(int argc, char *argv[])
                 // get back the 3D positions of the detected keypoints in world space
                 unprojection->unproject(imagePoints_inliers, worldPoints_inliers, pose);
 				needNewTrackedPoints = false;
-				LOG_INFO("Reinitialize points to track");
+                LOG_DEBUG("Reinitialize points to track");
             }
 #endif
 
