@@ -54,6 +54,7 @@
 #include "api/tracking/IOpticalFlowEstimator.h"
 #include "api/display/I2DOverlay.h"
 #include "api/display/I3DOverlay.h"
+#include "api/display/IMatchesOverlay.h"
 #include "api/display/IImageViewer.h"
 
 
@@ -64,8 +65,6 @@ using namespace SolAR::datastructure;
 using namespace SolAR::api;
 namespace xpcf = org::bcom::xpcf;
 using namespace std;
-
-//#define TRACKING
 
 int updateTrackedPointThreshold = 500;
 
@@ -102,18 +101,23 @@ int main(int argc, char *argv[])
         auto basicMatchesFilter = xpcfComponentManager->create<SolARBasicMatchesFilter>()->bindTo<features::IMatchesFilter>();
         auto geomMatchesFilter = xpcfComponentManager->create<SolARGeometricMatchesFilterOpencv>()->bindTo<features::IMatchesFilter>();
         auto keypointsReindexer = xpcfComponentManager->create<SolARKeypointsReIndexer>()->bindTo<features::IKeypointsReIndexer>();
-        auto poseEstimationPlanar = xpcfComponentManager->create<SolARPoseEstimationPlanarPointsOpencv>()->bindTo<solver::pose::I3DTransformSACFinderFrom2D3D>();
+        auto poseEstimationPlanarDetection = xpcfComponentManager->create<SolARPoseEstimationPlanarPointsOpencv>("poseEstimationDetection")->bindTo<solver::pose::I3DTransformSACFinderFrom2D3D>();
+        auto poseEstimationPlanarTracking = xpcfComponentManager->create<SolARPoseEstimationPlanarPointsOpencv>("poseEstimationTracking")->bindTo<solver::pose::I3DTransformSACFinderFrom2D3D>();
         auto img_mapper = xpcfComponentManager->create<SolARImage2WorldMapper4Marker2D>()->bindTo<geom::IImage2WorldMapper>();
         auto opticalFlowEstimator = xpcfComponentManager->create<SolAROpticalFlowPyrLKOpencv>()->bindTo<tracking::IOpticalFlowEstimator>();
         auto projection = xpcfComponentManager->create<SolARProjectOpencv>()->bindTo<geom::IProject>();
         auto unprojection = xpcfComponentManager->create<SolARUnprojectPlanarPointsOpencv>()->bindTo<geom::IUnproject>();
         auto overlay2DComponent = xpcfComponentManager->create<SolAR2DOverlayOpencv>()->bindTo<display::I2DOverlay>();
+        auto overlayMatches = xpcfComponentManager->create<SolARMatchesOverlayOpencv>()->bindTo<display::IMatchesOverlay>();
         auto overlay3DComponent = xpcfComponentManager->create<SolAR3DOverlayBoxOpencv>()->bindTo<display::I3DOverlay>();
         auto imageViewerKeypoints = xpcfComponentManager->create<SolARImageViewerOpencv>("keypoints")->bindTo<display::IImageViewer>();
         auto imageViewerResult = xpcfComponentManager->create<SolARImageViewerOpencv>()->bindTo<display::IImageViewer>();
 
         // Declare data structures used to exchange information between components for initialization
         SRef<Image> refImage;
+#ifndef NDEBUG
+        SRef<Image> debugCamImage;
+#endif
         std::vector<SRef<Keypoint>> refKeypoints;
         SRef<DescriptorBuffer> refDescriptors;
         std::vector<SRef<Point3Df>> markerWorldCorners;
@@ -159,8 +163,9 @@ int main(int argc, char *argv[])
         // initialize overlay 3D component with the camera intrinsec parameters (please refeer to the use of intrinsec parameters file)
         overlay3DComponent->setCameraParameters(camera->getIntrinsicsParameters(), camera->getDistorsionParameters());
 
-        // initialize pose estimation based on planar points with the camera intrinsec parameters (please refeer to the use of intrinsec parameters file)
-        poseEstimationPlanar->setCameraParameters(camera->getIntrinsicsParameters(), camera->getDistorsionParameters());
+        // initialize pose estimations based on planar points with the camera intrinsec parameters (please refeer to the use of intrinsec parameters file)
+        poseEstimationPlanarDetection->setCameraParameters(camera->getIntrinsicsParameters(), camera->getDistorsionParameters());
+        poseEstimationPlanarTracking->setCameraParameters(camera->getIntrinsicsParameters(), camera->getDistorsionParameters());
 
         // initialize projection component with the camera intrinsec parameters (please refeer to the use of intrinsec parameters file)
         projection->setCameraParameters(camera->getIntrinsicsParameters(), camera->getDistorsionParameters());
@@ -179,7 +184,7 @@ int main(int argc, char *argv[])
         int count = 0;
         start = clock();
 
-        // Get images from camera and fill drop buffers for Detection and Tracking tasks
+// Camera image capture task
         std::function<void(void)> camImageCapture = [&stop,camera,&m_dropBufferCamImageForDetection, &m_dropBufferCamImageForTracking](){
 
             SRef<Image> camImage;
@@ -191,10 +196,10 @@ int main(int argc, char *argv[])
             m_dropBufferCamImageForTracking.push(camImage);
         };
 
-        // Marker Detection
+// Marker Detection task
         std::function<void(void)> detection = [&refKeypoints, refDescriptors,
                                                &m_dropBufferCamImageForDetection, &m_dropBufferPoseForTracking,
-                                               kpDetector, descriptorExtractor, matcher, basicMatchesFilter, geomMatchesFilter, keypointsReindexer, img_mapper, poseEstimationPlanar](){
+                                               kpDetector, descriptorExtractor, matcher, basicMatchesFilter, geomMatchesFilter, keypointsReindexer, img_mapper, poseEstimationPlanarDetection](){
             SRef<Image> camImage;
             std::vector<SRef<Keypoint>> camKeypoints;
             SRef<DescriptorBuffer> camDescriptors;
@@ -230,8 +235,9 @@ int main(int argc, char *argv[])
                 // mapping to 3D points
                 img_mapper->map(refMatched2Dpoints, ref3Dpoints);
 
-                if (poseEstimationPlanar->estimate(camMatched2Dpoints, ref3Dpoints, imagePoints_inliers, worldPoints_inliers, pose) != FrameworkReturnCode::_SUCCESS)
+                if (poseEstimationPlanarDetection->estimate(camMatched2Dpoints, ref3Dpoints, imagePoints_inliers, worldPoints_inliers, pose) == FrameworkReturnCode::_SUCCESS)
                 {
+                    LOG_DEBUG("Marker detected");
                     m_dropBufferPoseForTracking.push(std::make_pair(camImage, pose));
                     return;
                 }
@@ -239,8 +245,7 @@ int main(int argc, char *argv[])
             return;
         };
 
-        // Marker Tracking
-
+// Marker Tracking task
         // Variable shared for tracking
         SRef<Image> previousCamImage;
         Transform3Df previousPose;
@@ -248,8 +253,11 @@ int main(int argc, char *argv[])
         std::vector<SRef<Point3Df>> worldPoints_inliers;
 
         std::function<void(void)> tracking = [&markerWorldCorners, &previousCamImage, &previousPose, &imagePoints_inliers, &worldPoints_inliers,
+#ifndef NDEBUG
+                                              &debugCamImage, overlay2DComponent, overlayMatches,
+#endif
                                               &m_dropBufferCamImageForTracking, &m_dropBufferPoseForTracking, &m_dropBufferPoseForDisplay,
-                                              projection, kpDetectorRegion, unprojection, opticalFlowEstimator, poseEstimationPlanar]()
+                                              projection, kpDetectorRegion, unprojection, opticalFlowEstimator, poseEstimationPlanarTracking]()
         {
             SRef<Image> camImage;
             std::pair<SRef<Image>, Transform3Df> poseImageFromDetection;
@@ -261,6 +269,9 @@ int main(int argc, char *argv[])
             Transform3Df pose;
             bool detectionPerformed = false;
             bool needNewTrackedPoints = false;
+#ifndef NDEBUG
+            std::vector<SRef<Point2Df>> trackedKeypoints;
+#endif
 
             if (!m_dropBufferCamImageForTracking.tryPop(camImage))
                 return;
@@ -272,6 +283,7 @@ int main(int argc, char *argv[])
                 previousPose = poseImageFromDetection.second;
                 detectionPerformed = true;
             }
+
             // if tracking and detection have failed, just pass the current image to the display task
             if (imagePoints_inliers.empty() && !detectionPerformed)
             {
@@ -284,16 +296,18 @@ int main(int argc, char *argv[])
             // Add new keypoints to track
             if (needNewTrackedPoints)
             {
+                LOG_DEBUG("New keypoint extraction for tracking");
                 imagePoints_inliers.clear();
                 worldPoints_inliers.clear();
                 std::vector<SRef<Keypoint>> newKeypoints;
                 // Get the projection of the corner of the marker in the current image
                 projection->project(markerWorldCorners, projectedMarkerCorners, previousPose);
-/*
+
 #ifndef NDEBUG
-                overlay2DComponent->drawContour(projectedMarkerCorners, kpImageCam);
+                debugCamImage = camImage->copy();
+                overlay2DComponent->drawContour(projectedMarkerCorners, debugCamImage);
 #endif
-*/
+
                 // Detect the keypoints within the contours of the marker defined by the projected corners
                 kpDetectorRegion->detect(camImage, projectedMarkerCorners, newKeypoints);
 
@@ -313,25 +327,45 @@ int main(int argc, char *argv[])
                 {
                     pts2D.push_back(trackedPoints[i]);
                     pts3D.push_back(worldPoints_inliers[i]);
+#ifndef NDEBUG
+                    trackedKeypoints.push_back(imagePoints_inliers[i]);
+#endif
                 }
             }
 
+#ifndef NDEBUG
+            overlay2DComponent->drawCircles(imagePoints_inliers, debugCamImage);
+            SRef<Image> tempImage;
+            overlayMatches->draw(debugCamImage, tempImage, trackedKeypoints, pts2D);
+            debugCamImage = tempImage;
+#endif
+
             // Estimate the pose from the 2D-3D planar correspondence
-            if (poseEstimationPlanar->estimate(pts2D, pts3D, imagePoints_inliers, worldPoints_inliers, pose) != FrameworkReturnCode::_SUCCESS)
+            if (poseEstimationPlanarTracking->estimate(pts2D, pts3D, imagePoints_inliers, worldPoints_inliers, pose) == FrameworkReturnCode::_SUCCESS)
             {
-                m_dropBufferPoseForDisplay.push(std::make_tuple(camImage, Transform3Df::Identity(), false));
+                LOG_DEBUG("Tracking lost");
+#ifndef NDEBUG
+                m_dropBufferPoseForDisplay.push(std::make_tuple(debugCamImage, pose, true));
+#else
+                m_dropBufferPoseForDisplay.push(std::make_tuple(camImage, pose, true));
+#endif
                 previousPose = pose;
                 previousCamImage = camImage;
             }
             else
             {
+                LOG_DEBUG("Marker Tracked");
+#ifndef NDEBUG
+                m_dropBufferPoseForDisplay.push(std::make_tuple(debugCamImage, Transform3Df::Identity(), false));
+#else
                 m_dropBufferPoseForDisplay.push(std::make_tuple(camImage, Transform3Df::Identity(), false));
+#endif
                 imagePoints_inliers.clear();
             }
             return;
         };
 
-
+// Display task
         std::function<void(void)> display = [&stop, &count,
                                              &m_dropBufferPoseForDisplay,
                                              overlay3DComponent, imageViewerResult](){
