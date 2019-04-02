@@ -20,6 +20,10 @@
 
 #include "core/Log.h"
 
+int updateTrackedPointThreshold = 300;
+
+#define TRACKING
+
 namespace xpcf=org::bcom::xpcf;
 
 // Declaration of the module embedding the fiducial marker pipeline
@@ -83,12 +87,6 @@ FrameworkReturnCode PipelineNaturalImageMarker::init(SRef<xpcf::IComponentManage
         m_matcher = xpcfComponentManager->create<MODULES::OPENCV::SolARDescriptorMatcherKNNOpencv>()->bindTo<features::IDescriptorMatcher>();
         if (m_matcher)
             LOG_INFO("descriptor matcher component loaded");
-        m_homographyEstimation = xpcfComponentManager->create<MODULES::OPENCV::SolARHomographyEstimationOpencv>()->bindTo<solver::pose::I2DTransformFinder>();
-        if (m_homographyEstimation)
-            LOG_INFO("Homography Estimation component loaded");
-        m_poseEstimation = xpcfComponentManager->create<MODULES::OPENCV::SolARPoseEstimationPnpOpencv>()->bindTo<solver::pose::I3DTransformFinderFrom2D3D>();
-        if (m_poseEstimation)
-            LOG_INFO("Pose estimation component loaded");
         m_descriptorExtractor =  xpcfComponentManager->create<MODULES::OPENCV::SolARDescriptorsExtractorAKAZE2Opencv>()->bindTo<features::IDescriptorsExtractor>();
         if (m_descriptorExtractor)
             LOG_INFO("Descriptor extractor component loaded");
@@ -116,6 +114,14 @@ FrameworkReturnCode PipelineNaturalImageMarker::init(SRef<xpcf::IComponentManage
         m_imageConvertorUnity =xpcfComponentManager->create<MODULES::OPENCV::SolARImageConvertorUnity>()->bindTo<image::IImageConvertor>();
         if (m_imageConvertorUnity)
             LOG_INFO("Image Convertor Unity component loaded");
+
+        m_kpDetectorRegion = xpcfComponentManager->create<MODULES::OPENCV::SolARKeypointDetectorRegionOpencv>()->bindTo<features::IKeypointDetectorRegion>();
+        m_projection = xpcfComponentManager->create<MODULES::OPENCV::SolARProjectOpencv>()->bindTo<geom::IProject>();
+        m_unprojection = xpcfComponentManager->create<MODULES::OPENCV::SolARUnprojectPlanarPointsOpencv>()->bindTo<geom::IUnproject>();
+        m_poseEstimationPlanar = xpcfComponentManager->create<MODULES::OPENCV::SolARPoseEstimationPlanarPointsOpencv>()->bindTo<solver::pose::I3DTransformSACFinderFrom2D3D>();
+        m_opticalFlowEstimator = xpcfComponentManager->create<MODULES::OPENCV::SolAROpticalFlowPyrLKOpencv>()->bindTo<tracking::IOpticalFlowEstimator>();
+
+
     }
     catch (xpcf::Exception e)
     {
@@ -128,6 +134,8 @@ FrameworkReturnCode PipelineNaturalImageMarker::init(SRef<xpcf::IComponentManage
     LOG_INFO("LOAD MARKER IMAGE ");
     m_naturalImagemarker->loadMarker();
     m_naturalImagemarker->getImage(m_refImage);
+    m_naturalImagemarker->getWorldCorners(m_markerWorldCorners);
+
 
     // detect keypoints in reference image
     LOG_INFO("DETECT MARKER KEYPOINTS ");
@@ -137,9 +145,6 @@ FrameworkReturnCode PipelineNaturalImageMarker::init(SRef<xpcf::IComponentManage
     LOG_INFO("EXTRACT MARKER DESCRIPTORS ");
     m_descriptorExtractor->extract(m_refImage, m_refKeypoints, m_refDescriptors);
     LOG_INFO("EXTRACT MARKER DESCRIPTORS COMPUTED");
-
-    // initialize pose estimation
-    m_poseEstimation->setCameraParameters(m_camera->getIntrinsicsParameters(), m_camera->getDistorsionParameters());
 
     // initialize image mapper with the reference image size and marker size
 
@@ -168,6 +173,19 @@ FrameworkReturnCode PipelineNaturalImageMarker::init(SRef<xpcf::IComponentManage
     for(int i=0;i<4;i++)
         for(int j=0;j<4;j++)
             m_pose(i,j)=0.f;
+
+    // initialize pose estimation based on planar points with the camera intrinsec parameters (please refeer to the use of intrinsec parameters file)
+    m_poseEstimationPlanar->setCameraParameters(m_camera->getIntrinsicsParameters(), m_camera->getDistorsionParameters());
+
+    // initialize projection component with the camera intrinsec parameters (please refeer to the use of intrinsec parameters file)
+    m_projection->setCameraParameters(m_camera->getIntrinsicsParameters(), m_camera->getDistorsionParameters());
+
+    // initialize unprojection component with the camera intrinsec parameters (please refeer to the use of intrinsec parameters file)
+    m_unprojection->setCameraParameters(m_camera->getIntrinsicsParameters(), m_camera->getDistorsionParameters());
+
+    m_valid_pose = false;
+    m_isTrack = false;
+    m_needNewTrackedPoints = false;
 
     m_initOK = true;
     return FrameworkReturnCode::_SUCCESS;
@@ -207,75 +225,123 @@ bool PipelineNaturalImageMarker::processCamImage()
         return false;
     }
 
-    // detect keypoints in camera image
-    m_kpDetector->detect(m_camImage, m_camKeypoints);
-
-    /* extract descriptors in camera image*/
-    m_descriptorExtractor->extract(m_camImage, m_camKeypoints, m_camDescriptors);
-
-    /*compute matches between reference image and camera image*/
-    m_matcher->match(m_refDescriptors, m_camDescriptors, m_matches);
-
-    /* filter matches to remove redundancy and check geometric validity */
-    m_basicMatchesFilter->filter(m_matches, m_matches, m_refKeypoints, m_camKeypoints);
-    m_geomMatchesFilter->filter(m_matches, m_matches, m_refKeypoints, m_camKeypoints);
-
-    std::vector <SRef<Point2Df>> ref2Dpoints;
-    std::vector <SRef<Point2Df>> cam2Dpoints;
-    std::vector <SRef<Point3Df>> ref3Dpoints;
-    Transform2Df Hm;
-    std::vector <SRef<Point2Df>> markerCornersinCamImage;
-    std::vector <SRef<Point3Df>> markerCornersinWorld;
+    m_valid_pose = false;
 
 
-    if (m_matches.size()> 10) {
-        // reindex the keypoints with established correspondence after the matching
-        m_keypointsReindexer->reindex(m_refKeypoints, m_camKeypoints, m_matches, ref2Dpoints, cam2Dpoints);
+    if(!m_isTrack){
 
-        // mapping to 3D points
-        m_img_mapper->map(ref2Dpoints, ref3Dpoints);
+        // detect keypoints in camera image
+        m_kpDetector->detect(m_camImage, m_camKeypoints);
+
+        /* extract descriptors in camera image*/
+        m_descriptorExtractor->extract(m_camImage, m_camKeypoints, m_camDescriptors);
+
+        /*compute matches between reference image and camera image*/
+        m_matcher->match(m_refDescriptors, m_camDescriptors, m_matches);
+
+        /* filter matches to remove redundancy and check geometric validity */
+        m_basicMatchesFilter->filter(m_matches, m_matches, m_refKeypoints, m_camKeypoints);
+        m_geomMatchesFilter->filter(m_matches, m_matches, m_refKeypoints, m_camKeypoints);
+
+        std::vector <SRef<Point2Df>> ref2Dpoints;
+        std::vector <SRef<Point2Df>> cam2Dpoints;
+        std::vector <SRef<Point3Df>> ref3Dpoints;
+        Transform2Df Hm;
+        std::vector <SRef<Point2Df>> markerCornersinCamImage;
+        std::vector <SRef<Point3Df>> markerCornersinWorld;
 
 
-        api::solver::pose::Transform2DFinder::RetCode res = m_homographyEstimation->find(ref2Dpoints, cam2Dpoints, Hm);
-        //test if a meaningful matrix has been obtained
-        if (res == api::solver::pose::Transform2DFinder::RetCode::TRANSFORM2D_ESTIMATION_OK)
-        {
-            //poseEstimation->poseFromHomography(Hm,pose,objectCorners,sceneCorners);
-            // vector of 2D corners in camera image
-            m_transform2D->transform(m_refImgCorners, Hm, markerCornersinCamImage);
-            // draw circles on corners in camera image
-            //overlay2DComponent->drawCircles(markerCornersinCamImage, 10, 5, kpImageCam);
+        std::vector<SRef<Point2Df>> refMatched2Dpoints, camMatched2Dpoints;
 
-            /* we verify is the estimated homography is valid*/
-            if (m_homographyValidation->isValid(m_refImgCorners, markerCornersinCamImage))
+
+
+        if (m_matches.size()> 10) {
+            // reindex the keypoints with established correspondence after the matching
+            m_keypointsReindexer->reindex(m_refKeypoints, m_camKeypoints, m_matches, ref2Dpoints, cam2Dpoints);
+
+            // mapping to 3D points
+            m_img_mapper->map(ref2Dpoints, ref3Dpoints);
+
+            // Estimate the pose from the 2D-3D planar correspondence
+            if (m_poseEstimationPlanar->estimate(cam2Dpoints, ref3Dpoints, m_imagePoints_inliers,m_worldPoints_inliers, m_pose) != FrameworkReturnCode::_SUCCESS)
             {
-                // from the homography we create 4 points at the corners of the reference image
-                // map corners in 3D world coordinatesf
-                m_img_mapper->map(m_refImgCorners, markerCornersinWorld);
-
-                // pose from solvePNP using 4 points.
-                /* The pose could also be estimated from all the points used to estimate the homography */
-                m_poseEstimation->estimate(markerCornersinCamImage, markerCornersinWorld, m_pose);
-
-                /* The pose last parameter can not be 0, so this is an error case*/
-                if (m_pose(3, 3) != 0.0)
-                {
-                    LOG_INFO("valid pose detected for this frame");
-                    poseComputed = true;
-                }
-                else
-                {
-                    /* The pose estimated is false: error case*/
-                    LOG_INFO("no pose detected for this frame");
-                }
-            }
-            else /* when homography is not valid*/
+                m_valid_pose = false;
                 LOG_INFO("Wrong homography for this frame");
-        }
-     }
+            }
+            else
+            {
+#ifdef TRACKING
+                m_isTrack = true;
+                m_needNewTrackedPoints = true;
+#endif
+                m_valid_pose = true;
+                poseComputed = true;
+                m_previousCamImage= m_camImage->copy();
+                LOG_INFO("Start tracking", m_pose.matrix());
+            }
+         }
+    }
+    else // We track planar keypoints and we estimate the pose based on a homography
+    {
+         std::vector<SRef<Point2Df>> trackedPoints, pts2D;
+         std::vector<SRef<Point3Df>> pts3D;
+         std::vector<unsigned char> status;
+         std::vector<float> err;
 
-    if(poseComputed)
+         // tracking 2D-2D
+         m_opticalFlowEstimator->estimate(m_previousCamImage, m_camImage, m_imagePoints_inliers, trackedPoints, status, err);
+
+         for (int i = 0; i < status.size(); i++)
+         {
+             if (status[i])
+             {
+                 pts2D.push_back(trackedPoints[i]);
+                 pts3D.push_back(m_worldPoints_inliers[i]);
+             }
+         }
+
+         // calculate camera pose
+         // Estimate the pose from the 2D-3D planar correspondence
+         if (m_poseEstimationPlanar->estimate(pts2D, pts3D, m_imagePoints_inliers, m_worldPoints_inliers, m_pose) != FrameworkReturnCode::_SUCCESS)
+         {
+             m_isTrack = false;
+             m_valid_pose = false;
+             m_needNewTrackedPoints = false;
+             LOG_INFO("Tracking lost");
+         }
+         else
+         {
+             m_valid_pose = true;
+             m_previousCamImage = m_camImage->copy();
+             if (m_worldPoints_inliers.size() < updateTrackedPointThreshold)
+                 m_needNewTrackedPoints = true;
+         }
+     }
+#ifdef TRACKING
+    if (m_needNewTrackedPoints)
+    {
+        m_imagePoints_inliers.clear();
+        m_worldPoints_inliers.clear();
+        std::vector<SRef<Keypoint>> newKeypoints;
+        // Get the projection of the corner of the marker in the current image
+        m_projection->project(m_markerWorldCorners, m_projectedMarkerCorners, m_pose);
+        // Detect the keypoints within the contours of the marker defined by the projected corners
+        m_kpDetectorRegion->detect(m_camImage, m_projectedMarkerCorners, newKeypoints);
+
+        for (auto keypoint : newKeypoints)
+            m_imagePoints_inliers.push_back(xpcf::utils::make_shared<Point2Df>(keypoint->getX(), keypoint->getY()));
+
+        // get back the 3D positions of the detected keypoints in world space
+        m_unprojection->unproject(m_imagePoints_inliers, m_worldPoints_inliers, m_pose);
+        m_needNewTrackedPoints = false;
+        LOG_INFO("Reinitialize points to track");
+    }
+#endif
+
+    if(m_valid_pose){
         m_sink->set(m_pose, m_camImage);
+        std::cout << m_pose.matrix() <<"\n";
+    }
     else
         m_sink->set(m_camImage);
 
