@@ -70,6 +70,14 @@
 #include "xpcf/threading/DropBuffer.h"
 #include "xpcf/threading/BaseTask.h"
 
+#include "api/geom/IProject.h"
+#include "api/geom/IUnproject.h"
+#include "api/solver/pose/I3DTransformSACFinderFrom2D3D.h"
+#include "api/tracking/IOpticalFlowEstimator.h"
+
+#include "api/features/IKeypointDetectorRegion.h"
+
+
 namespace SolAR {
 using namespace datastructure;
 using namespace api;
@@ -128,10 +136,8 @@ private:
     SRef<features::IDescriptorMatcher> m_matcher;
     SRef<features::IMatchesFilter> m_basicMatchesFilter;
     SRef<features::IMatchesFilter> m_geomMatchesFilter;
-    SRef<solver::pose::I2DTransformFinder> m_homographyEstimation ;
     SRef<solver::pose::IHomographyValidation> m_homographyValidation ;
     SRef<features::IKeypointsReIndexer> m_keypointsReindexer;
-    SRef<solver::pose::I3DTransformFinderFrom2D3D> m_poseEstimation;
     SRef<features::IDescriptorsExtractor> m_descriptorExtractor;
     SRef<geom::IImage2WorldMapper> m_img_mapper;
     SRef<geom::I2DTransform> m_transform2D;
@@ -149,6 +155,11 @@ private:
     SRef<sink::ISinkPoseImage> m_sink;
     SRef<source::ISourceImage> m_source;
     SRef<image::IImageConvertor> m_imageConvertorUnity;
+    SRef<features::IKeypointDetectorRegion> m_kpDetectorRegion;
+    SRef<solver::pose::I3DTransformSACFinderFrom2D3D> m_poseEstimationPlanar;
+    SRef<tracking::IOpticalFlowEstimator> m_opticalFlowEstimator;
+    SRef<geom::IProject> m_projection;
+    SRef<geom::IUnproject> m_unprojection;
 
 
     // State flag of the pipeline
@@ -169,8 +180,18 @@ private :
 
     SRef<Image> m_refImage;
     SRef<Image> m_camImage;
+    SRef<Image> m_previousCamImage;
 
     Transform3Df m_pose;
+
+    std::vector<SRef<Point3Df>> m_markerWorldCorners;
+    std::vector<SRef<Point2Df>> m_projectedMarkerCorners;
+    std::vector<SRef<Point2Df>> m_imagePoints_inliers;
+    std::vector<SRef<Point3Df>> m_worldPoints_inliers;
+
+    bool m_valid_pose ;
+    bool m_isTrack;
+    bool m_needNewTrackedPoints;
 
 };
 
