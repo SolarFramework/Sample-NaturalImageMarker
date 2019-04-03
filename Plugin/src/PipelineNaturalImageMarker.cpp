@@ -16,7 +16,6 @@
 
 #include "SolARModuleOpencv_traits.h"
 #include "SolARModuleTools_traits.h"
-#include "SolARModuleOpengl_traits.h"
 
 #include "core/Log.h"
 
