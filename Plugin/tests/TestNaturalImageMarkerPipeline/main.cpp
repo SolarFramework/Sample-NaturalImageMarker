@@ -180,7 +180,7 @@ int main(){
 
                 if ((returnCode & PIPELINEMANAGER_RETURNCODE::_NEW_POSE))
                 {
-                    LOG_INFO("Camera Pose translation ({}, {}, {})", pose.translation(0), pose.translation(1), pose.translation(2));
+//                    LOG_INFO("Camera Pose translation ({}, {}, {})", pose.translation(0), pose.translation(1), pose.translation(2));
                     for(int i=0;i<3;i++)
                          for(int j=0;j<3;j++)
                              s_pose(i,j)=pose.rotation(i,j);
@@ -189,7 +189,7 @@ int main(){
                     for(int j=0;j<3;j++)
                         s_pose(3,j)=0;
                     s_pose(3,3)=1;
-                    LOG_INFO("pose.matrix():\n {} \n",s_pose.matrix())
+//                    LOG_INFO("pose.matrix():\n {} \n",s_pose.matrix())
                     overlay3DComponent->draw(s_pose, camImage);
                 }
 

@@ -166,30 +166,43 @@ private:
     bool m_stopFlag, m_initOK, m_startedOK,m_haveToBeFlip;
 
     // Threads
-    bool processCamImage();
-    xpcf::DelegateTask* m_taskProcess;
+    xpcf::DelegateTask* m_taskGetCameraImages;
+    void getCameraImages();
+
+    xpcf::DropBuffer< SRef<Image> >  m_CameraImagesForDetection;
+    bool processDetection();
+    xpcf::DelegateTask* m_taskDetection;
+
+    std::vector<SRef<Point2Df>> m_imagePoints_inliers;
+    std::vector<SRef<Point3Df>> m_worldPoints_inliers;
+
+    xpcf::DropBuffer<std::tuple< SRef<Image>, Transform3Df, bool>>  m_outBufferDetection;
+    xpcf::DropBuffer< SRef<Image> >  m_CameraImagesForTracking;
+    bool processTracking();
+    xpcf::DelegateTask* m_taskTracking;
+
+
 
 private :
-    SRef<DescriptorBuffer>  m_refDescriptors,  m_camDescriptors;
-    std::vector<DescriptorMatch>  m_matches;
+    SRef<DescriptorBuffer>  m_refDescriptors;
 
     Transform2Df  m_Hm;
-    std::vector< SRef<Keypoint> >  m_refKeypoints,  m_camKeypoints;  // where to store detected keypoints in ref image and camera image
+    std::vector< SRef<Keypoint> >  m_refKeypoints;  // where to store detected keypoints in ref image and camera image
 
     std::vector<SRef <Point2Df>> m_refImgCorners;
 
     SRef<Image> m_refImage;
-    SRef<Image> m_camImage;
+    SRef<Image> camImage;
     SRef<Image> m_previousCamImage;
 
     Transform3Df m_pose;
 
     std::vector<SRef<Point3Df>> m_markerWorldCorners;
     std::vector<SRef<Point2Df>> m_projectedMarkerCorners;
-    std::vector<SRef<Point2Df>> m_imagePoints_inliers;
-    std::vector<SRef<Point3Df>> m_worldPoints_inliers;
+    std::vector<SRef<Point2Df>> m_imagePoints_track;
+    std::vector<SRef<Point3Df>> m_worldPoints_track;
 
-    bool m_valid_pose ;
+
     bool m_isTrack;
     bool m_needNewTrackedPoints;
 

@@ -123,21 +123,32 @@
 			<interface uuid="575d365a-9a27-11e8-9eb6-529269fb1459" description="I3DPointsViewer" name="I3DPointsViewer"/>
 	</component>
   </module>
+  
+  
   <configuration>
     <component uuid="5B7396F4-A804-4F3C-A0EB-FB1D56042BB4">   <!--SolARCameraOpencv-->
       <property name="calibrationFile" type="string" value="camera_calibration.yml" description="path of the .yml file describing the calibration parameter of the camera." />
       <property name="deviceID" type="UnsignedInteger" value="0" description="ID of the camera (default = 0)" />
     </component>
-			<component uuid="fa4a780a-9720-11e8-9eb6-529269fb1459"> <!-- SolARVideoAsCameraOpencv -->
-			<property name="calibrationFile" type="string" value="camera_calibration.yml"/>
-			<property name="videoPath" type="string" value="Video3r.mp4"/>
-	</component>
+		<component uuid="fa4a780a-9720-11e8-9eb6-529269fb1459"> <!-- SolARVideoAsCameraOpencv -->
+		<property name="calibrationFile" type="string" value="camera_calibration.yml"/>
+		<property name="videoPath" type="string" value="Video3r.mp4"/>
+</component>
 	<component uuid="efcdb590-c570-11e7-abc4-cec278b6b50a"> <!-- SolARMarker2DNaturalImageOpencv -->
-		<property name="filePath" type="string" value="NaturalImagemarker.yml" description="Path of the .yml file describing the natural image marker."/>
+		<property name="filePath" type="string" value="NaturalImageMarker.yml"/>
 	</component>
 	<component uuid="e81c7e4e-7da6-476a-8eba-078b43071272"> <!-- SolARKeypointDetectorOpencv -->
 		<property name="type" type="string" value="AKAZE2"/>
-		<property name="nbDescriptors" type="Integer" value="1000"/>
+		<property name="imageRatio" type="Float" value="0.5"/>
+		<property name="nbDescriptors" type="Integer" value="1500"/>
+	</component>
+	<component uuid="22c2ca9f-e43b-4a88-8337-4a166a789971"> <!-- SolARKeypointDetectorRegionOpencv -->
+		<property name="type" type="string" value="FEATURE_TO_TRACK"/>
+		<property name="imageRatio" type="Float" value="1.0"/>
+		<property name="nbDescriptors" type="Integer" value="1500"/>
+	</component>
+	<component uuid="21238c00-26dd-11e8-b467-0ed5f89f718b"> <!-- SolARDescriptorsExtractorAKAZE2Opencv -->
+		<property name="threshold" type="Float" value="3e-4"/>
 	</component>
 	<component uuid="7823dac8-1597-41cf-bdef-59aa22f3d40a"> <!-- SolARDescriptorMatcherKNNOpencv -->
 		<property name="distanceRatio" type="Float" value="0.75"/>
@@ -146,23 +157,9 @@
 		<property name="m_confidenceLevel" type="Double" value="0.99"/>
 		<property name="m_outlierDistanceRatio" type="Double" value="0.006"/>
 	</component>
-	<component uuid="fb9dac20-2a44-44b2-aa42-2871eec31427"> <!-- SolARHomographyEstimationOpencv -->
-		<property name="ransacReprojThreshold" type="Double" value="8.0"/>
-	</component>
-	<component uuid="0753ade1-7932-4e29-a71c-66155e309a53"> <!-- SolARPoseEstimationPnpOpencv -->
-		<property name="iterationsCount" type="Integer" value="1000"/>
-		<property name="reprojError" type="Float" value="4.0"/>
-		<property name="confidence" type="Float" value="0.99"/>
-	</component>
-	<component uuid="a38edf79-f0dc-45ca-92fc-2b336fceedf9"> <!-- SolARPoseEstimationPnpEPFL -->
-		<property name="maxNumberCorrespondences" type="Integer" value="200"/>
-	</component>
-	<component uuid="21238c00-26dd-11e8-b467-0ed5f89f718b"> <!-- SolARDescriptorsExtractorAKAZE2Opencv -->
-		<property name="threshold" type="Float" value="3e-4"/>
-	</component>
 	<component uuid="9fbadf80-251f-4160-94f8-a64dc3d40a2f"> <!-- SolARPoseEstimationPlanarPointsOpencv -->
-		<property name="minNbInliers" type="Integer" value="40"/>
-		<property name="m_reprojErrorThreshold" type="Float" value="0.1"/>
+		<property name="minNbInliers" type="Integer" value="50"/>
+		<property name="reprojErrorThreshold" type="Float" value="0.1"/>
 	</component>
 	<component uuid="e81c7e4e-7da6-476a-8eba-078b43071272"> <!-- SolAROpticalFlowPyrLKOpencv -->
 		<property name="searchWinWidth" type="Integer" value="21"/>
@@ -172,6 +169,45 @@
 		<property name="maxSearchIterations" type="Integer" value="20"/>
 		<property name="searchWindowAccuracy" type="Float" value="0.03"/>
 	</component>
-
+	<component uuid="2db01f59-9793-4cd5-8e13-b25d0ed5735b"> <!-- SolAR3DOverlayBoxOpencv -->
+		<property name="position"  type="Float">
+			<value>0</value>
+			<value>0</value>
+			<value>0</value>
+		</property>
+		<property name="orientation"  type="Float">
+			<value>0.0</value>
+			<value>0.0</value>
+			<value>0.0</value>
+		</property>
+		<property name="size"  type="Float">
+			<value>0.25</value>
+			<value>0.20</value>
+			<value>0.1</value>
+		</property>
+	</component>
+	<component uuid="cc51d685-9797-4ffd-a9dd-cec4f367fa6a"> <!-- SolAROverlay2DOpencv -->
+		<property name="thickness" type="UnsignedInteger" value="1"/>
+		<property name="radius" type="UnsignedInteger" value="3"/>
+		<property name="color"  type="UnsignedInteger">
+			<value>0</value>
+			<value>255</value>
+			<value>0</value>
+		</property>
+		<property name="randomColor" type="UnsignedInteger" value="0"/>
+	</component>
+	<component uuid="19ea4e13-7085-4e3f-92ca-93f200ffb01b"> <!-- SolARImageViewerOpencv -->
+		<property name="title" type="string" value="Natural Image Marker"/>
+		<property name="exitKey" type="Integer" value="27"/>
+		<property name="width" type="Integer" value="0"/>
+		<property name="height" type="Integer" value="0"/>
+	</component>
+	<component uuid="19ea4e13-7085-4e3f-92ca-93f200ffb01b" name="keypoints"> <!-- SolARImageViewerOpencv -->
+		<property name="title" type="string" value="Reference KeyPoints"/>
+		<property name="exitKey" type="Integer" value="27"/>
+		<property name="width" type="Integer" value="0"/>
+		<property name="height" type="Integer" value="0"/>
+	</component>
+	
   </configuration>
 </xpcf-registry>
