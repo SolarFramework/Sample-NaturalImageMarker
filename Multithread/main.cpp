@@ -66,7 +66,14 @@ using namespace SolAR::api;
 namespace xpcf = org::bcom::xpcf;
 using namespace std;
 
-int updateTrackedPointThreshold = 500;
+#define TRACKING
+
+int updateTrackedPointThreshold = 200;
+#ifdef TRACKING
+int cameraPoseDetectionThreshold = 10;
+#else
+int cameraPoseDetectionThreshold = 1;
+#endif
 
 int main(int argc, char *argv[])
 {
@@ -193,13 +200,19 @@ int main(int argc, char *argv[])
                 return;
             }
             m_dropBufferCamImageForDetection.push(camImage);
+#ifdef TRACKING
             m_dropBufferCamImageForTracking.push(camImage);
+#endif
         };
 
 // Marker Detection task
-        std::function<void(void)> detection = [&refKeypoints, refDescriptors,
-                                               &m_dropBufferCamImageForDetection, &m_dropBufferPoseForTracking,
-                                               kpDetector, descriptorExtractor, matcher, basicMatchesFilter, geomMatchesFilter, keypointsReindexer, img_mapper, poseEstimationPlanarDetection](){
+		int countToDetect = 0;
+        std::function<void(void)> detection = [&refKeypoints, &refDescriptors, &countToDetect,
+#ifndef NDEBUG
+											   &debugCamImage, &overlay2DComponent,
+#endif
+                                               &m_dropBufferCamImageForDetection, &m_dropBufferPoseForTracking, &m_dropBufferPoseForDisplay,
+                                               &kpDetector, &descriptorExtractor, &matcher, &basicMatchesFilter, &geomMatchesFilter, &keypointsReindexer, &img_mapper, &poseEstimationPlanarDetection](){
             SRef<Image> camImage;
             std::vector<SRef<Keypoint>> camKeypoints;
             SRef<DescriptorBuffer> camDescriptors;
@@ -212,6 +225,15 @@ int main(int argc, char *argv[])
 
             if (!m_dropBufferCamImageForDetection.tryPop(camImage))
                 return;
+
+#ifndef NDEBUG   
+			debugCamImage = camImage->copy();
+#endif
+
+			countToDetect++;
+			if (countToDetect % cameraPoseDetectionThreshold != 0)
+				return;
+			countToDetect = 0;
 
             // detect keypoints in camera image
             kpDetector->detect(camImage, camKeypoints);
@@ -237,11 +259,29 @@ int main(int argc, char *argv[])
 
                 if (poseEstimationPlanarDetection->estimate(camMatched2Dpoints, ref3Dpoints, imagePoints_inliers, worldPoints_inliers, pose) == FrameworkReturnCode::_SUCCESS)
                 {
-                    LOG_DEBUG("Marker detected");
-                    m_dropBufferPoseForTracking.push(std::make_pair(camImage, pose));
+                    LOG_DEBUG("Marker detected");                    
+#ifndef TRACKING
+#ifndef NDEBUG
+					overlay2DComponent->drawCircles(imagePoints_inliers, debugCamImage);
+					m_dropBufferPoseForDisplay.push(std::make_tuple(debugCamImage, pose, true));
+#else
+					m_dropBufferPoseForDisplay.push(std::make_tuple(camImage, pose, true));					
+#endif
+#else
+					m_dropBufferPoseForTracking.push(std::make_pair(camImage, pose));
+#endif
+				
                     return;
-                }
+                }			
             }
+#ifndef TRACKING
+#ifndef NDEBUG                
+			overlay2DComponent->drawCircles(imagePoints_inliers, debugCamImage);
+			m_dropBufferPoseForDisplay.push(std::make_tuple(debugCamImage, pose, false));
+#else
+			m_dropBufferPoseForDisplay.push(std::make_tuple(camImage, Transform3Df::Identity(), false));
+#endif
+#endif
             return;
         };
 
@@ -267,7 +307,6 @@ int main(int argc, char *argv[])
             std::vector<unsigned char> status;
             std::vector<float> err;
             Transform3Df pose;
-            bool detectionPerformed = false;
             bool needNewTrackedPoints = false;
 #ifndef NDEBUG
             std::vector<SRef<Point2Df>> trackedKeypoints;
@@ -275,22 +314,25 @@ int main(int argc, char *argv[])
 
             if (!m_dropBufferCamImageForTracking.tryPop(camImage))
                 return;
+#ifndef NDEBUG   
+			debugCamImage = camImage->copy();
+#endif
 
             // The detection task has just estimated a pose
             if (m_dropBufferPoseForTracking.tryPop(poseImageFromDetection))
             {
                 previousCamImage = poseImageFromDetection.first;
                 previousPose = poseImageFromDetection.second;
-                detectionPerformed = true;
+				needNewTrackedPoints = true;
             }
 
             // if tracking and detection have failed, just pass the current image to the display task
-            if (imagePoints_inliers.empty() && !detectionPerformed)
+            if (imagePoints_inliers.empty() && !needNewTrackedPoints)
             {
                 m_dropBufferPoseForDisplay.push(std::make_tuple(camImage, Transform3Df::Identity(), false));
                 return;
             }
-            if (imagePoints_inliers.size() < updateTrackedPointThreshold)
+            if ((imagePoints_inliers.size() < updateTrackedPointThreshold))
                 needNewTrackedPoints = true;
 
             // Add new keypoints to track
@@ -303,20 +345,23 @@ int main(int argc, char *argv[])
                 // Get the projection of the corner of the marker in the current image
                 projection->project(markerWorldCorners, projectedMarkerCorners, previousPose);
 
-#ifndef NDEBUG
-                debugCamImage = camImage->copy();
-                overlay2DComponent->drawContour(projectedMarkerCorners, debugCamImage);
-#endif
-
                 // Detect the keypoints within the contours of the marker defined by the projected corners
-                kpDetectorRegion->detect(camImage, projectedMarkerCorners, newKeypoints);
+                kpDetectorRegion->detect(previousCamImage, projectedMarkerCorners, newKeypoints);
 
-                for (auto keypoint : newKeypoints)
-                    imagePoints_inliers.push_back(xpcf::utils::make_shared<Point2Df>(keypoint->getX(), keypoint->getY()));
+				if (newKeypoints.size() > updateTrackedPointThreshold) {
+					for (auto keypoint : newKeypoints)
+						imagePoints_inliers.push_back(xpcf::utils::make_shared<Point2Df>(keypoint->getX(), keypoint->getY()));
 
-                // Get back the 3D positions of the detected keypoints in world space
-                unprojection->unproject(imagePoints_inliers, worldPoints_inliers, previousPose);
+					// Get back the 3D positions of the detected keypoints in world space
+					unprojection->unproject(imagePoints_inliers, worldPoints_inliers, previousPose);
+				}
             }
+
+			if (imagePoints_inliers.size() < updateTrackedPointThreshold) {
+				m_dropBufferPoseForDisplay.push(std::make_tuple(camImage, Transform3Df::Identity(), false));
+				return;
+			}
+				
 
             // tracking 2D-2D
             opticalFlowEstimator->estimate(previousCamImage, camImage, imagePoints_inliers, trackedPoints, status, err);
@@ -344,13 +389,13 @@ int main(int argc, char *argv[])
             if (poseEstimationPlanarTracking->estimate(pts2D, pts3D, imagePoints_inliers, worldPoints_inliers, pose) == FrameworkReturnCode::_SUCCESS)
             {
                 LOG_DEBUG("Tracking lost");
+				previousPose = pose;
+				previousCamImage = camImage->copy();
 #ifndef NDEBUG
                 m_dropBufferPoseForDisplay.push(std::make_tuple(debugCamImage, pose, true));
 #else
                 m_dropBufferPoseForDisplay.push(std::make_tuple(camImage, pose, true));
-#endif
-                previousPose = pose;
-                previousCamImage = camImage;
+#endif                
             }
             else
             {
@@ -400,7 +445,7 @@ int main(int argc, char *argv[])
         // The main loop
         while (!stop)
         {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
 
         // Measure time per frame
