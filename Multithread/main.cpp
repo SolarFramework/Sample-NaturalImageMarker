@@ -388,7 +388,6 @@ int main(int argc, char *argv[])
             // Estimate the pose from the 2D-3D planar correspondence
             if (poseEstimationPlanarTracking->estimate(pts2D, pts3D, imagePoints_inliers, worldPoints_inliers, pose) == FrameworkReturnCode::_SUCCESS)
             {
-                LOG_DEBUG("Tracking lost");
 				previousPose = pose;
 				previousCamImage = camImage->copy();
 #ifndef NDEBUG
@@ -399,7 +398,7 @@ int main(int argc, char *argv[])
             }
             else
             {
-                LOG_DEBUG("Marker Tracked");
+                LOG_DEBUG("Tracking Lost");
 #ifndef NDEBUG
                 m_dropBufferPoseForDisplay.push(std::make_tuple(debugCamImage, Transform3Df::Identity(), false));
 #else
