@@ -19,8 +19,6 @@
 
 #include "core/Log.h"
 
-int updateTrackedPointThreshold = 300;
-
 #define TRACKING
 
 namespace xpcf=org::bcom::xpcf;
@@ -52,6 +50,10 @@ namespace PIPELINES {
 PipelineNaturalImageMarker::PipelineNaturalImageMarker():ConfigurableBase(xpcf::toUUID<PipelineNaturalImageMarker>())
 {
    addInterface<api::pipeline::IPipeline>(this);
+   SRef<xpcf::IPropertyMap> params = getPropertyRootNode();
+   params->wrapInteger("updateTrackedPointThreshold", m_updateTrackedPointThreshold);
+   params->wrapInteger("detectionMatchesNumberThreshold", m_detectionMatchesNumberThreshold);
+
    m_initOK = false;
    m_startedOK = false;
    m_stopFlag = false;
@@ -280,7 +282,7 @@ bool PipelineNaturalImageMarker::processDetection()
 
     std::vector<SRef<Point2Df>> refMatched2Dpoints, camMatched2Dpoints;
 
-    if (matches.size()> 10) {
+    if (matches.size()> m_detectionMatchesNumberThreshold) {
         // reindex the keypoints with established correspondence after the matching
         m_keypointsReindexer->reindex(m_refKeypoints, camKeypoints, matches, ref2Dpoints, cam2Dpoints);
 
@@ -366,7 +368,7 @@ bool PipelineNaturalImageMarker::processTracking()
         // Detect the keypoints within the contours of the marker defined by the projected corners
         m_kpDetectorRegion->detect(m_previousCamImage, projectedMarkerCorners, newKeypoints);
 
-        if (newKeypoints.size() > updateTrackedPointThreshold) {
+        if (newKeypoints.size() > m_updateTrackedPointThreshold) {
             for (auto keypoint : newKeypoints)
                 m_imagePoints_track.push_back(xpcf::utils::make_shared<Point2Df>(keypoint->getX(), keypoint->getY()));
 
@@ -416,7 +418,7 @@ bool PipelineNaturalImageMarker::processTracking()
     {
         valid_pose = true;
         m_previousCamImage = camImage->copy();
-        if (m_worldPoints_track.size() < updateTrackedPointThreshold) {
+        if (m_worldPoints_track.size() < m_updateTrackedPointThreshold) {
             m_needNewTrackedPoints = true;
             LOG_DEBUG("Need new point to track");
         }

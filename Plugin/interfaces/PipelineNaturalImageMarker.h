@@ -184,6 +184,9 @@ private:
 
 
 private :
+    int m_updateTrackedPointThreshold = 300;
+    int m_detectionMatchesNumberThreshold = 10;
+
     SRef<DescriptorBuffer>  m_refDescriptors;
 
     Transform2Df  m_Hm;

@@ -124,8 +124,11 @@
 	</component>
   </module>
   
-  
   <configuration>
+	<component uuid="6f6c7ae8-764c-49b3-a2fc-e9a4f539b9b1"> <!--PipelineNaturalImageMarker-->
+		<property name="updateTrackedPointThreshold" type="Integer" value="300" description="If the number of keypoint is less than this threshold, a detection of new keypoints is launched" />
+		<property name="detectionMatchesNumberThreshold" type="Integer" value="10" description="If the number of matches during detection is less than this threshold, marker detection failed" />
+	</component>
     <component uuid="5B7396F4-A804-4F3C-A0EB-FB1D56042BB4">   <!--SolARCameraOpencv-->
       <property name="calibrationFile" type="string" value="camera_calibration.yml" description="path of the .yml file describing the calibration parameter of the camera." />
       <property name="deviceID" type="UnsignedInteger" value="0" description="ID of the camera (default = 0)" />
