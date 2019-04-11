@@ -28,9 +28,6 @@ using namespace SolAR::PIPELINE;
 
 namespace xpcf  = org::bcom::xpcf;
 
-#define MARKER_CONFIGFILE "NaturalImageMarker.yml"
-#define CAMERA_CONFIGFILE "camera_calibration.yml"
-
 #include "SolARModuleOpencv_traits.h"
 #include "SolARImageViewerOpencv.h"
 #include "SolAR3DOverlayBoxOpencv.h"
@@ -40,6 +37,7 @@ using namespace SolAR::MODULES::OPENCV;
 using namespace SolAR::api;
 
 int main(){
+
 #if NDEBUG
     boost::log::core::get()->set_logging_enabled(false);
 #endif
