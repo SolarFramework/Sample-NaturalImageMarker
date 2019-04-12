@@ -51,7 +51,7 @@ int main(){
         auto overlay3DComponent = xpcf::getComponentManagerInstance()->create<MODULES::OPENCV::SolAR3DOverlayBoxOpencv>()->bindTo<display::I3DOverlay>();
 
         // Set camera parameters
-        CamCalibration intrinsic_param = CamCalibration::Zero();
+        CamCalibration intrinsic_param = CamCalibration::Identity();
         CamDistortion  distorsion_param = CamDistortion::Zero();
         PipelineManager::CamParams calib = pipeline.getCameraParameters();
         intrinsic_param(0,0) = calib.focalX;
