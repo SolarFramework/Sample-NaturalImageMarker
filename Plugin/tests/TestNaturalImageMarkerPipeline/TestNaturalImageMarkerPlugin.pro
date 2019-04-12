@@ -1,5 +1,5 @@
 TARGET = TestNaturalMarkerPlugin
-VERSION=0.1.0
+VERSION=0.5.2
 
 CONFIG += c++11
 CONFIG -= qt

@@ -70,6 +70,14 @@
 #include "xpcf/threading/DropBuffer.h"
 #include "xpcf/threading/BaseTask.h"
 
+#include "api/geom/IProject.h"
+#include "api/geom/IUnproject.h"
+#include "api/solver/pose/I3DTransformSACFinderFrom2D3D.h"
+#include "api/tracking/IOpticalFlowEstimator.h"
+
+#include "api/features/IKeypointDetectorRegion.h"
+
+
 namespace SolAR {
 using namespace datastructure;
 using namespace api;
@@ -128,10 +136,8 @@ private:
     SRef<features::IDescriptorMatcher> m_matcher;
     SRef<features::IMatchesFilter> m_basicMatchesFilter;
     SRef<features::IMatchesFilter> m_geomMatchesFilter;
-    SRef<solver::pose::I2DTransformFinder> m_homographyEstimation ;
     SRef<solver::pose::IHomographyValidation> m_homographyValidation ;
     SRef<features::IKeypointsReIndexer> m_keypointsReindexer;
-    SRef<solver::pose::I3DTransformFinderFrom2D3D> m_poseEstimation;
     SRef<features::IDescriptorsExtractor> m_descriptorExtractor;
     SRef<geom::IImage2WorldMapper> m_img_mapper;
     SRef<geom::I2DTransform> m_transform2D;
@@ -149,28 +155,59 @@ private:
     SRef<sink::ISinkPoseImage> m_sink;
     SRef<source::ISourceImage> m_source;
     SRef<image::IImageConvertor> m_imageConvertorUnity;
+    SRef<features::IKeypointDetectorRegion> m_kpDetectorRegion;
+    SRef<solver::pose::I3DTransformSACFinderFrom2D3D> m_poseEstimationPlanar;
+    SRef<tracking::IOpticalFlowEstimator> m_opticalFlowEstimator;
+    SRef<geom::IProject> m_projection;
+    SRef<geom::IUnproject> m_unprojection;
 
 
     // State flag of the pipeline
     bool m_stopFlag, m_initOK, m_startedOK,m_haveToBeFlip;
 
     // Threads
-    bool processCamImage();
-    xpcf::DelegateTask* m_taskProcess;
+    xpcf::DelegateTask* m_taskGetCameraImages;
+    void getCameraImages();
+
+    xpcf::DropBuffer< SRef<Image> >  m_CameraImagesForDetection;
+    bool processDetection();
+    xpcf::DelegateTask* m_taskDetection;
+
+    std::vector<SRef<Point2Df>> m_imagePoints_inliers;
+    std::vector<SRef<Point3Df>> m_worldPoints_inliers;
+
+    xpcf::DropBuffer<std::tuple< SRef<Image>, Transform3Df, bool>>  m_outBufferDetection;
+    xpcf::DropBuffer< SRef<Image> >  m_CameraImagesForTracking;
+    bool processTracking();
+    xpcf::DelegateTask* m_taskTracking;
+
+
 
 private :
-    SRef<DescriptorBuffer>  m_refDescriptors,  m_camDescriptors;
-    std::vector<DescriptorMatch>  m_matches;
+    int m_updateTrackedPointThreshold = 300;
+    int m_detectionMatchesNumberThreshold = 10;
+
+    SRef<DescriptorBuffer>  m_refDescriptors;
 
     Transform2Df  m_Hm;
-    std::vector< SRef<Keypoint> >  m_refKeypoints,  m_camKeypoints;  // where to store detected keypoints in ref image and camera image
+    std::vector< SRef<Keypoint> >  m_refKeypoints;  // where to store detected keypoints in ref image and camera image
 
     std::vector<SRef <Point2Df>> m_refImgCorners;
 
     SRef<Image> m_refImage;
-    SRef<Image> m_camImage;
+    SRef<Image> camImage;
+    SRef<Image> m_previousCamImage;
 
     Transform3Df m_pose;
+
+    std::vector<SRef<Point3Df>> m_markerWorldCorners;
+    std::vector<SRef<Point2Df>> m_projectedMarkerCorners;
+    std::vector<SRef<Point2Df>> m_imagePoints_track;
+    std::vector<SRef<Point3Df>> m_worldPoints_track;
+
+
+    bool m_isTrack;
+    bool m_needNewTrackedPoints;
 
 };
 
