@@ -61,7 +61,9 @@ int main(){
 
         overlay3DComponent->setCameraParameters(intrinsic_param, distorsion_param);
 
-        SRef<Image> camImage = camImage=xpcf::utils::make_shared<Image>(calib.width,calib.height,SolAR::Image::LAYOUT_BGR,SolAR::Image::INTERLEAVED,SolAR::Image::TYPE_8U);
+        unsigned char* r_imageData=new unsigned char[calib.width*calib.height*3];
+        SRef<Image> camImage=xpcf::utils::make_shared<Image>(r_imageData,calib.width,calib.height,SolAR::Image::LAYOUT_BGR,SolAR::Image::INTERLEAVED,SolAR::Image::TYPE_8U);
+
         Transform3Df s_pose;
 
         if (pipeline.start(camImage->data()))
@@ -93,6 +95,7 @@ int main(){
                 }
              }
         }
+        delete[] r_imageData;
     }
 }
 
