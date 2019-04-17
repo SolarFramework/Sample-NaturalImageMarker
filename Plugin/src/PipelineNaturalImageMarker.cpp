@@ -58,7 +58,10 @@ PipelineNaturalImageMarker::PipelineNaturalImageMarker():ConfigurableBase(xpcf::
    m_startedOK = false;
    m_stopFlag = false;
    m_haveToBeFlip = false;
+   m_taskGetCameraImages = nullptr;
    m_taskDetection = nullptr;
+   m_taskTracking = nullptr;
+
    LOG_DEBUG(" Pipeline constructor");
 }
 
@@ -97,12 +100,6 @@ FrameworkReturnCode PipelineNaturalImageMarker::init(SRef<xpcf::IComponentManage
         m_img_mapper = xpcfComponentManager->create<MODULES::TOOLS::SolARImage2WorldMapper4Marker2D>()->bindTo<geom::IImage2WorldMapper>();
         if (m_img_mapper)
             LOG_INFO("Image Mapper component loaded");
-        m_transform2D = xpcfComponentManager->create<MODULES::TOOLS::SolAR2DTransform>()->bindTo<geom::I2DTransform>();
-        if (m_transform2D)
-            LOG_INFO("Transform 2D component loaded");
-        m_homographyValidation = xpcfComponentManager->create<MODULES::TOOLS::SolARHomographyValidation>()->bindTo<solver::pose::IHomographyValidation>();
-        if (m_homographyValidation)
-            LOG_INFO("Homography validation component loaded");
         m_keypointsReindexer = xpcfComponentManager->create<MODULES::TOOLS::SolARKeypointsReIndexer>()->bindTo<features::IKeypointsReIndexer>();
         if (m_keypointsReindexer)
             LOG_INFO("Keypoint Reindexer component loaded");
