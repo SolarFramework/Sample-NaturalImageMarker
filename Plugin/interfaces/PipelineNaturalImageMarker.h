@@ -136,22 +136,11 @@ private:
     SRef<features::IDescriptorMatcher> m_matcher;
     SRef<features::IMatchesFilter> m_basicMatchesFilter;
     SRef<features::IMatchesFilter> m_geomMatchesFilter;
-    SRef<solver::pose::IHomographyValidation> m_homographyValidation ;
     SRef<features::IKeypointsReIndexer> m_keypointsReindexer;
     SRef<features::IDescriptorsExtractor> m_descriptorExtractor;
     SRef<geom::IImage2WorldMapper> m_img_mapper;
-    SRef<geom::I2DTransform> m_transform2D;
 
-    SRef<image::IImageFilter> m_imageFilterBinary;
     SRef<image::IImageConvertor> m_imageConvertor;
-    SRef<features::IContoursExtractor> m_contoursExtractor ;
-    SRef<features::IContoursFilter> m_contoursFilter;
-    SRef<image::IPerspectiveController> m_perspectiveController;
-    SRef<features::IDescriptorsExtractorSBPattern> m_patternDescriptorExtractor;
-    SRef<features::IDescriptorMatcher> m_patternMatcher;
-    SRef<features::ISBPatternReIndexer> m_patternReIndexer;
-    SRef<geom::IImage2WorldMapper> m_img2worldMapper;
-    SRef<solver::pose::I3DTransformFinderFrom2D3D> m_PnP;
     SRef<sink::ISinkPoseImage> m_sink;
     SRef<source::ISourceImage> m_source;
     SRef<image::IImageConvertor> m_imageConvertorUnity;
