@@ -6,4 +6,3 @@ eigen|3.3.5|eigen|thirdParties|https://github.com/SolarFramework/binaries/releas
 SolARModuleTools|0.5.2|SolARModuleTools|bcomBuild|https://github.com/SolarFramework/SolARModuleTools/releases/download
 SolARModuleOpenCV|0.5.2|SolARModuleOpenCV|bcomBuild|https://github.com/SolarFramework/SolARModuleOpenCV/releases/download
 opencv|3.4.3|opencv|thirdParties|https://github.com/SolarFramework/binaries/releases/download
-
