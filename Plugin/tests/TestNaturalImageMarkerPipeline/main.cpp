@@ -51,18 +51,13 @@ int main(){
         auto overlay3DComponent = xpcf::getComponentManagerInstance()->create<MODULES::OPENCV::SolAR3DOverlayBoxOpencv>()->bindTo<display::I3DOverlay>();
 
         // Set camera parameters
-        CamCalibration intrinsic_param = CamCalibration::Identity();
         CamDistortion  distorsion_param = CamDistortion::Zero();
-        SolARPluginPipelineManager::CamParams calib = pipeline.getCameraParameters();
-        intrinsic_param(0,0) = calib.focalX;
-        intrinsic_param(1,1) = calib.focalY;
-        intrinsic_param(0,2) = (float)calib.centerX;
-        intrinsic_param(1,2) = (float)calib.centerY;
+        CamCalibration calib = pipeline.getCameraParameters();
 
-        overlay3DComponent->setCameraParameters(intrinsic_param, distorsion_param);
+        overlay3DComponent->setCameraParameters(calib, distorsion_param);
 
-        unsigned char* r_imageData=new unsigned char[calib.width*calib.height*3];
-        SRef<Image> camImage=xpcf::utils::make_shared<Image>(r_imageData,calib.width,calib.height,SolAR::Image::LAYOUT_BGR,SolAR::Image::INTERLEAVED,SolAR::Image::TYPE_8U);
+        unsigned char* r_imageData=new unsigned char[640*480*3];
+        SRef<Image> camImage=xpcf::utils::make_shared<Image>(r_imageData,640,480,SolAR::Image::LAYOUT_BGR,SolAR::Image::INTERLEAVED,SolAR::Image::TYPE_8U);
 
         Transform3Df s_pose;
 
@@ -70,7 +65,7 @@ int main(){
         {
             while (true)
             {
-                SolARPluginPipelineManager::Pose pose;
+                Transform3Df pose;
 
                 PIPELINEMANAGER_RETURNCODE returnCode = pipeline.udpate(pose);
                 if(returnCode==PIPELINEMANAGER_RETURNCODE::_ERROR)
@@ -80,9 +75,9 @@ int main(){
                 {
                     for(int i=0;i<3;i++)
                          for(int j=0;j<3;j++)
-                             s_pose(i,j)=pose.rotation(i,j);
+                             s_pose(i,j)=pose.rotation().coeff(i,j);
                     for(int i=0;i<3;i++)
-                             s_pose(i,3)=pose.translation(i);
+                             s_pose(i,3)=pose.translation().coeff(i,0);
                     for(int j=0;j<3;j++)
                         s_pose(3,j)=0;
                     s_pose(3,3)=1;
