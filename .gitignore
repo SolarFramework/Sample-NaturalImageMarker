@@ -55,3 +55,7 @@ x64*
 *.vcxproj.user
 build-SolAR*
 Plugin/PipelineNaturalImageMarker.pro.user.9582bec
+Plugin/build/
+Plugin/tests/TestNaturalImageMarkerPipeline/build/conanbuildinfo.pri
+Plugin/tests/TestNaturalImageMarkerPipeline/build/
+Plugin/PipelineNaturalImageMarker.pro.bak

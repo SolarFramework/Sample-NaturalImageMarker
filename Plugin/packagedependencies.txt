@@ -1,8 +1,7 @@
-SolARFramework|0.5.2|SolARFramework|bcomBuild|https://github.com/SolarFramework/SolarFramework/releases/download
-xpcf|2.1.0|xpcf|thirdParties|https://github.com/SolarFramework/binaries/releases/download
-boost|1.68.0|boost|thirdParties|https://github.com/SolarFramework/binaries/releases/download
+SolARFramework|0.5.2|SolARFramework|github|https://github.com/SolarFramework/SolarFramework/releases/download
+xpcf|2.2.0|xpcf|artifactory|https://github.com/SolarFramework/binaries/releases/download
 spdlog|0.14.0|spdlog|thirdParties|https://github.com/SolarFramework/binaries/releases/download
 eigen|3.3.5|eigen|thirdParties|https://github.com/SolarFramework/binaries/releases/download
-SolARModuleTools|0.5.2|SolARModuleTools|bcomBuild|https://github.com/SolarFramework/SolARModuleTools/releases/download
-SolARModuleOpenCV|0.5.2|SolARModuleOpenCV|bcomBuild|https://github.com/SolarFramework/SolARModuleOpenCV/releases/download
-opencv|3.4.3|opencv|thirdParties|https://github.com/SolarFramework/binaries/releases/download
+SolARModuleTools|0.5.2|SolARModuleTools|github|https://github.com/SolarFramework/SolARModuleTools/releases/download
+SolARModuleOpenCV|0.5.2|SolARModuleOpenCV|github|https://github.com/SolarFramework/SolARModuleOpenCV/releases/download
+opencv#stable|3.4.3|opencv|conan|https://github.com/SolarFramework/binaries/releases/download
