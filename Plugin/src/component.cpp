@@ -22,7 +22,7 @@ PipelineNaturalImageMarker::PipelineNaturalImageMarker():ConfigurableBase(xpcf::
     declareInjectable<features::IMatchesFilter>(m_geomMatchesFilter);
     declareInjectable<features::IDescriptorMatcher>(m_matcher);
     declareInjectable<features::IDescriptorsExtractor>(m_descriptorExtractor);
-    declareInjectable<features::IMatchesFilter>(m_basicMatchesFilter);
+    declareInjectable<features::IMatchesFilter>(m_basicMatchesFilter,"basicMatchesFilter");
     declareInjectable<geom::IImage2WorldMapper>(m_img_mapper);
     declareInjectable<features::IKeypointsReIndexer>(m_keypointsReindexer);
     declareInjectable<sink::ISinkPoseImage>(m_sink);
@@ -52,6 +52,17 @@ PipelineNaturalImageMarker::~PipelineNaturalImageMarker()
     if(m_taskDetection != nullptr)
         delete m_taskDetection;
     LOG_DEBUG(" Pipeline destructor")
+}
+
+void PipelineNaturalImageMarker::onInjected()
+{
+    LOG_DEBUG(" Pipeline injectables injected and configured !!")
+}
+
+xpcf::XPCFErrorCode PipelineNaturalImageMarker::onConfigured()
+{
+    LOG_DEBUG(" Pipeline configured !!")
+    return xpcf::XPCFErrorCode::_SUCCESS;
 }
 
 FrameworkReturnCode PipelineNaturalImageMarker::init(SRef<xpcf::IComponentManager> xpcfComponentManager)
