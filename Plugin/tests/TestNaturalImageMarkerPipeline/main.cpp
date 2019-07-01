@@ -41,8 +41,8 @@ int main(){
 
     if (pipeline->init(componentMgr) == FrameworkReturnCode::_SUCCESS )
     {
-        auto imageViewerResult = xpcf::getComponentManagerInstance()->create<MODULES::OPENCV::SolARImageViewerOpencv>()->bindTo<display::IImageViewer>();
-        auto overlay3DComponent = xpcf::getComponentManagerInstance()->create<MODULES::OPENCV::SolAR3DOverlayBoxOpencv>()->bindTo<display::I3DOverlay>();
+        auto imageViewerResult = componentMgr->resolve<display::IImageViewer>(); // ->create<MODULES::OPENCV::SolARImageViewerOpencv>()->bindTo<display::IImageViewer>();
+        auto overlay3DComponent = componentMgr->resolve<display::I3DOverlay>();//->create<MODULES::OPENCV::SolAR3DOverlayBoxOpencv>()->bindTo<display::I3DOverlay>();
 
         // Set camera parameters
         CameraParameters camParam = pipeline->getCameraParameters();
