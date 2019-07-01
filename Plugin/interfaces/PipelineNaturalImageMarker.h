@@ -121,7 +121,11 @@ public:
     /// @brief load the source image
     SourceReturnCode loadSourceImage(void* sourceTextureHandle, int width, int height) override;
 
+    xpcf::XPCFErrorCode onConfigured() override;
+
     void unloadComponent () override final;
+
+    void onInjected() override;
 
 private:
     // Decalaration of data structures shared between initialization and process thread

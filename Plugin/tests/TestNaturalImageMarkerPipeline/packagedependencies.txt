@@ -1,4 +1,5 @@
 SolARFramework|0.5.2|SolARFramework|github|https://github.com/SolarFramework/SolarFramework/releases/download
+PipelineNaturalImageMarker|0.5.2|PipelineNaturalImageMarker|github|https://github.com/SolarFramework/PipelineNaturalImageMarker/releases/download
 xpcf|2.2.0|xpcf|artifactory|https://github.com/SolarFramework/binaries/releases/download
 spdlog|0.14.0|spdlog|thirdParties|https://github.com/SolarFramework/binaries/releases/download
 eigen|3.3.5|eigen|thirdParties|https://github.com/SolarFramework/binaries/releases/download
