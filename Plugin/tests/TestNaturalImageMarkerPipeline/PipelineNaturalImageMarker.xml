@@ -108,36 +108,6 @@
       <property name="calibrationFile" type="string" value="camera_calibration.yml" description="path of the .yml file describing the calibration parameter of the camera." />
       <property name="deviceID" type="UnsignedInteger" value="0" description="ID of the camera (default = 0)" />
     </configure>
-<<<<<<< HEAD
-	<configure component="SolARMarker2DNaturalImageOpencv">
-		<property name="filePath" type="string" value="NaturalImageMarker.yml"/>
-	</configure>
-	<configure component="SolARKeypointDetectorOpencv">
-		<property name="type" type="string" value="AKAZE2"/>
-		<property name="imageRatio" type="Float" value="0.5"/>
-		<property name="nbDescriptors" type="Integer" value="1500"/>
-	</configure>
-	<configure component="SolARKeypointDetectorRegionOpencv">
-		<property name="type" type="string" value="FEATURE_TO_TRACK"/>
-		<property name="imageRatio" type="Float" value="1.0"/>
-		<property name="nbDescriptors" type="Integer" value="1500"/>
-	</configure>
-	<configure component="SolARDescriptorsExtractorAKAZE2Opencv">
-		<property name="threshold" type="Float" value="3e-4"/>
-	</configure>
-	<configure component="SolARDescriptorMatcherKNNOpencv">
-		<property name="distanceRatio" type="Float" value="0.75"/>
-	</configure>
-	<configure component="SolARGeometricMatchesFilterOpencv">
-		<property name="m_confidenceLevel" type="Double" value="0.99"/>
-		<property name="m_outlierDistanceRatio" type="Double" value="0.006"/>
-	</configure>
-	<configure component="SolARPoseEstimationPlanarPointsOpencv">
-		<property name="minNbInliers" type="Integer" value="50"/>
-		<property name="reprojErrorThreshold" type="Float" value="0.1"/>
-	</configure>
-	<configure component="SolAROpticalFlowPyrLKOpencv">
-=======
         <configure component="SolARMarker2DNaturalImageOpencv">
 		<property name="filePath" type="string" value="NaturalImageMarker.yml"/>
         </configure>
@@ -168,20 +138,8 @@
         <!-- ERROR : configuring SolARKeypointDetectorOpencv with SolAROpticalFlowPyrLKOpencv properties
         <configure component="e81c7e4e-7da6-476a-8eba-078b43071272"> -->
         <configure component="SolAROpticalFlowPyrLKOpencv"> <!-- SolAROpticalFlowPyrLKOpencv -->
->>>>>>> 8d2ff66fea22f1a59cc9bb212a5efae0467fdd30
-		<property name="searchWinWidth" type="Integer" value="21"/>
-		<property name="searchWinHeight" type="Integer" value="21"/>
-		<property name="maxLevel" type="Integer" value="3"/>
-		<property name="minEigenThreshold" type="Double" value="-1.0"/>
-		<property name="maxSearchIterations" type="Integer" value="20"/>
-		<property name="searchWindowAccuracy" type="Float" value="0.03"/>
-<<<<<<< HEAD
 	</configure>
 	<configure component="SolAR3DOverlayBoxOpencv">
-=======
-        </configure>
-        <configure component="SolAR3DOverlayOpencv">
->>>>>>> 8d2ff66fea22f1a59cc9bb212a5efae0467fdd30
 		<property name="position"  type="Float">
 			<value>0</value>
 			<value>0</value>
@@ -197,23 +155,12 @@
 			<value>0.20</value>
 			<value>0.1</value>
 		</property>
-<<<<<<< HEAD
-	</configure>
-	<configure component="SolARImageViewerOpencv">
-=======
         </configure>
         <configure component="SolARImageViewerOpencv"> <!-- SolARImageViewerOpencv -->
->>>>>>> 8d2ff66fea22f1a59cc9bb212a5efae0467fdd30
 		<property name="title" type="string" value="Natural Image Marker"/>
 		<property name="exitKey" type="Integer" value="27"/>
 		<property name="width" type="Integer" value="0"/>
 		<property name="height" type="Integer" value="0"/>
-<<<<<<< HEAD
 	</configure>
   </properties>
 </xpcf-registry>
-=======
-        </configure>
-  </properties>
-</xpcf-registry>
->>>>>>> 8d2ff66fea22f1a59cc9bb212a5efae0467fdd30
