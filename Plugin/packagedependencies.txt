@@ -4,4 +4,3 @@ spdlog|0.14.0|spdlog|thirdParties|https://github.com/SolarFramework/binaries/rel
 eigen|3.3.5|eigen|thirdParties|https://github.com/SolarFramework/binaries/releases/download
 SolARModuleTools|0.5.2|SolARModuleTools|github|https://github.com/SolarFramework/SolARModuleTools/releases/download
 SolARModuleOpenCV|0.5.2|SolARModuleOpenCV|github|https://github.com/SolarFramework/SolARModuleOpenCV/releases/download
-opencv#stable|3.4.3|opencv|conan|https://github.com/SolarFramework/binaries/releases/download

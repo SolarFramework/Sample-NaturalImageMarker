@@ -138,8 +138,14 @@
         <!-- ERROR : configuring SolARKeypointDetectorOpencv with SolAROpticalFlowPyrLKOpencv properties
         <configure component="e81c7e4e-7da6-476a-8eba-078b43071272"> -->
         <configure component="SolAROpticalFlowPyrLKOpencv"> <!-- SolAROpticalFlowPyrLKOpencv -->
-	</configure>
-	<configure component="SolAR3DOverlayBoxOpencv">
+		<property name="searchWinWidth" type="Integer" value="21"/>
+		<property name="searchWinHeight" type="Integer" value="21"/>
+		<property name="maxLevel" type="Integer" value="3"/>
+		<property name="minEigenThreshold" type="Double" value="-1.0"/>
+		<property name="maxSearchIterations" type="Integer" value="20"/>
+		<property name="searchWindowAccuracy" type="Float" value="0.03"/>
+        </configure>
+        <configure component="SolAR3DOverlayOpencv">
 		<property name="position"  type="Float">
 			<value>0</value>
 			<value>0</value>
@@ -161,6 +167,6 @@
 		<property name="exitKey" type="Integer" value="27"/>
 		<property name="width" type="Integer" value="0"/>
 		<property name="height" type="Integer" value="0"/>
-	</configure>
+        </configure>
   </properties>
 </xpcf-registry>
