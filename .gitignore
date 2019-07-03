@@ -60,3 +60,4 @@ Plugin/tests/TestNaturalImageMarkerPipeline/build/conanbuildinfo.pri
 Plugin/tests/TestNaturalImageMarkerPipeline/build/
 Plugin/PipelineNaturalImageMarker.pro.bak
 StandAlone/build/
+Multithread/build/
