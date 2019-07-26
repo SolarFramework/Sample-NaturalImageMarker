@@ -1,7 +1,7 @@
-SolARFramework|0.5.2|SolARFramework|bcomBuild|https://github.com/SolarFramework/SolarFramework/releases/download
-SolARModuleOpenCV|0.5.2|SolARModuleOpenCV|bcomBuild|https://github.com/SolarFramework/SolARModuleOpenCV/releases/download
-SolARPipelineManager|0.5.2|SolARPipelineManager|bcomBuild|https://github.com/SolarFramework/SolARPipelineManager/releases/download
-PipelineNaturalImageMarker|0.5.2|PipelineNaturalImageMarker|bcomBuild|https://github.com/SolarFramework/NaturalImageMarker/releases/download
+SolARFramework|0.6.0|SolARFramework|bcomBuild|https://github.com/SolarFramework/SolarFramework/releases/download
+SolARModuleOpenCV|0.6.0|SolARModuleOpenCV|bcomBuild|https://github.com/SolarFramework/SolARModuleOpenCV/releases/download
+SolARPipelineManager|0.6.0|SolARPipelineManager|bcomBuild|https://github.com/SolarFramework/SolARPipelineManager/releases/download
+PipelineNaturalImageMarker|0.6.0|PipelineNaturalImageMarker|bcomBuild|https://github.com/SolarFramework/NaturalImageMarker/releases/download
 xpcf|2.2.0|xpcf|thirdParties|https://github.com/SolarFramework/binaries/releases/download
 boost|1.70.0|boost|thirdParties|https://github.com/SolarFramework/binaries/releases/download
 spdlog|0.14.0|spdlog|thirdParties|https://github.com/SolarFramework/binaries/releases/download

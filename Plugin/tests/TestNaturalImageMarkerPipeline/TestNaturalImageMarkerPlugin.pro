@@ -1,5 +1,5 @@
 #TARGET = TestFiducialMarkerPlugin
-#VERSION=0.1.0
+#VERSION=0.6.0
 
 #CONFIG += c++1z
 #CONFIG -= qt
@@ -29,7 +29,7 @@ CONFIG -= qt
 ## global defintions : target lib name, version
 TARGET = TestNaturalImageMarkerPlugin
 FRAMEWORK = $$TARGET
-VERSION=0.5.2
+VERSION=0.6.0
 
 DEFINES += MYVERSION=$${VERSION}
 DEFINES += TEMPLATE_LIBRARY
