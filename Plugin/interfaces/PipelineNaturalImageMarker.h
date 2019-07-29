@@ -105,7 +105,7 @@ public:
 
     /// @brief Provide the camera parameters
     /// @return the camera parameters (its resolution and its focal)
-    CamCalibration getCameraParameters() override;
+    CameraParameters getCameraParameters() override;
 
     /// @brief Starts the pipeline and provides a texture buffer which will be updated when required.
     /// @param[in] textureHandle a pointer to the texture buffer which will be updated at each call of the update method.
@@ -121,7 +121,11 @@ public:
     /// @brief load the source image
     SourceReturnCode loadSourceImage(void* sourceTextureHandle, int width, int height) override;
 
+    xpcf::XPCFErrorCode onConfigured() override;
+
     void unloadComponent () override final;
+
+    void onInjected() override;
 
 private:
     // Decalaration of data structures shared between initialization and process thread

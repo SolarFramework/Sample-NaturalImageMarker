@@ -17,23 +17,15 @@
 #include <boost/log/core.hpp>
 #include "core/Log.h"
 #include "xpcf/xpcf.h"
-
-
-// ADD COMPONENTS HEADERS HERE, e.g #include "SolarComponent.h"
-
-#include "SolARPluginPipelineManager.h"
-
-using namespace SolAR;
-using namespace SolAR::PIPELINE;
-
-namespace xpcf  = org::bcom::xpcf;
-
+#include "api/pipeline/IPipeline.h"
 #include "SolARModuleOpencv_traits.h"
 #include "SolARImageViewerOpencv.h"
 #include "SolAR3DOverlayBoxOpencv.h"
 
+
+namespace xpcf  = org::bcom::xpcf;
+
 using namespace SolAR;
-using namespace SolAR::MODULES::OPENCV;
 using namespace SolAR::api;
 
 int main(){
@@ -43,50 +35,50 @@ int main(){
 #endif
 
     LOG_ADD_LOG_TO_CONSOLE();
+    SRef<xpcf::IComponentManager> componentMgr = xpcf::getComponentManagerInstance();
+    componentMgr->load("PipelineNaturalImageMarker.xml");
+    auto pipeline = componentMgr->resolve<pipeline::IPipeline>();
 
-    SolARPluginPipelineManager pipeline;
-    if (pipeline.init("PipelineNaturalImageMarker.xml", "6f6c7ae8-764c-49b3-a2fc-e9a4f539b9b1"))
+    if (pipeline->init(componentMgr) == FrameworkReturnCode::_SUCCESS )
     {
-        auto imageViewerResult = xpcf::getComponentManagerInstance()->create<MODULES::OPENCV::SolARImageViewerOpencv>()->bindTo<display::IImageViewer>();
-        auto overlay3DComponent = xpcf::getComponentManagerInstance()->create<MODULES::OPENCV::SolAR3DOverlayBoxOpencv>()->bindTo<display::I3DOverlay>();
+        auto imageViewerResult = componentMgr->resolve<display::IImageViewer>(); // ->create<MODULES::OPENCV::SolARImageViewerOpencv>()->bindTo<display::IImageViewer>();
+        auto overlay3DComponent = componentMgr->resolve<display::I3DOverlay>();//->create<MODULES::OPENCV::SolAR3DOverlayBoxOpencv>()->bindTo<display::I3DOverlay>();
 
         // Set camera parameters
-        CamDistortion  distorsion_param = CamDistortion::Zero();
-        CamCalibration calib = pipeline.getCameraParameters();
+        CameraParameters camParam = pipeline->getCameraParameters();
+        overlay3DComponent->setCameraParameters(camParam.intrinsic, camParam.distorsion);
 
-        overlay3DComponent->setCameraParameters(calib, distorsion_param);
-
-        unsigned char* r_imageData=new unsigned char[640*480*3];
-        SRef<Image> camImage=xpcf::utils::make_shared<Image>(r_imageData,640,480,SolAR::Image::LAYOUT_BGR,SolAR::Image::INTERLEAVED,SolAR::Image::TYPE_8U);
+        unsigned char* r_imageData=new unsigned char[camParam.resolution.width * camParam.resolution.height * 3];
+        SRef<Image> camImage=xpcf::utils::make_shared<Image>(r_imageData,camParam.resolution.width,camParam.resolution.height,SolAR::Image::LAYOUT_BGR,SolAR::Image::INTERLEAVED,SolAR::Image::TYPE_8U);
 
         Transform3Df s_pose;
 
-        if (pipeline.start(camImage->data()))
+        if (pipeline->start(camImage->data()) == FrameworkReturnCode::_SUCCESS)
         {
-            while (true)
-            {
-                Transform3Df pose;
+             while (true)
+             {
+                  Transform3Df pose;
 
-                PIPELINEMANAGER_RETURNCODE returnCode = pipeline.udpate(pose);
-                if(returnCode==PIPELINEMANAGER_RETURNCODE::_ERROR)
-                    break;
+                  sink::SinkReturnCode returnCode = pipeline->update(pose);
+                  if(returnCode == sink::SinkReturnCode::_ERROR)
+                       break;
 
-                if ((returnCode & PIPELINEMANAGER_RETURNCODE::_NEW_POSE))
-                {
-                    for(int i=0;i<3;i++)
-                         for(int j=0;j<3;j++)
-                             s_pose(i,j)=pose.rotation().coeff(i,j);
-                    for(int i=0;i<3;i++)
-                             s_pose(i,3)=pose.translation().coeff(i,0);
-                    for(int j=0;j<3;j++)
-                        s_pose(3,j)=0;
-                    s_pose(3,3)=1;
-                    overlay3DComponent->draw(s_pose, camImage);
-                }
+                  if (returnCode == sink::SinkReturnCode::_NEW_POSE)
+                  {
+                       for(int i=0;i<3;i++)
+                          for(int j=0;j<3;j++)
+                              s_pose(i,j)=pose(i,j);
+                        for(int i=0;i<3;i++)
+                              s_pose(i,3)=pose(i,3);
+                        for(int j=0;j<3;j++)
+                              s_pose(3,j)=0;
+                        s_pose(3,3)=1;
+                        overlay3DComponent->draw(s_pose, camImage);
+                  }
 
-                if (imageViewerResult->display(camImage) == SolAR::FrameworkReturnCode::_STOP){
-                    pipeline.stop();
-                    break;
+                  if (imageViewerResult->display(camImage) == SolAR::FrameworkReturnCode::_STOP){
+                      pipeline->stop();
+                      break;
                 }
              }
         }
