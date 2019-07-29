@@ -5,6 +5,8 @@ set (VERSION_NUMBER "0.6.0")
 project("PipelineNaturalImageMarker")
 set (SOURCES 
 	src/PipelineNaturalImageMarker.cpp
+	src/component.cpp
+
 )
 
 set (HEADERS
