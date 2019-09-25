@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
-<xpcf-registry autoAlias="true" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">	
-<module uuid="15e1990b-86b2-445c-8194-0cbe80ede970" name="SolARModuleOpenCV" path="$REMAKENROOT/SolARModuleOpenCV/0.6.0/lib/x86_64/shared" description="moduleOpenCV">0
+<xpcf-registry autoAlias="true" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"> 
+	<module uuid="15e1990b-86b2-445c-8194-0cbe80ede970" name="SolARModuleOpenCV" path="$REMAKENROOT/SolARModuleOpenCV/0.6.0/lib/x86_64/shared" description="moduleOpenCV">0
          <component uuid="5B7396F4-A804-4F3C-A0EB-FB1D56042BB4" name="SolARCameraOpencv" description="SolARCameraOpencv">
                 <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" name="IComponentIntrospect" description="IComponentIntrospect"/>
                 <interface uuid="5DDC7DF0-8377-437F-9C81-3643F7676A5B" name="ICamera" description="ICamera"/>
@@ -51,10 +51,6 @@
                 <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" name="IComponentIntrospect" description="IComponentIntrospect"/>
                 <interface uuid="62b8b0b5-9344-40e6-a288-e609eb3ff0f1" name="I2DOverlay" description="I2DOverlay"/>
         </component>
-		<component uuid="e95302be-3fe1-44e0-97bf-a98380464af9" name="SolARMatchesOverlayOpencv" description="SolARMatchesOverlayOpencv">
-                <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" name="IComponentIntrospect" description="IComponentIntrospect"/>
-                <interface uuid="a801354a-3e00-467c-b390-48c76fa8c53a" name="IMatchesOverlay" description="IMatchesOverlay"/>
-        </component>
 		<component uuid="e95302be-3fe1-44e0-97bf-a98380464af9" name="SolARSideBySideOverlayOpencv" description="SolARSideBySideOverlayOpencv">
                 <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" name="IComponentIntrospect" description="IComponentIntrospect"/>
                 <interface uuid="a801354a-3e00-467c-b390-48c76fa8c53a" name="ISideBySideOverlay" description="ISideBySideOverlay"/>
@@ -66,10 +62,9 @@
 		<component uuid="19ea4e13-7085-4e3f-92ca-93f200ffb01b" name="SolARImageViewerOpencv" description="SolARImageViewerOpencv">
                 <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" name="IComponentIntrospect" description="IComponentIntrospect"/>
                 <interface uuid="b05f3dbb-f93d-465c-aee1-fb58e1480c42" name="IImageViewer" description="IImageViewer"/>
-        </component>
-		
+        </component>		
     </module>	
-<module uuid="28b89d39-41bd-451d-b19e-d25a3d7c5797" name="SolARModuleTools"  path="$REMAKENROOT/SolARModuleTools/0.6.0/lib/x86_64/shared" description="Module Tools">
+	<module uuid="28b89d39-41bd-451d-b19e-d25a3d7c5797" name="SolARModuleTools"  path="$REMAKENROOT/SolARModuleTools/0.6.0/lib/x86_64/shared" description="Module Tools">
         <component uuid="cbb620c3-a7fc-42d7-bcbf-f59b475b23b0" name="SolARBasicMatchesFilter" description="SolARBasicMatchesFilter">
                 <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" name="IComponentIntrospect" description="IComponentIntrospect"/>
                 <interface uuid="e0d6cc82-6af2-493d-901a-2384fca0b16f" name="IMatchesFilter" description= "IMatchesFilter"/>
@@ -82,8 +77,8 @@
                 <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" name="IComponentIntrospect" description="IComponentIntrospect"/>
                 <interface uuid="67bcd080-258d-4b16-b693-cd30c013eb05" name="IImage2WorldMapper" description="IImage2WorldMapper"/>
         </component>
-  </module>  
-  <factory>
+  </module>
+        <factory>
       <bindings>
         <bind interface="ICamera" to="SolARCameraOpencv" />
       </bindings>
@@ -98,13 +93,13 @@
         </configure>
 		<configure component="SolARKeypointDetectorOpencv">
 			<property name="type" type="string" value="AKAZE2"/>
-			<property name="imageRatio" type="Float" value="1.0"/>
+			<property name="imageRatio" type="Float" value="0.5"/>
 			<property name="nbDescriptors" type="Integer" value="1500"/>
         </configure>
 		<configure component="SolARKeypointDetectorRegionOpencv">
 			<property name="type" type="string" value="FEATURE_TO_TRACK"/>
 			<property name="imageRatio" type="Float" value="1.0"/>
-			<property name="nbDescriptors" type="Integer" value="2000"/>
+			<property name="nbDescriptors" type="Integer" value="1500"/>
         </configure>
 		<configure component="SolARDescriptorsExtractorAKAZE2Opencv">
             <property name="threshold" type="Float" value="3e-4"/>
@@ -116,14 +111,10 @@
             <property name="m_confidenceLevel" type="Double" value="0.99"/>
 			<property name="m_outlierDistanceRatio" type="Double" value="0.006"/>
         </configure>
-		<configure component="SolARPoseEstimationPlanarPointsOpencv" name="poseEstimationDetection">
-            <property name="minNbInliers" type="Integer" value="60"/>
-			<property name="m_reprojErrorThreshold" type="Float" value="0.1"/>
+		<configure component="SolARPoseEstimationPlanarPointsOpencv">
+            <property name="minNbInliers" type="Integer" value="50"/>
+			<property name="reprojErrorThreshold" type="Float" value="0.1"/>
         </configure>
-		<configure component="SolARPoseEstimationPlanarPointsOpencv" name="poseEstimationTracking">
-            <property name="minNbInliers" type="Integer" value="100"/>
-			<property name="m_reprojErrorThreshold" type="Float" value="0.1"/>
-		</configure>
 		<configure component="SolAROpticalFlowPyrLKOpencv">
 			<property name="searchWinWidth" type="Integer" value="21"/>
 			<property name="searchWinHeight" type="Integer" value="21"/>
@@ -144,8 +135,8 @@
 				<value>0.0</value>
 			</property>
 			<property name="size"  type="Float">
-				<value>0.178</value>
-				<value>0.142</value>
+				<value>0.212</value>
+				<value>0.17</value>
 				<value>0.1</value>
 			</property>
         </configure>
@@ -159,23 +150,13 @@
 			</property>
 			<property name="randomColor" type="UnsignedInteger" value="0"/>
 		</configure>
-		<configure component="SolARMatchesOverlayOpencv">
-            <property name="thickness" type="UnsignedInteger" value="2"/>
-            <property name="mode" type="string" value="COLOR"/>
-            <property name="color"  type="UnsignedInteger">
-                <value>0</value>
-                <value>0</value>
-                <value>255</value>
-            </property>
-            <property name="maxMatches" type="UnsignedInteger" value="-1"/>    
-        </configure>
 		<configure component="SolARImageViewerOpencv">
 			<property name="title" type="string" value="Natural Image Marker"/>
 			<property name="exitKey" type="Integer" value="27"/>
 			<property name="width" type="Integer" value="0"/>
 			<property name="height" type="Integer" value="0"/>
 		</configure>
-		<configure component="SolARImageViewerOpencv">
+		<configure component="SolARImageViewerOpencv" name="keypoints">
 			<property name="title" type="string" value="Reference KeyPoints"/>
 			<property name="exitKey" type="Integer" value="27"/>
 			<property name="width" type="Integer" value="0"/>

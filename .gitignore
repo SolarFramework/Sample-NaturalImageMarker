@@ -60,3 +60,4 @@ Plugin/PipelineNaturalImageMarker.pro.bak
 Plugin/build/
 Plugin/tests/TestNaturalImageMarkerPipeline/build/
 StandAlone/build/
+build-MTRelease/

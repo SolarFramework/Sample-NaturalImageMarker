@@ -99,35 +99,35 @@ int main(int argc, char *argv[])
         // declare and create components
         LOG_INFO("Start creating components");
 
-        auto camera = xpcfComponentManager->create<SolARCameraOpencv>()->bindTo<input::devices::ICamera>();
-        auto marker = xpcfComponentManager->create<SolARMarker2DNaturalImageOpencv>()->bindTo<input::files::IMarker2DNaturalImage>();
-        auto kpDetector = xpcfComponentManager->create<SolARKeypointDetectorOpencv>()->bindTo<features::IKeypointDetector>();
-        auto kpDetectorRegion = xpcfComponentManager->create<SolARKeypointDetectorRegionOpencv>()->bindTo<features::IKeypointDetectorRegion>();
-        auto descriptorExtractor = xpcfComponentManager->create<SolARDescriptorsExtractorAKAZE2Opencv>()->bindTo<features::IDescriptorsExtractor>();
-        auto matcher = xpcfComponentManager->create<SolARDescriptorMatcherKNNOpencv>()->bindTo<features::IDescriptorMatcher>();
-        auto basicMatchesFilter = xpcfComponentManager->create<SolARBasicMatchesFilter>()->bindTo<features::IMatchesFilter>();
-        auto geomMatchesFilter = xpcfComponentManager->create<SolARGeometricMatchesFilterOpencv>()->bindTo<features::IMatchesFilter>();
-        auto keypointsReindexer = xpcfComponentManager->create<SolARKeypointsReIndexer>()->bindTo<features::IKeypointsReIndexer>();
-        auto poseEstimationPlanarDetection = xpcfComponentManager->create<SolARPoseEstimationPlanarPointsOpencv>("poseEstimationDetection")->bindTo<solver::pose::I3DTransformSACFinderFrom2D3D>();
-        auto poseEstimationPlanarTracking = xpcfComponentManager->create<SolARPoseEstimationPlanarPointsOpencv>("poseEstimationTracking")->bindTo<solver::pose::I3DTransformSACFinderFrom2D3D>();
-        auto img_mapper = xpcfComponentManager->create<SolARImage2WorldMapper4Marker2D>()->bindTo<geom::IImage2WorldMapper>();
-        auto opticalFlowEstimator = xpcfComponentManager->create<SolAROpticalFlowPyrLKOpencv>()->bindTo<tracking::IOpticalFlowEstimator>();
-        auto projection = xpcfComponentManager->create<SolARProjectOpencv>()->bindTo<geom::IProject>();
-        auto unprojection = xpcfComponentManager->create<SolARUnprojectPlanarPointsOpencv>()->bindTo<geom::IUnproject>();
-        auto overlay2DComponent = xpcfComponentManager->create<SolAR2DOverlayOpencv>()->bindTo<display::I2DOverlay>();
-        auto overlayMatches = xpcfComponentManager->create<SolARMatchesOverlayOpencv>()->bindTo<display::IMatchesOverlay>();
-        auto overlay3DComponent = xpcfComponentManager->create<SolAR3DOverlayBoxOpencv>()->bindTo<display::I3DOverlay>();
-        auto imageViewerKeypoints = xpcfComponentManager->create<SolARImageViewerOpencv>("keypoints")->bindTo<display::IImageViewer>();
-        auto imageViewerResult = xpcfComponentManager->create<SolARImageViewerOpencv>()->bindTo<display::IImageViewer>();
+        auto camera = xpcfComponentManager->resolve<input::devices::ICamera>();
+        auto marker = xpcfComponentManager->resolve<input::files::IMarker2DNaturalImage>();
+        auto kpDetector = xpcfComponentManager->resolve<features::IKeypointDetector>();
+        auto kpDetectorRegion = xpcfComponentManager->resolve<features::IKeypointDetectorRegion>();
+        auto descriptorExtractor = xpcfComponentManager->resolve<features::IDescriptorsExtractor>();
+        auto matcher = xpcfComponentManager->resolve<features::IDescriptorMatcher>();
+        auto basicMatchesFilter = xpcfComponentManager->resolve<features::IMatchesFilter>();
+        auto geomMatchesFilter = xpcfComponentManager->resolve<features::IMatchesFilter>();
+        auto keypointsReindexer = xpcfComponentManager->resolve<features::IKeypointsReIndexer>();
+        auto poseEstimationPlanarDetection = xpcfComponentManager->resolve<solver::pose::I3DTransformSACFinderFrom2D3D>("poseEstimationDetection");
+        auto poseEstimationPlanarTracking = xpcfComponentManager->resolve<solver::pose::I3DTransformSACFinderFrom2D3D>("poseEstimationTracking");
+        auto img_mapper = xpcfComponentManager->resolve<geom::IImage2WorldMapper>();
+        auto opticalFlowEstimator = xpcfComponentManager->resolve<tracking::IOpticalFlowEstimator>();
+        auto projection = xpcfComponentManager->resolve<geom::IProject>();
+        auto unprojection = xpcfComponentManager->resolve<geom::IUnproject>();
+        auto overlay2DComponent = xpcfComponentManager->resolve<display::I2DOverlay>();
+        auto overlayMatches = xpcfComponentManager->resolve<display::IMatchesOverlay>();
+        auto overlay3DComponent = xpcfComponentManager->resolve<display::I3DOverlay>();
+        auto imageViewerKeypoints = xpcfComponentManager->resolve<display::IImageViewer>("keypoints");
+        auto imageViewerResult = xpcfComponentManager->resolve<display::IImageViewer>();
 
         // Declare data structures used to exchange information between components for initialization
         SRef<Image> refImage;
 #ifndef NDEBUG
         SRef<Image> debugCamImage;
 #endif
-        std::vector<SRef<Keypoint>> refKeypoints;
+        std::vector<Keypoint> refKeypoints;
         SRef<DescriptorBuffer> refDescriptors;
-        std::vector<SRef<Point3Df>> markerWorldCorners;
+        std::vector<Point3Df> markerWorldCorners;
 
         // Declare Buffers used to exchange data between tasks
         xpcf::DropBuffer<SRef<Image>>   m_dropBufferCamImageForDetection;
@@ -214,14 +214,14 @@ int main(int argc, char *argv[])
                                                &m_dropBufferCamImageForDetection, &m_dropBufferPoseForTracking, &m_dropBufferPoseForDisplay,
                                                &kpDetector, &descriptorExtractor, &matcher, &basicMatchesFilter, &geomMatchesFilter, &keypointsReindexer, &img_mapper, &poseEstimationPlanarDetection](){
             SRef<Image> camImage;
-            std::vector<SRef<Keypoint>> camKeypoints;
+            std::vector<Keypoint> camKeypoints;
             SRef<DescriptorBuffer> camDescriptors;
             std::vector<DescriptorMatch> matches;
-            std::vector<SRef<Point2Df>> refMatched2Dpoints, camMatched2Dpoints;
-            std::vector<SRef<Point3Df>> ref3Dpoints;
+            std::vector<Point2Df> refMatched2Dpoints, camMatched2Dpoints;
+            std::vector<Point3Df> ref3Dpoints;
             Transform3Df pose;
-            std::vector<SRef<Point2Df>> imagePoints_inliers;
-            std::vector<SRef<Point3Df>> worldPoints_inliers;
+            std::vector<Point2Df> imagePoints_inliers;
+            std::vector<Point3Df> worldPoints_inliers;
 
             if (!m_dropBufferCamImageForDetection.tryPop(camImage))
                 return;
@@ -289,8 +289,8 @@ int main(int argc, char *argv[])
         // Variable shared for tracking
         SRef<Image> previousCamImage;
         Transform3Df previousPose;
-        std::vector<SRef<Point2Df>> imagePoints_inliers;
-        std::vector<SRef<Point3Df>> worldPoints_inliers;
+        std::vector<Point2Df> imagePoints_inliers;
+        std::vector<Point3Df> worldPoints_inliers;
 
         std::function<void(void)> tracking = [&markerWorldCorners, &previousCamImage, &previousPose, &imagePoints_inliers, &worldPoints_inliers,
 #ifndef NDEBUG
@@ -301,9 +301,9 @@ int main(int argc, char *argv[])
         {
             SRef<Image> camImage;
             std::pair<SRef<Image>, Transform3Df> poseImageFromDetection;
-            std::vector<SRef<Keypoint>> newKeypoints;
-            std::vector<SRef<Point2Df>> projectedMarkerCorners, trackedPoints, pts2D;
-            std::vector<SRef<Point3Df>> pts3D;
+            std::vector<Keypoint> newKeypoints;
+            std::vector<Point2Df> projectedMarkerCorners, trackedPoints, pts2D;
+            std::vector<Point3Df> pts3D;
             std::vector<unsigned char> status;
             std::vector<float> err;
             Transform3Df pose;
@@ -341,7 +341,7 @@ int main(int argc, char *argv[])
                 LOG_DEBUG("New keypoint extraction for tracking");
                 imagePoints_inliers.clear();
                 worldPoints_inliers.clear();
-                std::vector<SRef<Keypoint>> newKeypoints;
+                std::vector<Keypoint> newKeypoints;
                 // Get the projection of the corner of the marker in the current image
                 projection->project(markerWorldCorners, projectedMarkerCorners, previousPose);
 
@@ -350,7 +350,7 @@ int main(int argc, char *argv[])
 
 				if (newKeypoints.size() > updateTrackedPointThreshold) {
 					for (auto keypoint : newKeypoints)
-						imagePoints_inliers.push_back(xpcf::utils::make_shared<Point2Df>(keypoint->getX(), keypoint->getY()));
+                        imagePoints_inliers.push_back(Point2Df(keypoint.getX(), keypoint.getY()));
 
 					// Get back the 3D positions of the detected keypoints in world space
 					unprojection->unproject(imagePoints_inliers, worldPoints_inliers, previousPose);
