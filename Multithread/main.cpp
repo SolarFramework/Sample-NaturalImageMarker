@@ -30,9 +30,6 @@
 
 #include "core/Log.h"
 
-#include "SolARModuleOpencv_traits.h"
-#include "SolARModuleTools_traits.h"
-
 // ADD XPCF HEADERS HERE
 #include "xpcf/xpcf.h"
 #include "xpcf/threading/BaseTask.h"
@@ -59,8 +56,6 @@
 
 
 using namespace SolAR;
-using namespace SolAR::MODULES::OPENCV;
-using namespace SolAR::MODULES::TOOLS;
 using namespace SolAR::datastructure;
 using namespace SolAR::api;
 namespace xpcf = org::bcom::xpcf;

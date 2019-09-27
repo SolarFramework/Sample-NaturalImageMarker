@@ -23,8 +23,6 @@
 #include <boost/log/core.hpp>
 
 using namespace std;
-#include "SolARModuleOpencv_traits.h"
-#include "SolARModuleTools_traits.h"
 
 #include "xpcf/xpcf.h"
 
@@ -53,8 +51,6 @@ using namespace std;
 #include <boost/chrono.hpp>
 
 using namespace SolAR;
-using namespace SolAR::MODULES::OPENCV;
-using namespace SolAR::MODULES::TOOLS;
 using namespace SolAR::datastructure;
 using namespace SolAR::api;
 namespace xpcf = org::bcom::xpcf;
