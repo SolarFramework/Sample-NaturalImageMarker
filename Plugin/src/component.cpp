@@ -97,10 +97,10 @@ FrameworkReturnCode PipelineNaturalImageMarker::init(SRef<xpcf::IComponentManage
     Point2Df corner1((float)m_refImage->getWidth(), 0);
     Point2Df corner2((float)m_refImage->getWidth(), (float)m_refImage->getHeight());
     Point2Df corner3(0, (float)m_refImage->getHeight());
-    m_refImgCorners.push_back(xpcf::utils::make_shared<Point2Df>(corner0));
-    m_refImgCorners.push_back(xpcf::utils::make_shared<Point2Df>(corner1));
-    m_refImgCorners.push_back(xpcf::utils::make_shared<Point2Df>(corner2));
-    m_refImgCorners.push_back(xpcf::utils::make_shared<Point2Df>(corner3));
+    m_refImgCorners.push_back(Point2Df(corner0));
+    m_refImgCorners.push_back(Point2Df(corner1));
+    m_refImgCorners.push_back(Point2Df(corner2));
+    m_refImgCorners.push_back(Point2Df(corner3));
 
     for(int i=0;i<4;i++)
         for(int j=0;j<4;j++)
@@ -171,10 +171,10 @@ bool PipelineNaturalImageMarker::processDetection()
     bool valid_pose = false;
 
     SRef<Image> camImage;
-    std::vector<SRef<Point2Df>> imagePoints_inliers;
-    std::vector<SRef<Point3Df>> worldPoints_inliers;
+    std::vector<Point2Df> imagePoints_inliers;
+    std::vector<Point3Df> worldPoints_inliers;
     Transform3Df pose;
-    std::vector< SRef<Keypoint> >  camKeypoints;  // where to store detected keypoints in ref image and camera image
+    std::vector<Keypoint>  camKeypoints;  // where to store detected keypoints in ref image and camera image
     std::vector<DescriptorMatch>  matches;
     SRef<DescriptorBuffer>  camDescriptors;
 
@@ -194,15 +194,15 @@ bool PipelineNaturalImageMarker::processDetection()
     m_basicMatchesFilter->filter(matches, matches, m_refKeypoints, camKeypoints);
     m_geomMatchesFilter->filter(matches, matches, m_refKeypoints, camKeypoints);
 
-    std::vector <SRef<Point2Df>> ref2Dpoints;
-    std::vector <SRef<Point2Df>> cam2Dpoints;
-    std::vector <SRef<Point3Df>> ref3Dpoints;
+    std::vector <Point2Df> ref2Dpoints;
+    std::vector <Point2Df> cam2Dpoints;
+    std::vector <Point3Df> ref3Dpoints;
 
-    std::vector <SRef<Point2Df>> markerCornersinCamImage;
-    std::vector <SRef<Point3Df>> markerCornersinWorld;
+    std::vector <Point2Df> markerCornersinCamImage;
+    std::vector <Point3Df> markerCornersinWorld;
 
 
-    std::vector<SRef<Point2Df>> refMatched2Dpoints, camMatched2Dpoints;
+    std::vector<Point2Df> refMatched2Dpoints, camMatched2Dpoints;
 
     if (matches.size()> m_detectionMatchesNumberThreshold) {
         // reindex the keypoints with established correspondence after the matching
@@ -281,8 +281,8 @@ bool PipelineNaturalImageMarker::processTracking()
     if (m_needNewTrackedPoints) {
         m_imagePoints_track.clear();
         m_worldPoints_track.clear();
-        std::vector<SRef<Point2Df>> projectedMarkerCorners;
-        std::vector<SRef<Keypoint>> newKeypoints;
+        std::vector<Point2Df> projectedMarkerCorners;
+        std::vector<Keypoint> newKeypoints;
         // Get the projection of the corner of the marker in the current image
         m_projection->project(m_markerWorldCorners, projectedMarkerCorners, m_pose);
 
@@ -291,7 +291,7 @@ bool PipelineNaturalImageMarker::processTracking()
 
         if (newKeypoints.size() > m_updateTrackedPointThreshold) {
             for (auto keypoint : newKeypoints)
-                m_imagePoints_track.push_back(xpcf::utils::make_shared<Point2Df>(keypoint->getX(), keypoint->getY()));
+                m_imagePoints_track.push_back(Point2Df(keypoint.getX(), keypoint.getY()));
 
             // get back the 3D positions of the detected keypoints in world space
             m_unprojection->unproject(m_imagePoints_track, m_worldPoints_track, m_pose);
@@ -310,8 +310,8 @@ bool PipelineNaturalImageMarker::processTracking()
         return true;
     }
 
-    std::vector<SRef<Point2Df>> trackedPoints, pts2D;
-    std::vector<SRef<Point3Df>> pts3D;
+    std::vector<Point2Df> trackedPoints, pts2D;
+    std::vector<Point3Df> pts3D;
     std::vector<unsigned char> status;
     std::vector<float> err;
 
