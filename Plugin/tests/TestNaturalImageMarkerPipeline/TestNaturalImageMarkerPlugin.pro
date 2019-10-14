@@ -1,28 +1,3 @@
-#TARGET = TestFiducialMarkerPlugin
-#VERSION=0.6.0
-
-#CONFIG += c++1z
-#CONFIG -= qt
-#CONFIG += console
-
-#DEFINES += MYVERSION=$${VERSION}
-
-#CONFIG(debug,debug|release) {
-#    DEFINES += _DEBUG=1
-#    DEFINES += DEBUG=1
-#}
-
-#CONFIG(release,debug|release) {
-#    DEFINES += NDEBUG=1
-#}
-
-#win32:CONFIG -= static
-#win32:CONFIG += shared
-
-#DEPENDENCIESCONFIG = sharedlib recurse
-#NOTE : CONFIG as staticlib or sharedlib, DEPENDENCIESCONFIG as staticlib or sharedlib MUST BE DEFINED BEFORE templatelibconfig.pri inclusion
-## remove Qt dependencies
-
 QT       -= core gui
 CONFIG -= qt
 
@@ -49,9 +24,12 @@ CONFIG(release,debug|release) {
     DEFINES += NDEBUG=1
 }
 
-DEPENDENCIESCONFIG = shared recurse
+DEPENDENCIESCONFIG = sharedlib install_recurse
 
-include (../../../../builddefs/qmake/templateappconfig.pri)
+PROJECTCONFIG = QTVS
+
+#NOTE : CONFIG as staticlib or sharedlib, DEPENDENCIESCONFIG as staticlib or sharedlib, QMAKE_TARGET.arch and PROJECTDEPLOYDIR MUST BE DEFINED BEFORE templatelibconfig.pri inclusion
+include ($$(REMAKEN_RULES_ROOT)/qmake/templateappconfig.pri)
 
 HEADERS += \
 
@@ -101,3 +79,4 @@ xpcf_xml_files.path = $$(HOME)/.xpcf
 xpcf_xml_files.files=$$files($${PWD}/PipelineNaturalImageMarker.xml)
 
 INSTALLS += xpcf_xml_files
+include ($$(REMAKEN_RULES_ROOT)/qmake/remaken_install_target.pri))
