@@ -1,2 +1,0 @@
-platform=android-clang
-cppstd=17
