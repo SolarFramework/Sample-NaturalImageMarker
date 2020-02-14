@@ -304,7 +304,7 @@ int main(int argc, char *argv[])
             Transform3Df pose;
             bool needNewTrackedPoints = false;
 #ifndef NDEBUG
-            std::vector<SRef<Point2Df>> trackedKeypoints;
+            std::vector<Point2Df> trackedKeypoints;
 #endif
 
             if (!m_dropBufferCamImageForTracking.tryPop(camImage))
