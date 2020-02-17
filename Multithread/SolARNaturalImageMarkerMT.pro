@@ -1,5 +1,5 @@
 TARGET = SolARNaturalImageMarkerSampleMultiThread
-VERSION=0.5.2
+VERSION=0.7.0
 
 CONFIG += c++1z
 CONFIG -= qt
@@ -19,9 +19,11 @@ CONFIG(release,debug|release) {
 win32:CONFIG -= static
 win32:CONFIG += shared
 
-DEPENDENCIESCONFIG = sharedlib recurse
+DEPENDENCIESCONFIG = sharedlib install_recurse
+PROJECTCONFIG = QTVS
+
 #NOTE : CONFIG as staticlib or sharedlib, DEPENDENCIESCONFIG as staticlib or sharedlib MUST BE DEFINED BEFORE templatelibconfig.pri inclusion
-include (../../builddefs/qmake/templateappconfig.pri)
+include ($$shell_quote($$shell_path($$(REMAKEN_RULES_ROOT)/qmake/templateappconfig.pri)))
 
 
 #DEFINES += BOOST_ALL_NO_LIB
@@ -55,5 +57,12 @@ win32 {
     INCLUDEPATH += $$(WINDOWSSDKDIR)lib/winv6.3/um/x64
 }
 
-DISTFILES += \
-    conf_NaturalImageMarker.xml
+config_files.path = $${TARGETDEPLOYDIR}
+config_files.files=$$files($${PWD}/conf_NaturalImageMarker.xml)\
+					$$files($${PWD}/camera_calibration.yml)\
+                                        $$files($${PWD}/grafMarker.yml)\
+					$$files($${PWD}/graf1.png)
+INSTALLS += config_files
+
+#NOTE : Must be placed at the end of the .pro
+include ($$shell_quote($$shell_path($$(REMAKEN_RULES_ROOT)/qmake/remaken_install_target.pri)))) # Shell_quote & shell_path required for visual on windows

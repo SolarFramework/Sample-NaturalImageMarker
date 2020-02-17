@@ -1,35 +1,10 @@
-#TARGET = TestFiducialMarkerPlugin
-#VERSION=0.6.0
-
-#CONFIG += c++1z
-#CONFIG -= qt
-#CONFIG += console
-
-#DEFINES += MYVERSION=$${VERSION}
-
-#CONFIG(debug,debug|release) {
-#    DEFINES += _DEBUG=1
-#    DEFINES += DEBUG=1
-#}
-
-#CONFIG(release,debug|release) {
-#    DEFINES += NDEBUG=1
-#}
-
-#win32:CONFIG -= static
-#win32:CONFIG += shared
-
-#DEPENDENCIESCONFIG = sharedlib recurse
-#NOTE : CONFIG as staticlib or sharedlib, DEPENDENCIESCONFIG as staticlib or sharedlib MUST BE DEFINED BEFORE templatelibconfig.pri inclusion
-## remove Qt dependencies
-
 QT       -= core gui
 CONFIG -= qt
 
 ## global defintions : target lib name, version
 TARGET = TestNaturalImageMarkerPlugin
 FRAMEWORK = $$TARGET
-VERSION=0.6.0
+VERSION=0.7.0
 
 DEFINES += MYVERSION=$${VERSION}
 DEFINES += TEMPLATE_LIBRARY
@@ -49,9 +24,12 @@ CONFIG(release,debug|release) {
     DEFINES += NDEBUG=1
 }
 
-DEPENDENCIESCONFIG = shared recurse
+DEPENDENCIESCONFIG = sharedlib install_recurse
 
-include (../../../../builddefs/qmake/templateappconfig.pri)
+PROJECTCONFIG = QTVS
+
+#NOTE : CONFIG as staticlib or sharedlib, DEPENDENCIESCONFIG as staticlib or sharedlib, QMAKE_TARGET.arch and PROJECTDEPLOYDIR MUST BE DEFINED BEFORE templatelibconfig.pri inclusion
+include ($$(REMAKEN_RULES_ROOT)/qmake/templateappconfig.pri)
 
 HEADERS += \
 
@@ -94,10 +72,12 @@ win32 {
     QMAKE_CXXFLAGS += -wd4250 -wd4251 -wd4244 -wd4275
 }
 
-DISTFILES += \
-    PipelineNaturalImageMarker.xml
-
-xpcf_xml_files.path = $$(HOME)/.xpcf
-xpcf_xml_files.files=$$files($${PWD}/PipelineNaturalImageMarker.xml)
+config_files.path = $${TARGETDEPLOYDIR}
+config_files.files=$$files($${PWD}/PipelineNaturalImageMarker.xml)\
+					$$files($${PWD}/camera_calibration.yml)\
+                                        $$files($${PWD}/NaturalImageMarker.yml)\
+					$$files($${PWD}/graf1.png)
+INSTALLS += config_files
 
 INSTALLS += xpcf_xml_files
+include ($$(REMAKEN_RULES_ROOT)/qmake/remaken_install_target.pri))

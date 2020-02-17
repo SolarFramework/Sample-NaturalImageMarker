@@ -63,7 +63,7 @@ int main(){
                   if(returnCode == sink::SinkReturnCode::_ERROR)
                        break;
 
-                  if (returnCode == sink::SinkReturnCode::_NEW_POSE)
+                  if (returnCode == sink::SinkReturnCode::_NEW_POSE || returnCode == sink::SinkReturnCode::_NEW_POSE_AND_IMAGE)
                   {
                        for(int i=0;i<3;i++)
                           for(int j=0;j<3;j++)
