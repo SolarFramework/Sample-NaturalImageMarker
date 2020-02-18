@@ -17,11 +17,11 @@
 #include <boost/log/core.hpp>
 #include "core/Log.h"
 #include "xpcf/xpcf.h"
-#include "api/pipeline/IPipeline.h"
-#include "SolARModuleOpencv_traits.h"
-#include "SolARImageViewerOpencv.h"
-#include "SolAR3DOverlayBoxOpencv.h"
 
+// ADD COMPONENTS HEADERS HERE, e.g #include "SolarComponent.h"
+#include "api/pipeline/IPipeline.h"
+#include "api/display/IImageViewer.h"
+#include "api/display/I3DOverlay.h"
 
 namespace xpcf  = org::bcom::xpcf;
 
@@ -36,13 +36,13 @@ int main(){
 
     LOG_ADD_LOG_TO_CONSOLE();
     SRef<xpcf::IComponentManager> componentMgr = xpcf::getComponentManagerInstance();
-    componentMgr->load("PipelineNaturalImageMarker.xml");
+    xpcf::XPCFErrorCode errorLoad = componentMgr->load("PipelineNaturalImageMarker.xml");
     auto pipeline = componentMgr->resolve<pipeline::IPipeline>();
 
     if (pipeline->init(componentMgr) == FrameworkReturnCode::_SUCCESS )
     {
-        auto imageViewerResult = componentMgr->resolve<display::IImageViewer>(); // ->create<MODULES::OPENCV::SolARImageViewerOpencv>()->bindTo<display::IImageViewer>();
-        auto overlay3DComponent = componentMgr->resolve<display::I3DOverlay>();//->create<MODULES::OPENCV::SolAR3DOverlayBoxOpencv>()->bindTo<display::I3DOverlay>();
+        auto imageViewerResult = componentMgr->resolve<display::IImageViewer>();
+        auto overlay3DComponent = componentMgr->resolve<display::I3DOverlay>();
 
         // Set camera parameters
         CameraParameters camParam = pipeline->getCameraParameters();

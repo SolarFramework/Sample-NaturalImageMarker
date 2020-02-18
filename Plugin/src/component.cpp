@@ -1,7 +1,5 @@
 #include "xpcf/module/ModuleFactory.h"
 #include "PipelineNaturalImageMarker.h"
-#include "SolARModuleOpencv_traits.h"
-#include "SolARModuleTools_traits.h"
 #include "core/Log.h"
 
 XPCF_DEFINE_FACTORY_CREATE_INSTANCE(SolAR::PIPELINES::PipelineNaturalImageMarker)
