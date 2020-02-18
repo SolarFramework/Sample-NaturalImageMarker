@@ -1,0 +1,130 @@
+pipeline {
+    agent {
+        label "jenkins-slave-argo-qmake"
+    }
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+    }
+    parameters {
+        booleanParam(name: 'RELEASE',
+            defaultValue: false,
+            description: 'Create a Release')
+    }
+    triggers { pollSCM('* * * * *') }    
+    stages {
+
+        stage("Get Binaries") {
+            when {
+                expression { params.RELEASE == false }
+            }            
+            steps {
+                script {
+                    BRANCH = BRANCH_NAME.replace('/','_')
+                }
+                withCredentials([usernamePassword(credentialsId: 'bc6e150e-ede8-4e35-8af4-0f037edee8ac', passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
+                    getBinaries(BRANCH,USERNAME,PASSWORD)
+                }
+            }
+        }
+
+
+        stage("Get Third Parties StandAlone") {    
+            when {
+                    expression { params.RELEASE == true }
+            }                                
+            steps {
+                dir("StandAlone") {
+                    getThirdParties('1.0.0')
+                }
+            }
+        }
+
+        stage("Build StandAlone") {
+            steps {
+                withEnv(['REMAKEN_RULES_ROOT=/home/jenkins/.remaken/rules/']) {
+                    sh "qmake StandAlone/SolARNaturalImageMarkerStandAlone.pro"
+                    sh "make"
+                    sh "make install"
+                }
+            }
+        }
+
+        stage("Build Debug StandAlone") {    
+            when {
+                expression { params.RELEASE == true }
+            }                 
+            steps {
+                withEnv(['REMAKEN_RULES_ROOT=/home/jenkins/.remaken/rules/']) {
+                    sh "qmake StandAlone/SolARNaturalImageMarkerStandAlone.pro CONFIG+=debug"
+                    sh "make"
+                    sh "make install"
+                }
+            }
+        }
+
+        stage("Get Third Parties Multithread") {
+            when {
+                    expression { params.RELEASE == true }
+            }                                      
+            steps {
+                dir("Multithread") {
+                    getThirdParties('1.0.0')
+                }
+            }
+        }
+
+   
+        stage("Build Multithread") {
+            steps {
+                withEnv(['REMAKEN_RULES_ROOT=/home/jenkins/.remaken/rules/']) {
+                    sh "qmake Multithread/SolARNaturalImageMarkerMT.pro"
+                    sh "make"
+                    sh "make install"
+                }
+            }
+        }
+
+        stage("Build Debug Multithread") {      
+            when {
+                expression { params.RELEASE == true }
+            }               
+            steps {
+                withEnv(['REMAKEN_RULES_ROOT=/home/jenkins/.remaken/rules/']) {
+                    sh "qmake Multithread/SolARNaturalImageMarkerMT.pro CONFIG+=debug"
+                    sh "make"
+                    sh "make install"
+                }
+            }
+        }         
+
+        stage("Share Binaries") {
+            when {
+                expression { params.RELEASE == false }
+            }
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'bc6e150e-ede8-4e35-8af4-0f037edee8ac', passwordVariable: 'PASSWORD', usernameVariable: 'USERNAME')]) {
+                    shareBinaries(BRANCH,USERNAME,PASSWORD)
+                }
+            }
+        }           
+
+        stage("Release") {
+            when {
+                expression { params.RELEASE == true }
+            }
+            steps {
+                script {
+                    version = sh (
+                        script: "cat *.pro  | grep VERSION | head -1 | cut -d '=' -f 2",
+                        returnStdout: true
+                    )
+                    version = version.replace("\n","")
+                }                
+                prepareRelease("SolARBuild","linux-gcc","PipelineNaturalImageMarker")                
+                withCredentials([string(credentialsId: 'github-token', variable: 'token')]) {
+                    release("NaturalImageMarker","PipelineNaturalImageMarker/${version}/unix","",token);
+                }
+            }   
+        }
+}
+}
