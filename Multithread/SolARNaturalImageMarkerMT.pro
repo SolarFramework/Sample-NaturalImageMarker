@@ -8,11 +8,14 @@ CONFIG += console
 DEFINES += MYVERSION=$${VERSION}
 
 CONFIG(debug,debug|release) {
+    TARGETDEPLOYDIR = $${PWD}../../bin/Debug
     DEFINES += _DEBUG=1
     DEFINES += DEBUG=1
 }
 
 CONFIG(release,debug|release) {
+    TARGETDEPLOYDIR = $${PWD}../../bin/Release
+    DEFINES += _NDEBUG=1
     DEFINES += NDEBUG=1
 }
 
@@ -58,10 +61,10 @@ win32 {
 }
 
 config_files.path = $${TARGETDEPLOYDIR}
-config_files.files=$$files($${PWD}/conf_NaturalImageMarker.xml)\
-					$$files($${PWD}/camera_calibration.yml)\
-                                        $$files($${PWD}/grafMarker.yml)\
-					$$files($${PWD}/graf1.png)
+config_files.files= $$files($${PWD}/conf_NaturalImageMarker_Multi.xml)\
+                    $$files($${PWD}/camera_calibration.yml)\
+                    $$files($${PWD}/grafMarker.yml)\
+                    $$files($${PWD}/graf1.png)
 INSTALLS += config_files
 
 #NOTE : Must be placed at the end of the .pro

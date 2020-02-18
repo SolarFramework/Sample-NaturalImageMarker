@@ -15,11 +15,13 @@ CONFIG += console
 
 
 CONFIG(debug,debug|release) {
+    TARGETDEPLOYDIR = $${PWD}../../../../bin/Debug
     DEFINES += _DEBUG=1
     DEFINES += DEBUG=1
 }
 
 CONFIG(release,debug|release) {
+    TARGETDEPLOYDIR = $${PWD}../../../../bin/Release
     DEFINES += _NDEBUG=1
     DEFINES += NDEBUG=1
 }
@@ -35,23 +37,6 @@ HEADERS += \
 
 SOURCES += \
     main.cpp
-
-#unix {
-#    LIBS += -ldl
-#    QMAKE_CXXFLAGS += -DBOOST_LOG_DYN_LINK
-#}
-
-#macx {
-#    QMAKE_MAC_SDK= macosx
-#    QMAKE_CXXFLAGS += -fasm-blocks -x objective-c++
-#}
-
-#win32 {
-#    QMAKE_LFLAGS += /MACHINE:X64
-#    DEFINES += WIN64 UNICODE _UNICODE
-#    QMAKE_COMPILER_DEFINES += _WIN64
-#    QMAKE_CXXFLAGS += -wd4250 -wd4251 -wd4244 -wd4275
-#}
 
 unix {
 }
@@ -80,4 +65,4 @@ config_files.files=$$files($${PWD}/PipelineNaturalImageMarker.xml)\
 INSTALLS += config_files
 
 INSTALLS += xpcf_xml_files
-include ($$(REMAKEN_RULES_ROOT)/qmake/remaken_install_target.pri))
+include ($$shell_quote($$shell_path($$(REMAKEN_RULES_ROOT)/qmake/remaken_install_target.pri)))) # Shell_quote & shell_path required for visual on windows
