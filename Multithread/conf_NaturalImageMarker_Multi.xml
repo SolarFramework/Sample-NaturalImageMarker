@@ -112,7 +112,7 @@
 			<property name="m_outlierDistanceRatio" type="Double" value="0.006"/>
         </configure>
 		<configure component="SolARPoseEstimationPlanarPointsOpencv">
-            <property name="minNbInliers" type="Integer" value="50"/>
+            <property name="minNbInliers" type="Integer" value="30"/>
 			<property name="reprojErrorThreshold" type="Float" value="0.1"/>
         </configure>
 		<configure component="SolAROpticalFlowPyrLKOpencv">

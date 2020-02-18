@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
         /* this is needed in dynamic mode */
         SRef<xpcf::IComponentManager> xpcfComponentManager = xpcf::getComponentManagerInstance();
 
-        if (xpcfComponentManager->load("conf_NaturalImageMarker.xml") != org::bcom::xpcf::_SUCCESS)
+        if (xpcfComponentManager->load("conf_NaturalImageMarker_Multi.xml") != org::bcom::xpcf::_SUCCESS)
         {
             LOG_ERROR("Failed to load the configuration file conf_NaturalImageMarker.xml", argv[1])
             return -1;
