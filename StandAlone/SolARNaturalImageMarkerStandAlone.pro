@@ -22,7 +22,7 @@ CONFIG(release,debug|release) {
 win32:CONFIG -= static
 win32:CONFIG += shared
 
-DEPENDENCIESCONFIG = sharedlib install_recurse
+DEPENDENCIESCONFIG = sharedlib recursive install_recurse
 PROJECTCONFIG = QTVS
 
 #NOTE : CONFIG as staticlib or sharedlib, DEPENDENCIESCONFIG as staticlib or sharedlib MUST BE DEFINED BEFORE templatelibconfig.pri inclusion
