@@ -11,10 +11,10 @@ win32 {
     }
 }
 
-REMAKEN_RULES_ROOT = $$clean_path($$(REMAKENRULESROOT))
+REMAKEN_RULES_ROOT = $$clean_path($$(REMAKEN_RULES_ROOT))
 isEmpty(REMAKEN_RULES_ROOT) {
     REMAKEN_RULES_ROOT=$${USERHOMEFOLDER}/.remaken/rules/qmake
 }
 !exists($${REMAKEN_RULES_ROOT}) {
-    error("Unable to locate remaken rules in " $${REMAKEN_RULES_ROOT} ". Either check your remaken installation, or provide the path to your remaken qmake rules in REMAKENRULESROOT environment variable.")
+    error("Unable to locate remaken rules in " $${REMAKEN_RULES_ROOT} ". Either check your remaken installation, or provide the path to your remaken qmake rules in REMAKEN_RULES_ROOT environment variable.")
 }
