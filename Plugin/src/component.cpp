@@ -401,7 +401,7 @@ FrameworkReturnCode PipelineNaturalImageMarker::start(void* imageDataBuffer)
 FrameworkReturnCode PipelineNaturalImageMarker::stop()
 {
     m_stopFlag=true;
-    if( !m_haveToBeFlip && m_taskGetCameraImages != nullptr )
+    if(m_taskGetCameraImages != nullptr )
             m_taskGetCameraImages->stop();
 
 
