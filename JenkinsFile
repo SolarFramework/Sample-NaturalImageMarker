@@ -122,7 +122,7 @@ pipeline {
                 }                
                 prepareRelease("SolARBuild","linux-gcc","PipelineNaturalImageMarker")                
                 withCredentials([string(credentialsId: 'github-token', variable: 'token')]) {
-                    release("NaturalImageMarker","PipelineNaturalImageMarker/${version}/unix","",token);
+                    release("NaturalImageMarker","PipelineNaturalImageMarker/${version}/linux","PipelineNaturalImageMarker Version ${version} for Linux","${WORKSPACE}/artifactory/x86_64_shared_release/PipelineNaturalImageMarker_${version}_x86_64_shared_release.zip ${WORKSPACE}/artifactory/x86_64_shared_debug/PipelineNaturalImageMarker_${version}_x86_64_shared_debug.zip",token);
                 }
             }   
         }
