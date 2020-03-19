@@ -44,8 +44,8 @@ INCLUDEPATH += interfaces/
 HEADERS += interfaces/PipelineNaturalImageMarker.h \
 
 SOURCES += src/PipelineNaturalImageMarker.cpp \
-	 \
-	src/component.cpp
+           src/component.cpp
+
 unix:!android {
     QMAKE_CXXFLAGS += -Wignored-qualifiers
 }
