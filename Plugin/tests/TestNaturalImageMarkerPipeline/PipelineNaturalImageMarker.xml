@@ -109,7 +109,7 @@
       <property name="deviceID" type="UnsignedInteger" value="0" description="ID of the camera (default = 0)" />
     </configure>
         <configure component="SolARMarker2DNaturalImageOpencv">
-		<property name="filePath" type="string" value="NaturalImageMarker.yml"/>
+		<property name="filePath" type="string" value="grafMarker.yml"/>
         </configure>
         <configure component="SolARKeypointDetectorOpencv">
 		<property name="type" type="string" value="AKAZE2"/>
