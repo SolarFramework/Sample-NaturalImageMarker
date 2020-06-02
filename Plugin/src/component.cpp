@@ -105,13 +105,13 @@ FrameworkReturnCode PipelineNaturalImageMarker::init(SRef<xpcf::IComponentManage
             m_pose(i,j)=0.f;
 
     // initialize pose estimation based on planar points with the camera intrinsec parameters (please refeer to the use of intrinsec parameters file)
-    m_poseEstimationPlanar->setCameraParameters(m_camera->getIntrinsicsParameters(), m_camera->getDistorsionParameters());
+    m_poseEstimationPlanar->setCameraParameters(m_camera->getIntrinsicsParameters(), m_camera->getDistortionParameters());
 
     // initialize projection component with the camera intrinsec parameters (please refeer to the use of intrinsec parameters file)
-    m_projection->setCameraParameters(m_camera->getIntrinsicsParameters(), m_camera->getDistorsionParameters());
+    m_projection->setCameraParameters(m_camera->getIntrinsicsParameters(), m_camera->getDistortionParameters());
 
     // initialize unprojection component with the camera intrinsec parameters (please refeer to the use of intrinsec parameters file)
-    m_unprojection->setCameraParameters(m_camera->getIntrinsicsParameters(), m_camera->getDistorsionParameters());
+    m_unprojection->setCameraParameters(m_camera->getIntrinsicsParameters(), m_camera->getDistortionParameters());
 
     m_isTrack = false;
     m_needNewTrackedPoints = false;

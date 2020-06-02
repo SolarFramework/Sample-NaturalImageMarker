@@ -163,17 +163,17 @@ int main(int argc, char *argv[])
         }
 
         // initialize overlay 3D component with the camera intrinsec parameters (please refeer to the use of intrinsec parameters file)
-        overlay3DComponent->setCameraParameters(camera->getIntrinsicsParameters(), camera->getDistorsionParameters());
+        overlay3DComponent->setCameraParameters(camera->getIntrinsicsParameters(), camera->getDistortionParameters());
 
         // initialize pose estimations based on planar points with the camera intrinsec parameters (please refeer to the use of intrinsec parameters file)
-        poseEstimationPlanarDetection->setCameraParameters(camera->getIntrinsicsParameters(), camera->getDistorsionParameters());
-        poseEstimationPlanarTracking->setCameraParameters(camera->getIntrinsicsParameters(), camera->getDistorsionParameters());
+        poseEstimationPlanarDetection->setCameraParameters(camera->getIntrinsicsParameters(), camera->getDistortionParameters());
+        poseEstimationPlanarTracking->setCameraParameters(camera->getIntrinsicsParameters(), camera->getDistortionParameters());
 
         // initialize projection component with the camera intrinsec parameters (please refeer to the use of intrinsec parameters file)
-        projection->setCameraParameters(camera->getIntrinsicsParameters(), camera->getDistorsionParameters());
+        projection->setCameraParameters(camera->getIntrinsicsParameters(), camera->getDistortionParameters());
 
         // initialize unprojection component with the camera intrinsec parameters (please refeer to the use of intrinsec parameters file)
-        unprojection->setCameraParameters(camera->getIntrinsicsParameters(), camera->getDistorsionParameters());
+        unprojection->setCameraParameters(camera->getIntrinsicsParameters(), camera->getDistortionParameters());
 
         // initialize image mapper with the reference image size and marker size
         img_mapper->bindTo<xpcf::IConfigurable>()->getProperty("digitalWidth")->setIntegerValue(refImage->getSize().width);

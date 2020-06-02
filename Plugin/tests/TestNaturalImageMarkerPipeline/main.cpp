@@ -46,7 +46,7 @@ int main(){
 
         // Set camera parameters
         CameraParameters camParam = pipeline->getCameraParameters();
-        overlay3DComponent->setCameraParameters(camParam.intrinsic, camParam.distorsion);
+        overlay3DComponent->setCameraParameters(camParam.intrinsic, camParam.distortion);
 
         unsigned char* r_imageData=new unsigned char[camParam.resolution.width * camParam.resolution.height * 3];
         SRef<Image> camImage=xpcf::utils::make_shared<Image>(r_imageData,camParam.resolution.width,camParam.resolution.height,SolAR::Image::LAYOUT_BGR,SolAR::Image::INTERLEAVED,SolAR::Image::TYPE_8U);
