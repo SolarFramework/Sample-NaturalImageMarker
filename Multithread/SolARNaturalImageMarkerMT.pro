@@ -71,5 +71,8 @@ config_files.files= $$files($${PWD}/conf_NaturalImageMarker_Multi.xml)\
                     $$files($${PWD}/graf1.png)
 INSTALLS += config_files
 
+OTHER_FILES += \
+    packagedependencies.txt
+
 #NOTE : Must be placed at the end of the .pro
 include ($$shell_quote($$shell_path($${QMAKE_REMAKEN_RULES_ROOT}/remaken_install_target.pri)))) # Shell_quote & shell_path required for visual on windows
