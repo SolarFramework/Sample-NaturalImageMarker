@@ -1,27 +1,50 @@
-SolAR Natural Image Marker
-=============
+# SolAR Natural Image Marker
 
-SolAR is an open-source framework released under Apache license 2.0 making possible to easily create your own camera pose estimation solution to develop Augmented Reality applications. 
-SolAR is dedicated to Augmented Reality (AR).
-It offers a C++ SDK to easily and quickly develop and use custom solutions for camera pose estimation. It provides developers with a full chain from low-level vision components development to camera pose estimation pipelines and AR service development.
+[![License](https://img.shields.io/github/license/SolARFramework/NaturalImageMarker?style=flat-square&label=License)](https://www.apache.org/licenses/LICENSE-2.0)
 
-The SolAR Natural Image Marker samples show a SolAR pipeline for augmented reality based on a natural image.
+The SolAR **Natural Image Marker sample** show a SolAR pipeline for augmented reality based on a natural image.
+ 
+This pipeline loads a reference image marker, then tries to detect it on real time camera images and to estimate the pose of the camera in relation to the coordinate system of the image marker. If the marker is detected, the pipeline over the current camera image renders a 3D cube from a virtual camera which pose corresponds to the one estimated by the pipeline.
 
-To run it, first print the marker "graf1.png".
-
-Then, run whether the SolARNaturalImageMarkerSampleStandAlone.exe (showing a mono thread demonstration based on a natural marker), the SolARNaturalImageMarkerSampleMultiThread.exe (showing a multithread demonstration based on a natural marker), or the TestNaturalImageMarkerPlugin.exe (showing an application loading the natural image marker pipeline embedded into a dedicated SolAR Module).
-
-Press escape to quit the application.
-
-If you want to change your natural image, you can edit the grafMarker.yml.
-
-If you want to change the calibration parameters of the camera, edit the camera_calibration.yml.
-
-To change properties of the components of the natural image pipeline, edit the .xml files.
+Here are screenshots from the Natural Image Marker pipeline:
 
 
-*   Website https://solarframework.github.io/
+| ![](./StandAlone/standalone.jpg) | ![](./Plugin/plugin.jpg) |
+|:-:|:-:|
+| StandAlone/Multithread | Plugin | 
 
-*   Contact framework.solar@b-com.com
+
+## How run it
+
+* To run it, first print the marker `./StandAlone/graf1.png`
+
+* If you want to change your natural image, you can edit the `grafMarker.yml`
+
+* If you want to change the calibration parameters of the camera, edit the `camera_calibration.yml`
+
+* To change properties of the components of the natural pipeline, edit the `*.xml` files.
+
+### StandAlone/Multithread
+
+* Open a terminal and execute :
+    * `./bin/Release/SolARNaturalImageMarkerSampleStandAlone.exe`  
+    (showing a mono thread demonstration based on a natural marker)
+    * `./bin/Release/SolARNaturalImageMarkerSampleMultiThread.exe`  
+    (showing a multithread demonstration based on a natural marker) 
+    * `./bin/Release/TestNaturalImageMarkerPlugin.exe`  
+    (showing an application loading the natural image marker pipeline embedded into a dedicated SolAR Module).
+* Target your natural image marker with your camera
+* Press `escape` to quit the application
+
+### Plugin
+
+You should have bundle every required libraries in your Unity project (`./Assets/Plugins`). Then from Unity Gameobject *PipelineLoader* you can load your configuration file for the natural image pipeline. You can directly edit parameters from Unity Editor's inspector.
+
+## Contact 
+Website https://solarframework.github.io/
+
+Contact framework.solar@b-com.com
+
+
 
 
