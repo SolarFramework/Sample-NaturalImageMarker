@@ -13,7 +13,7 @@ namespace PIPELINES {
 
 PipelineNaturalImageMarker::PipelineNaturalImageMarker():ConfigurableBase(xpcf::toUUID<PipelineNaturalImageMarker>())
 {
-    declareInterface<api::pipeline::IPipeline>(this);
+    declareInterface<api::pipeline::IPoseEstimationPipeline>(this);
     declareInjectable<input::devices::ICamera>(m_camera);
     declareInjectable<features::IKeypointDetector>(m_kpDetector);
     declareInjectable<input::files::IMarker2DNaturalImage>(m_naturalImagemarker);
@@ -169,8 +169,7 @@ bool PipelineNaturalImageMarker::processDetection()
     bool valid_pose = false;
 
     SRef<Image> camImage;
-    std::vector<Point2Df> imagePoints_inliers;
-    std::vector<Point3Df> worldPoints_inliers;
+    std::vector<uint32_t> inliers;
     Transform3Df pose;
     std::vector<Keypoint>  camKeypoints;  // where to store detected keypoints in ref image and camera image
     std::vector<DescriptorMatch>  matches;
@@ -210,7 +209,7 @@ bool PipelineNaturalImageMarker::processDetection()
         m_img_mapper->map(ref2Dpoints, ref3Dpoints);
 
         // Estimate the pose from the 2D-3D planar correspondence
-        if (m_poseEstimationPlanar->estimate(cam2Dpoints, ref3Dpoints, imagePoints_inliers,worldPoints_inliers, pose) != FrameworkReturnCode::_SUCCESS)
+        if (m_poseEstimationPlanar->estimate(cam2Dpoints, ref3Dpoints, inliers, pose) != FrameworkReturnCode::_SUCCESS)
         {
             valid_pose = false;
             LOG_DEBUG("No pose from Detection for this frame");
@@ -250,6 +249,7 @@ bool PipelineNaturalImageMarker::processTracking()
 
     m_needNewTrackedPoints=false;
     SRef<Image> camImage;
+    std::vector<uint32_t> inliers;
 
     if (!m_CameraImagesForTracking.tryPop(camImage))
         return false ;
@@ -326,7 +326,7 @@ bool PipelineNaturalImageMarker::processTracking()
     }
 
     // Estimate the pose from the 2D-3D planar correspondence
-    if (m_poseEstimationPlanar->estimate(pts2D, pts3D, m_imagePoints_track, m_worldPoints_track, m_pose) != FrameworkReturnCode::_SUCCESS)
+    if (m_poseEstimationPlanar->estimate(pts2D, pts3D, inliers, m_pose) != FrameworkReturnCode::_SUCCESS)
     {
         m_isTrack = false;
         valid_pose = false;

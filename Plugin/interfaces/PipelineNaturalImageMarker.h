@@ -29,7 +29,7 @@
 
 #include "xpcf/core/traits.h"
 #include "xpcf/component/ConfigurableBase.h"
-#include "api/pipeline/IPipeline.h"
+#include "api/pipeline/IPoseEstimationPipeline.h"
 
 // Add the headers to datastructures and component interfaces used by the pipeline
 #include "api/input/devices/ICamera.h"
@@ -92,7 +92,7 @@ namespace PIPELINES {
  */
 
 class SOLARPIPELINENATURALIMAGEMARKER_EXPORT_API PipelineNaturalImageMarker : public org::bcom::xpcf::ConfigurableBase,
-    public api::pipeline::IPipeline
+    public api::pipeline::IPoseEstimationPipeline
 {
 public:
     PipelineNaturalImageMarker();
@@ -106,6 +106,10 @@ public:
     /// @brief Provide the camera parameters
     /// @return the camera parameters (its resolution and its focal)
     CameraParameters getCameraParameters() override;
+
+    /// @brief Start the pipeline
+    /// @return FrameworkReturnCode::_ERROR_ by default as the pipeline needs to be construct with an imageDataBuffer as parameter
+    FrameworkReturnCode start() override { return FrameworkReturnCode::_ERROR_; }
 
     /// @brief Starts the pipeline and provides a texture buffer which will be updated when required.
     /// @param[in] textureHandle a pointer to the texture buffer which will be updated at each call of the update method.

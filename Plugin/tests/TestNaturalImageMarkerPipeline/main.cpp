@@ -19,7 +19,7 @@
 #include "xpcf/xpcf.h"
 
 // ADD COMPONENTS HEADERS HERE, e.g #include "SolarComponent.h"
-#include "api/pipeline/IPipeline.h"
+#include "api/pipeline/IPoseEstimationPipeline.h"
 #include "api/display/IImageViewer.h"
 #include "api/display/I3DOverlay.h"
 
@@ -37,7 +37,7 @@ int main(){
     LOG_ADD_LOG_TO_CONSOLE();
     SRef<xpcf::IComponentManager> componentMgr = xpcf::getComponentManagerInstance();
     xpcf::XPCFErrorCode errorLoad = componentMgr->load("PipelineNaturalImageMarker.xml");
-    auto pipeline = componentMgr->resolve<pipeline::IPipeline>();
+    auto pipeline = componentMgr->resolve<pipeline::IPoseEstimationPipeline>();
 
     if (pipeline->init(componentMgr) == FrameworkReturnCode::_SUCCESS )
     {
@@ -85,8 +85,3 @@ int main(){
         delete[] r_imageData;
     }
 }
-
-
-
-
-

@@ -284,10 +284,9 @@ int main(int argc, char *argv[])
         // Variable shared for tracking
         SRef<Image> previousCamImage;
         Transform3Df previousPose;
-        std::vector<Point2Df> imagePoints_inliers;
-        std::vector<Point3Df> worldPoints_inliers;
+        std::vector<uint32_t> inliers;
 
-        std::function<void(void)> tracking = [&markerWorldCorners, &previousCamImage, &previousPose, &imagePoints_inliers, &worldPoints_inliers,
+        std::function<void(void)> tracking = [&markerWorldCorners, &previousCamImage, &previousPose, &inliers,
 #ifndef NDEBUG
                                               &debugCamImage, overlay2DComponent, overlayMatches,
 #endif
@@ -322,20 +321,19 @@ int main(int argc, char *argv[])
             }
 
             // if tracking and detection have failed, just pass the current image to the display task
-            if (imagePoints_inliers.empty() && !needNewTrackedPoints)
+            if (inliers.empty() && !needNewTrackedPoints)
             {
                 m_dropBufferPoseForDisplay.push(std::make_tuple(camImage, Transform3Df::Identity(), false));
                 return;
             }
-            if ((imagePoints_inliers.size() < updateTrackedPointThreshold))
+            if ((inliers.size() < updateTrackedPointThreshold))
                 needNewTrackedPoints = true;
 
             // Add new keypoints to track
             if (needNewTrackedPoints)
             {
                 LOG_DEBUG("New keypoint extraction for tracking");
-                imagePoints_inliers.clear();
-                worldPoints_inliers.clear();
+                inliers.clear();
                 std::vector<Keypoint> newKeypoints;
                 // Get the projection of the corner of the marker in the current image
                 projection->project(markerWorldCorners, projectedMarkerCorners, previousPose);
