@@ -113,8 +113,7 @@ int main(int argc, char *argv[])
 		SRef<DescriptorBuffer> refDescriptors;
         std::vector<Point3Df> markerWorldCorners;
         std::vector<Point2Df> projectedMarkerCorners;
-        std::vector<Point2Df> imagePoints_inliers;
-        std::vector<Point3Df> worldPoints_inliers;
+        std::vector<uint32_t> inliers;
         std::vector<Point2Df> imagePoints_track;
         std::vector<Point3Df> worldPoints_track;
 		Transform3Df pose;
@@ -195,7 +194,7 @@ int main(int argc, char *argv[])
 			// Detection mode
 			if (!isTrack) // We estimate the pose by matching marker planar keypoints and current image keypoints and by estimating the pose based on planar points
 			{
-				//detect natural marker from features points
+                //detect natural marker from features points
 				// detect keypoints in camera image
 				kpDetector->detect(camImage, camKeypoints);
 
@@ -215,7 +214,7 @@ int main(int argc, char *argv[])
 				geomMatchesFilter->filter(matches, matches, refKeypoints, camKeypoints);
 
 
-				/*we consider that, if we have less than 10 matches (arbitrarily), we can't compute homography for the current frame */
+                /*we consider that, if we have more than 10 matches (arbitrarily), we can compute homography for the current frame */
 				if (matches.size() > 10)
 				{
 					// reindex the keypoints with established correspondence after the matching
@@ -225,7 +224,7 @@ int main(int argc, char *argv[])
 					img_mapper->map(refMatched2Dpoints, ref3Dpoints);
 
 					// Estimate the pose from the 2D-3D planar correspondence
-					if (poseEstimationPlanar->estimate(camMatched2Dpoints, ref3Dpoints, imagePoints_inliers, worldPoints_inliers, pose) != FrameworkReturnCode::_SUCCESS)
+                    if (poseEstimationPlanar->estimate(camMatched2Dpoints, ref3Dpoints, inliers, pose) != FrameworkReturnCode::_SUCCESS)
 					{
 						valid_pose = false;
 						LOG_DEBUG("Wrong homography for this frame");
@@ -299,7 +298,7 @@ int main(int argc, char *argv[])
 
 					// calculate camera pose
 					// Estimate the pose from the 2D-3D planar correspondence
-					if (poseEstimationPlanar->estimate(pts2D, pts3D, imagePoints_track, worldPoints_track, pose) != FrameworkReturnCode::_SUCCESS)
+                    if (poseEstimationPlanar->estimate(pts2D, pts3D, inliers, pose) != FrameworkReturnCode::_SUCCESS)
 					{
 						isTrack = false;
 						valid_pose = false;
@@ -309,13 +308,20 @@ int main(int argc, char *argv[])
 					else
 					{
 						valid_pose = true;
+                        imagePoints_track.clear();
+                        worldPoints_track.clear();
+                        for (int index : inliers) {
+                            imagePoints_track.push_back(pts2D[index]);
+                            worldPoints_track.push_back(pts3D[index]);
+                        }
 						previousCamImage = camImage->copy();
-						if (worldPoints_track.size() < updateTrackedPointThreshold)
+                        if (inliers.size() < updateTrackedPointThreshold)
 							needNewTrackedPoints = true;
 					}
 				}
 				else
 					LOG_INFO("Tracking lost");
+
 			}
 
 			//draw a cube if the pose if valid

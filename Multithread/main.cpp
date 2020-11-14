@@ -217,6 +217,7 @@ int main(int argc, char *argv[])
             Transform3Df pose;
             std::vector<Point2Df> imagePoints_inliers;
             std::vector<Point3Df> worldPoints_inliers;
+            std::vector<uint32_t> inlier_indices;
 
             if (!m_dropBufferCamImageForDetection.tryPop(camImage))
                 return;
@@ -252,9 +253,12 @@ int main(int argc, char *argv[])
                 // mapping to 3D points
                 img_mapper->map(refMatched2Dpoints, ref3Dpoints);
 
-                if (poseEstimationPlanarDetection->estimate(camMatched2Dpoints, ref3Dpoints, imagePoints_inliers, worldPoints_inliers, pose) == FrameworkReturnCode::_SUCCESS)
+                imagePoints_inliers.clear();
+                if (poseEstimationPlanarDetection->estimate(camMatched2Dpoints, ref3Dpoints, inlier_indices, pose) == FrameworkReturnCode::_SUCCESS)
                 {
                     LOG_DEBUG("Marker detected");                    
+                    for (int index : inlier_indices)
+                        imagePoints_inliers.push_back(camMatched2Dpoints[index]);
 #ifndef TRACKING
 #ifndef NDEBUG
 					overlay2DComponent->drawCircles(imagePoints_inliers, debugCamImage);
@@ -284,9 +288,10 @@ int main(int argc, char *argv[])
         // Variable shared for tracking
         SRef<Image> previousCamImage;
         Transform3Df previousPose;
-        std::vector<uint32_t> inliers;
+        std::vector<Point2Df> imagePoints_inliers;
+        std::vector<Point3Df> worldPoints_inliers;
 
-        std::function<void(void)> tracking = [&markerWorldCorners, &previousCamImage, &previousPose, &inliers,
+        std::function<void(void)> tracking = [&markerWorldCorners, &previousCamImage, &previousPose, &imagePoints_inliers, &worldPoints_inliers,
 #ifndef NDEBUG
                                               &debugCamImage, overlay2DComponent, overlayMatches,
 #endif
@@ -298,6 +303,7 @@ int main(int argc, char *argv[])
             std::vector<Keypoint> newKeypoints;
             std::vector<Point2Df> projectedMarkerCorners, trackedPoints, pts2D;
             std::vector<Point3Df> pts3D;
+            std::vector<uint32_t> inlier_indices;
             std::vector<unsigned char> status;
             std::vector<float> err;
             Transform3Df pose;
@@ -321,19 +327,20 @@ int main(int argc, char *argv[])
             }
 
             // if tracking and detection have failed, just pass the current image to the display task
-            if (inliers.empty() && !needNewTrackedPoints)
+            if (imagePoints_inliers.empty() && !needNewTrackedPoints)
             {
                 m_dropBufferPoseForDisplay.push(std::make_tuple(camImage, Transform3Df::Identity(), false));
                 return;
             }
-            if ((inliers.size() < updateTrackedPointThreshold))
+            if ((imagePoints_inliers.size() < updateTrackedPointThreshold))
                 needNewTrackedPoints = true;
 
             // Add new keypoints to track
             if (needNewTrackedPoints)
             {
                 LOG_DEBUG("New keypoint extraction for tracking");
-                inliers.clear();
+                imagePoints_inliers.clear();
+                worldPoints_inliers.clear();
                 std::vector<Keypoint> newKeypoints;
                 // Get the projection of the corner of the marker in the current image
                 projection->project(markerWorldCorners, projectedMarkerCorners, previousPose);
@@ -379,10 +386,16 @@ int main(int argc, char *argv[])
 #endif
 
             // Estimate the pose from the 2D-3D planar correspondence
-            if (poseEstimationPlanarTracking->estimate(pts2D, pts3D, imagePoints_inliers, worldPoints_inliers, pose) == FrameworkReturnCode::_SUCCESS)
+            imagePoints_inliers.clear();
+            worldPoints_inliers.clear();
+            if (poseEstimationPlanarTracking->estimate(pts2D, pts3D, inlier_indices, pose) == FrameworkReturnCode::_SUCCESS)
             {
 				previousPose = pose;
 				previousCamImage = camImage->copy();
+                for (int index : inlier_indices){
+                    imagePoints_inliers.push_back(pts2D[index]);
+                    worldPoints_inliers.push_back(pts3D[index]);
+                }
 #ifndef NDEBUG
                 m_dropBufferPoseForDisplay.push(std::make_tuple(debugCamImage, pose, true));
 #else
