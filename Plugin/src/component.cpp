@@ -335,6 +335,13 @@ bool PipelineNaturalImageMarker::processTracking()
     }
     else
     {
+        m_imagePoints_track.clear();
+        m_worldPoints_track.clear();
+        for (int index : inliers)
+        {
+            m_imagePoints_track.push_back(pts2D[index]);
+            m_worldPoints_track.push_back(pts3D[index]);
+        }
         valid_pose = true;
         m_previousCamImage = camImage->copy();
         if (m_worldPoints_track.size() < m_updateTrackedPointThreshold) {
