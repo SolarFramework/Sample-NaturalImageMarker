@@ -55,7 +55,7 @@
 			<interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" name="IComponentIntrospect" description="IComponentIntrospect"/>
 			<interface uuid="a801354a-3e00-467c-b390-48c76fa8c53a" name="ISideBySideOverlay" description="ISideBySideOverlay"/>
 		</component>
-		<component uuid="2db01f59-9793-4cd5-8e13-b25d0ed5735b" name="SolAR3DOverlayOpencv" description="SolAR3DOverlayOpencv">
+        <component uuid="2db01f59-9793-4cd5-8e13-b25d0ed5735b" name="SolAR3DOverlayBoxOpencv" description="SolAR3DOverlayBoxOpencv">
 			<interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" name="IComponentIntrospect" description="IComponentIntrospect"/>
 			<interface uuid="81a20f52-6bf9-4949-b914-df2f614bc945" name="I3DOverlay" description="I3DOverlay"/>
 		</component>
@@ -86,81 +86,81 @@
 	<properties>
 		<configure component="SolARCameraOpencv">
 			<property name="calibrationFile" type="string" value="camera_calibration.yml"/>
-                        <property name="deviceID" type="uint" value="0"/>
+            <property name="deviceID" type="uint" value="0"/>
 		</configure>
 		<configure component="SolARMarker2DNaturalImageOpencv">
 			<property name="filePath" type="string" value="grafMarker.yml"/>
 		</configure>
 		<configure component="SolARKeypointDetectorOpencv">
 			<property name="type" type="string" value="AKAZE2"/>
-                        <property name="imageRatio" type="float" value="0.5"/>
-                        <property name="nbDescriptors" type="int" value="1000"/>
+            <property name="imageRatio" type="float" value="0.5"/>
+            <property name="nbDescriptors" type="int" value="1000"/>
 		</configure>
 		<configure component="SolARKeypointDetectorRegionOpencv">
 			<property name="type" type="string" value="FEATURE_TO_TRACK"/>
-                        <property name="imageRatio" type="float" value="1.0"/>
-                        <property name="nbDescriptors" type="int" value="1500"/>
+            <property name="imageRatio" type="float" value="1.0"/>
+            <property name="nbDescriptors" type="int" value="1500"/>
 		</configure>
 		<configure component="SolARDescriptorsExtractorAKAZE2Opencv">
-                        <property name="threshold" type="float" value="3e-4"/>
+            <property name="threshold" type="double" value="3e-4"/>
 		</configure>
 		<configure component="SolARDescriptorMatcherKNNOpencv">
-                        <property name="distanceRatio" type="float" value="0.75"/>
+            <property name="distanceRatio" type="float" value="0.75"/>
 		</configure>
 		<configure component="SolARGeometricMatchesFilterOpencv">
-                        <property name="m_confidenceLevel" type="double" value="0.99"/>
-                        <property name="m_outlierDistanceRatio" type="double" value="0.006"/>
+            <property name="confidence" type="float" value="0.99"/>
+            <property name="outlierDistanceRatio" type="float" value="0.006"/>
 		</configure>
 		<configure component="SolARPoseEstimationPlanarPointsOpencv">
-                        <property name="minNbInliers" type="int" value="50"/>
-                        <property name="reprojErrorThreshold" type="float" value="0.1"/>
+            <property name="minNbInliers" type="int" value="50"/>
+            <property name="reprojErrorThreshold" type="float" value="0.1"/>
 		</configure>
 		<configure component="SolAROpticalFlowPyrLKOpencv">
-                        <property name="searchWinWidth" type="int" value="21"/>
-                        <property name="searchWinHeight" type="int" value="21"/>
-                        <property name="maxLevel" type="int" value="3"/>
-                        <property name="minEigenThreshold" type="double" value="-1.0"/>
-                        <property name="maxSearchIterations" type="int" value="20"/>
-                        <property name="searchWindowAccuracy" type="float" value="0.03"/>
+            <property name="searchWinWidth" type="int" value="21"/>
+            <property name="searchWinHeight" type="int" value="21"/>
+            <property name="maxLevel" type="int" value="3"/>
+            <property name="minEigenThreshold" type="double" value="-1.0"/>
+            <property name="maxSearchIterations" type="int" value="20"/>
+            <property name="searchWindowAccuracy" type="float" value="0.03"/>
 		</configure>
-		<configure component="SolAR3DOverlayOpencv">
-                        <property name="position"  type="float">
+        <configure component="SolAR3DOverlayBoxOpencv">
+            <property name="position"  type="float">
 				<value>0</value>
 				<value>0</value>
 				<value>0</value>
 			</property>
-                        <property name="orientation"  type="float">
+            <property name="orientation"  type="float">
 				<value>0.0</value>
 				<value>0.0</value>
 				<value>0.0</value>
 			</property>
-                        <property name="size"  type="float">
+            <property name="size"  type="float">
 				<value>0.212</value>
 				<value>0.17</value>
 				<value>0.1</value>
 			</property>
 		</configure>
 		<configure component="SolAR2DOverlayOpencv">
-                        <property name="thickness" type="uint" value="1"/>
-                        <property name="radius" type="uint" value="3"/>
-                        <property name="color"  type="uint">
+            <property name="thickness" type="uint" value="1"/>
+            <property name="radius" type="uint" value="3"/>
+            <property name="color"  type="uint">
 				<value>0</value>
 				<value>255</value>
 				<value>0</value>
 			</property>
-                        <property name="randomColor" type="uint" value="0"/>
+            <property name="randomColor" type="uint" value="0"/>
 		</configure>
 		<configure component="SolARImageViewerOpencv">
 			<property name="title" type="string" value="Natural Image Marker"/>
-                        <property name="exitKey" type="int" value="27"/>
-                        <property name="width" type="int" value="0"/>
-                        <property name="height" type="int" value="0"/>
+            <property name="exitKey" type="int" value="27"/>
+            <property name="width" type="int" value="0"/>
+            <property name="height" type="int" value="0"/>
 		</configure>
 		<configure component="SolARImageViewerOpencv" name="keypoints">
 			<property name="title" type="string" value="Reference KeyPoints"/>
-                        <property name="exitKey" type="int" value="27"/>
-                        <property name="width" type="int" value="0"/>
-                        <property name="height" type="int" value="0"/>
+            <property name="exitKey" type="int" value="27"/>
+            <property name="width" type="int" value="0"/>
+            <property name="height" type="int" value="0"/>
 		</configure>		
 	</properties>
 </xpcf-registry>
