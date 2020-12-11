@@ -79,11 +79,6 @@
 
 
 namespace SolAR {
-using namespace datastructure;
-using namespace api;
-using namespace api::sink;
-using namespace api::source;
-using namespace api::pipeline;
 namespace PIPELINES {
 
 /**
@@ -105,7 +100,7 @@ public:
 
     /// @brief Provide the camera parameters
     /// @return the camera parameters (its resolution and its focal)
-    CameraParameters getCameraParameters() override;
+    datastructure::CameraParameters getCameraParameters() override;
 
     /// @brief Start the pipeline
     /// @return FrameworkReturnCode::_ERROR_ by default as the pipeline needs to be construct with an imageDataBuffer as parameter
@@ -120,10 +115,10 @@ public:
 
     /// @brief update the pipeline
     /// Get the new pose and update the texture buffer with the image that has to be displayed
-    SinkReturnCode update(Transform3Df& pose) override;
+    api::sink::SinkReturnCode update(datastructure::Transform3Df& pose) override;
 
     /// @brief load the source image
-    SourceReturnCode loadSourceImage(void* sourceTextureHandle, int width, int height) override;
+    api::source::SourceReturnCode loadSourceImage(void* sourceTextureHandle, int width, int height) override;
 
     xpcf::XPCFErrorCode onConfigured() override;
 
@@ -133,30 +128,30 @@ public:
 
 private:
     // Decalaration of data structures shared between initialization and process thread
-    SRef<DescriptorBuffer> m_markerPatternDescriptor;
+    SRef<datastructure::DescriptorBuffer> m_markerPatternDescriptor;
 
     // Declaration of the components used by the pipeline
-    SRef<input::devices::ICamera> m_camera;
-    SRef<input::files::IMarker2DSquaredBinary> m_binaryMarker;
+    SRef<api::input::devices::ICamera> m_camera;
+    SRef<api::input::files::IMarker2DSquaredBinary> m_binaryMarker;
 
-    SRef<input::files::IMarker2DNaturalImage> m_naturalImagemarker;
-    SRef<features::IKeypointDetector> m_kpDetector;
-    SRef<features::IDescriptorMatcher> m_matcher;
-    SRef<features::IMatchesFilter> m_basicMatchesFilter;
-    SRef<features::IMatchesFilter> m_geomMatchesFilter;
-    SRef<features::IKeypointsReIndexer> m_keypointsReindexer;
-    SRef<features::IDescriptorsExtractor> m_descriptorExtractor;
-    SRef<geom::IImage2WorldMapper> m_img_mapper;
+    SRef<api::input::files::IMarker2DNaturalImage> m_naturalImagemarker;
+    SRef<api::features::IKeypointDetector> m_kpDetector;
+    SRef<api::features::IDescriptorMatcher> m_matcher;
+    SRef<api::features::IMatchesFilter> m_basicMatchesFilter;
+    SRef<api::features::IMatchesFilter> m_geomMatchesFilter;
+    SRef<api::features::IKeypointsReIndexer> m_keypointsReindexer;
+    SRef<api::features::IDescriptorsExtractor> m_descriptorExtractor;
+    SRef<api::geom::IImage2WorldMapper> m_img_mapper;
 
-    SRef<image::IImageConvertor> m_imageConvertor;
-    SRef<sink::ISinkPoseImage> m_sink;
-    SRef<source::ISourceImage> m_source;
-    SRef<image::IImageConvertor> m_imageConvertorUnity;
-    SRef<features::IKeypointDetectorRegion> m_kpDetectorRegion;
-    SRef<solver::pose::I3DTransformSACFinderFrom2D3D> m_poseEstimationPlanar;
-    SRef<tracking::IOpticalFlowEstimator> m_opticalFlowEstimator;
-    SRef<geom::IProject> m_projection;
-    SRef<geom::IUnproject> m_unprojection;
+    SRef<api::image::IImageConvertor> m_imageConvertor;
+    SRef<api::sink::ISinkPoseImage> m_sink;
+    SRef<api::source::ISourceImage> m_source;
+    SRef<api::image::IImageConvertor> m_imageConvertorUnity;
+    SRef<api::features::IKeypointDetectorRegion> m_kpDetectorRegion;
+    SRef<api::solver::pose::I3DTransformSACFinderFrom2D3D> m_poseEstimationPlanar;
+    SRef<api::tracking::IOpticalFlowEstimator> m_opticalFlowEstimator;
+    SRef<api::geom::IProject> m_projection;
+    SRef<api::geom::IUnproject> m_unprojection;
 
 
     // State flag of the pipeline
@@ -166,15 +161,15 @@ private:
     xpcf::DelegateTask* m_taskGetCameraImages;
     void getCameraImages();
 
-    xpcf::DropBuffer< SRef<Image> >  m_CameraImagesForDetection;
+    xpcf::DropBuffer< SRef<datastructure::Image> >  m_CameraImagesForDetection;
     bool processDetection();
     xpcf::DelegateTask* m_taskDetection;
 
-    std::vector<Point2Df> m_imagePoints_inliers;
-    std::vector<Point3Df> m_worldPoints_inliers;
+    std::vector<datastructure::Point2Df> m_imagePoints_inliers;
+    std::vector<datastructure::Point3Df> m_worldPoints_inliers;
 
-    xpcf::DropBuffer<std::tuple< SRef<Image>, Transform3Df, bool>>  m_outBufferDetection;
-    xpcf::DropBuffer< SRef<Image> >  m_CameraImagesForTracking;
+    xpcf::DropBuffer<std::tuple< SRef<datastructure::Image>, datastructure::Transform3Df, bool>>  m_outBufferDetection;
+    xpcf::DropBuffer< SRef<datastructure::Image> >  m_CameraImagesForTracking;
     bool processTracking();
     xpcf::DelegateTask* m_taskTracking;
 
@@ -184,23 +179,23 @@ private :
     int m_updateTrackedPointThreshold = 300;
     int m_detectionMatchesNumberThreshold = 10;
 
-    SRef<DescriptorBuffer>  m_refDescriptors;
+    SRef<datastructure::DescriptorBuffer>  m_refDescriptors;
 
-    Transform2Df  m_Hm;
-    std::vector<Keypoint>  m_refKeypoints;  // where to store detected keypoints in ref image and camera image
+    datastructure::Transform2Df  m_Hm;
+    std::vector<datastructure::Keypoint>  m_refKeypoints;  // where to store detected keypoints in ref image and camera image
 
-    std::vector<Point2Df> m_refImgCorners;
+    std::vector<datastructure::Point2Df> m_refImgCorners;
 
-    SRef<Image> m_refImage;
-    SRef<Image> camImage;
-    SRef<Image> m_previousCamImage;
+    SRef<datastructure::Image> m_refImage;
+    SRef<datastructure::Image> camImage;
+    SRef<datastructure::Image> m_previousCamImage;
 
-    Transform3Df m_pose;
+    datastructure::Transform3Df m_pose;
 
-    std::vector<Point3Df> m_markerWorldCorners;
-    std::vector<Point2Df> m_projectedMarkerCorners;
-    std::vector<Point2Df> m_imagePoints_track;
-    std::vector<Point3Df> m_worldPoints_track;
+    std::vector<datastructure::Point3Df> m_markerWorldCorners;
+    std::vector<datastructure::Point2Df> m_projectedMarkerCorners;
+    std::vector<datastructure::Point2Df> m_imagePoints_track;
+    std::vector<datastructure::Point3Df> m_worldPoints_track;
 
 
     bool m_isTrack;

@@ -8,7 +8,10 @@ XPCF_DEFINE_FACTORY_CREATE_INSTANCE(SolAR::PIPELINES::PipelineNaturalImageMarker
 
 namespace SolAR {
 using namespace datastructure;
+using namespace api;
 using namespace api::pipeline;
+using namespace api::source;
+using namespace api::sink;
 namespace PIPELINES {
 
 PipelineNaturalImageMarker::PipelineNaturalImageMarker():ConfigurableBase(xpcf::toUUID<PipelineNaturalImageMarker>())
