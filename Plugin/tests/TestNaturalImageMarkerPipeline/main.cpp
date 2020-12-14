@@ -26,6 +26,7 @@
 namespace xpcf  = org::bcom::xpcf;
 
 using namespace SolAR;
+using namespace SolAR::datastructure;
 using namespace SolAR::api;
 
 int main(){
@@ -49,7 +50,7 @@ int main(){
         overlay3DComponent->setCameraParameters(camParam.intrinsic, camParam.distortion);
 
         unsigned char* r_imageData=new unsigned char[camParam.resolution.width * camParam.resolution.height * 3];
-        SRef<Image> camImage=xpcf::utils::make_shared<Image>(r_imageData,camParam.resolution.width,camParam.resolution.height,SolAR::Image::LAYOUT_BGR,SolAR::Image::INTERLEAVED,SolAR::Image::TYPE_8U);
+        SRef<Image> camImage=xpcf::utils::make_shared<Image>(r_imageData,camParam.resolution.width,camParam.resolution.height, Image::LAYOUT_BGR, Image::INTERLEAVED, Image::TYPE_8U);
 
         Transform3Df s_pose;
 
