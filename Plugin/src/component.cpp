@@ -123,7 +123,7 @@ FrameworkReturnCode PipelineNaturalImageMarker::init(SRef<xpcf::IComponentManage
     return FrameworkReturnCode::_SUCCESS;
 }
 
-CameraParameters PipelineNaturalImageMarker::getCameraParameters()
+CameraParameters PipelineNaturalImageMarker::getCameraParameters() const
 {
     CameraParameters camParam;
     if (m_camera)

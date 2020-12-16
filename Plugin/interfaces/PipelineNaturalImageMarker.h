@@ -100,7 +100,7 @@ public:
 
     /// @brief Provide the camera parameters
     /// @return the camera parameters (its resolution and its focal)
-    datastructure::CameraParameters getCameraParameters() override;
+    datastructure::CameraParameters getCameraParameters() const override;
 
     /// @brief Start the pipeline
     /// @return FrameworkReturnCode::_ERROR_ by default as the pipeline needs to be construct with an imageDataBuffer as parameter
