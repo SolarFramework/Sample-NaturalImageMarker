@@ -80,9 +80,9 @@ int main(int argc, char *argv[])
 		/* this is needed in dynamic mode */
 		SRef<xpcf::IComponentManager> xpcfComponentManager = xpcf::getComponentManagerInstance();
 
-		if (xpcfComponentManager->load("conf_NaturalImageMarker.xml") != org::bcom::xpcf::_SUCCESS)
+        if (xpcfComponentManager->load("SolARSample_NaturalImageMarker_Mono_conf.xml") != org::bcom::xpcf::_SUCCESS)
 		{
-			LOG_ERROR("Failed to load the configuration file conf_NaturalImageMarker.xml", argv[1])
+            LOG_ERROR("Failed to load the configuration file SolARSample_NaturalImageMarker_Mono_conf.xml", argv[1])
 				return -1;
 		}
 		// declare and create components

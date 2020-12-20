@@ -3,7 +3,7 @@ QT       -= core gui
 CONFIG -= qt
 
 ## global defintions : target lib name, version
-TARGET = SolARNaturalImageMarkerSampleMultiThread
+TARGET = SolARSample_NaturalImageMarker_Mono
 VERSION=0.9.0
 
 DEFINES += MYVERSION=$${VERSION}
@@ -27,11 +27,12 @@ CONFIG(release,debug|release) {
 win32:CONFIG -= static
 win32:CONFIG += shared
 
-DEPENDENCIESCONFIG = sharedlib install_recurse
+DEPENDENCIESCONFIG = sharedlib recursive install_recurse
 PROJECTCONFIG = QTVS
 
 #NOTE : CONFIG as staticlib or sharedlib, DEPENDENCIESCONFIG as staticlib or sharedlib, QMAKE_TARGET.arch and PROJECTDEPLOYDIR MUST BE DEFINED BEFORE templatelibconfig.pri inclusion
 include ($$shell_quote($$shell_path($${QMAKE_REMAKEN_RULES_ROOT}/templateappconfig.pri)))  # Shell_quote & shell_path required for visual on windows
+
 
 #DEFINES += BOOST_ALL_NO_LIB
 DEFINES += BOOST_ALL_DYN_LINK
@@ -65,7 +66,7 @@ win32 {
 }
 
 config_files.path = $${TARGETDEPLOYDIR}
-config_files.files= $$files($${PWD}/conf_NaturalImageMarker_Multi.xml)\
+config_files.files= $$files($${PWD}/SolARSample_NaturalImageMarker_Mono_conf.xml)\
                     $$files($${PWD}/camera_calibration.yml)\
                     $$files($${PWD}/grafMarker.yml)\
                     $$files($${PWD}/graf1.png)
