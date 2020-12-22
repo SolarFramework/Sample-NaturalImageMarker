@@ -1,17 +1,31 @@
 node("master") {
 
     SolArModulePipeline {
-        moduleName="PipelineNaturalImageMarker"
+        moduleName="NaturalImageMarker"
         dirName="SolARBuild"
-        buildDir="StandAlone"
+        buildDir="SolARSample_NaturalImageMarker_Mono"
         android=false
     }
 
     SolArModulePipeline {
-        moduleName="PipelineNaturalImageMarker"
+        moduleName="NaturalImageMarker"
         dirName="SolARBuild"
-        buildDir="Plugin"
-        android=true
+        buildDir="SolARSample_NaturalImageMarker_Multi"
+        android=false
+    }
+
+    SolArModulePipeline {
+        moduleName="NaturalImageMarker"
+        dirName="SolARBuild"
+        buildDir="SolARPipeline_NaturalImageMarker"
+        android=false
+    }
+
+    SolArModulePipeline {
+        moduleName="NaturalImageMarker"
+        dirName="SolARBuild"
+        buildDir="SolARPipeline_NaturalImageMarker/tests/SolARPipelineTest_NaturalImageMarker"
+        android=false
     }
 
 }

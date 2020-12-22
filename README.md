@@ -7,31 +7,31 @@ The SolAR **Natural Image Marker sample** show a SolAR pipeline for augmented re
 This pipeline loads a reference image marker, then tries to detect it on real-time camera images and to estimate the pose of the camera in relation to the coordinate system of the image marker. If the marker is detected, the pipeline over the current camera image renders a 3D cube from a virtual camera which pose corresponds to the one estimated by the pipeline.
 
 
-| ![](./StandAlone/standalone.jpg) | ![](./Plugin/plugin.jpg) |
+| ![](./SolARSample_NaturalImageMarker_Mono/standalone.jpg) | ![](./SolARPipeline_NaturalImageMarker/plugin.jpg) |
 |:-:|:-:|
-| StandAlone/Multithread | Plugin | 
+| SolARSample_NaturalImageMarker_Mono/SolARSample_NaturalImageMarker_Multi | SolARPipeline_NaturalImageMarker | 
 
 
 ## How to run
 
-* To run it, first print the marker [graf1.png](./StandAlone/graf1.png).
+* To run it, first print the marker [graf1.png](./SolARSample_NaturalImageMarker_Mono/graf1.png).
 
-* If you want to change your natural image, you can edit the [grafMarker.yml](./StandAlone/grafMarker.yml).
+* If you want to change your natural image, you can edit the [grafMarker.yml](./SolARSample_NaturalImageMarker_Mono/grafMarker.yml).
 
-* If you want to change the calibration parameters of the camera, edit the [camera_calibration.yml](./StandAlone/camera_calibration.yml).
+* If you want to change the calibration parameters of the camera, edit the [camera_calibration.yml](./SolARSample_NaturalImageMarker_Mono/camera_calibration.yml).
 
-* To change properties of the components of the natural pipeline, edit the [conf_NaturalImageMarker.xml](./StandAlone/conf_NaturalImageMarker.xml) file.
+* To change properties of the components of the natural pipeline, edit the [conf_NaturalImageMarker.xml](./SolARSample_NaturalImageMarker_Mono/conf_NaturalImageMarker.xml) file.
 
-### StandAlone/Multithread
+### SolARSample_NaturalImageMarker_Mono/SolARSample_NaturalImageMarker_Multi
 
 * Open a terminal and execute :
-    * `./bin/Release/SolARNaturalImageMarkerSampleStandAlone.exe`  
+    * `./bin/Release/SolARSample_NaturalImageMarker_Mono.exe`  
     (showing a mono thread demonstration based on a natural marker).
 
-    * `./bin/Release/SolARNaturalImageMarkerSampleMultiThread.exe`  
+    * `./bin/Release/SolARSample_NaturalImageMarker_Multi.exe`  
     (showing a multithread demonstration based on a natural marker).
 
-    * `./bin/Release/TestNaturalImageMarkerPlugin.exe`  
+    * `./bin/Release/SolARPipelineTest_NaturalImageMarker.exe`  
     (showing an application loading the natural image marker pipeline embedded into a dedicated SolAR Module).
 
 *  When the application is started, point the camera to the natural image marker (you can see a virtual cube on the marker). 
