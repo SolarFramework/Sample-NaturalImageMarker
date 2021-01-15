@@ -64,6 +64,10 @@ win32 {
     INCLUDEPATH += $$(WINDOWSSDKDIR)lib/winv6.3/um/x64
 }
 
+android {
+    ANDROID_ABIS="arm64-v8a"
+}
+
 config_files.path = $${TARGETDEPLOYDIR}
 config_files.files= $$files($${PWD}/SolARSample_NaturalImageMarker_Multi_conf.xml)\
                     $$files($${PWD}/camera_calibration.yml)\
