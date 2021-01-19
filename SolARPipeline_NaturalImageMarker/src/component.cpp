@@ -66,7 +66,7 @@ xpcf::XPCFErrorCode PipelineNaturalImageMarker::onConfigured()
     return xpcf::XPCFErrorCode::_SUCCESS;
 }
 
-FrameworkReturnCode PipelineNaturalImageMarker::init(SRef<xpcf::IComponentManager> xpcfComponentManager)
+FrameworkReturnCode PipelineNaturalImageMarker::init()
 {
     // load marker
     LOG_INFO("LOAD MARKER IMAGE ");
