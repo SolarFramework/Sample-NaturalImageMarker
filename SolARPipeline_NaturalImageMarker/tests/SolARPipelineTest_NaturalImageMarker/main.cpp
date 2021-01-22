@@ -40,7 +40,7 @@ int main(){
     xpcf::XPCFErrorCode errorLoad = componentMgr->load("PipelineNaturalImageMarker.xml");
     auto pipeline = componentMgr->resolve<pipeline::IPoseEstimationPipeline>();
 
-    if (pipeline->init(componentMgr) == FrameworkReturnCode::_SUCCESS )
+    if (pipeline->init() == FrameworkReturnCode::_SUCCESS )
     {
         auto imageViewerResult = componentMgr->resolve<display::IImageViewer>();
         auto overlay3DComponent = componentMgr->resolve<display::I3DOverlay>();
