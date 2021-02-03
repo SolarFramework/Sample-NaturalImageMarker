@@ -68,6 +68,9 @@ Release/
 doc/ 
 doxygen/
 
+#sample bundles
+bin/*.zip
+
 # Tests builds
 tests/bin
 
