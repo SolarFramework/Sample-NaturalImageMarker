@@ -36,53 +36,61 @@ int main(){
 #endif
 
     LOG_ADD_LOG_TO_CONSOLE();
-    SRef<xpcf::IComponentManager> componentMgr = xpcf::getComponentManagerInstance();
-    xpcf::XPCFErrorCode errorLoad = componentMgr->load("SolARPipelineTest_NaturalImageMarker_conf.xml");
-    auto pipeline = componentMgr->resolve<pipeline::IPoseEstimationPipeline>();
+    try {
+        SRef<xpcf::IComponentManager> componentMgr = xpcf::getComponentManagerInstance();
+        xpcf::XPCFErrorCode errorLoad = componentMgr->load("PipelineNaturalImageMarker.xml");
+        auto pipeline = componentMgr->resolve<pipeline::IPoseEstimationPipeline>();
 
-    if (pipeline->init(componentMgr) == FrameworkReturnCode::_SUCCESS )
-    {
-        auto imageViewerResult = componentMgr->resolve<display::IImageViewer>();
-        auto overlay3DComponent = componentMgr->resolve<display::I3DOverlay>();
-
-        // Set camera parameters
-        CameraParameters camParam = pipeline->getCameraParameters();
-        overlay3DComponent->setCameraParameters(camParam.intrinsic, camParam.distortion);
-
-        unsigned char* r_imageData=new unsigned char[camParam.resolution.width * camParam.resolution.height * 3];
-        SRef<Image> camImage=xpcf::utils::make_shared<Image>(r_imageData,camParam.resolution.width,camParam.resolution.height, Image::LAYOUT_BGR, Image::INTERLEAVED, Image::TYPE_8U);
-
-        Transform3Df s_pose;
-
-        if (pipeline->start(camImage->data()) == FrameworkReturnCode::_SUCCESS)
+        if (pipeline->init(componentMgr) == FrameworkReturnCode::_SUCCESS )
         {
-             while (true)
-             {
-                  Transform3Df pose;
+            auto imageViewerResult = componentMgr->resolve<display::IImageViewer>();
+            auto overlay3DComponent = componentMgr->resolve<display::I3DOverlay>();
 
-                  sink::SinkReturnCode returnCode = pipeline->update(pose);
-                  if(returnCode == sink::SinkReturnCode::_ERROR)
-                       break;
+            // Set camera parameters
+            CameraParameters camParam = pipeline->getCameraParameters();
+            overlay3DComponent->setCameraParameters(camParam.intrinsic, camParam.distortion);
 
-                  if (returnCode == sink::SinkReturnCode::_NEW_POSE || returnCode == sink::SinkReturnCode::_NEW_POSE_AND_IMAGE)
-                  {
-                       for(int i=0;i<3;i++)
-                          for(int j=0;j<3;j++)
-                              s_pose(i,j)=pose(i,j);
-                        for(int i=0;i<3;i++)
-                              s_pose(i,3)=pose(i,3);
-                        for(int j=0;j<3;j++)
-                              s_pose(3,j)=0;
-                        s_pose(3,3)=1;
-                        overlay3DComponent->draw(s_pose, camImage);
-                  }
+            unsigned char* r_imageData=new unsigned char[camParam.resolution.width * camParam.resolution.height * 3];
+            SRef<Image> camImage=xpcf::utils::make_shared<Image>(r_imageData,camParam.resolution.width,camParam.resolution.height, Image::LAYOUT_BGR, Image::INTERLEAVED, Image::TYPE_8U);
 
-                  if (imageViewerResult->display(camImage) == SolAR::FrameworkReturnCode::_STOP){
-                      pipeline->stop();
-                      break;
-                }
-             }
+            Transform3Df s_pose;
+
+            if (pipeline->start(camImage->data()) == FrameworkReturnCode::_SUCCESS)
+            {
+                 while (true)
+                 {
+                      Transform3Df pose;
+
+                      sink::SinkReturnCode returnCode = pipeline->update(pose);
+                      if(returnCode == sink::SinkReturnCode::_ERROR)
+                           break;
+
+                      if (returnCode == sink::SinkReturnCode::_NEW_POSE || returnCode == sink::SinkReturnCode::_NEW_POSE_AND_IMAGE)
+                      {
+                           for(int i=0;i<3;i++)
+                              for(int j=0;j<3;j++)
+                                  s_pose(i,j)=pose(i,j);
+                            for(int i=0;i<3;i++)
+                                  s_pose(i,3)=pose(i,3);
+                            for(int j=0;j<3;j++)
+                                  s_pose(3,j)=0;
+                            s_pose(3,3)=1;
+                            overlay3DComponent->draw(s_pose, camImage);
+                      }
+
+                      if (imageViewerResult->display(camImage) == SolAR::FrameworkReturnCode::_STOP){
+                          pipeline->stop();
+                          break;
+                    }
+                 }
+            }
+            delete[] r_imageData;
         }
-        delete[] r_imageData;
+        return 0;
+    }
+    catch (xpcf::Exception e)
+    {
+        LOG_ERROR ("The following exception has been catch : {}", e.what());
+        return -1;
     }
 }

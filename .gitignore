@@ -70,6 +70,7 @@ doxygen/
 
 #sample bundles
 bin/*.zip
+run.sh
 
 # Tests builds
 tests/bin
