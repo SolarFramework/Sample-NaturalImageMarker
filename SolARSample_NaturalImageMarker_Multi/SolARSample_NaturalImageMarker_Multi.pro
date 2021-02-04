@@ -4,7 +4,7 @@ CONFIG -= qt
 
 ## global defintions : target lib name, version
 TARGET = SolARSample_NaturalImageMarker_Multi
-VERSION=0.9.0
+VERSION=0.9.3
 
 DEFINES += MYVERSION=$${VERSION}
 CONFIG += c++1z
@@ -80,3 +80,6 @@ OTHER_FILES += \
 
 #NOTE : Must be placed at the end of the .pro
 include ($$shell_quote($$shell_path($${QMAKE_REMAKEN_RULES_ROOT}/remaken_install_target.pri)))) # Shell_quote & shell_path required for visual on windows
+
+DISTFILES += \
+    SolARSample_NaturalImageMarker_Multi_conf.xml
