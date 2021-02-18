@@ -33,5 +33,5 @@ cp ./runFromBundle.sh ./run.sh
 mv ./run.sh ./bin/Debug
 
 
-zip --symlinks -r "./bin/${filename}_release.zip" ./bin/Release ./README.md ./installData.sh ./LICENSE
-zip --symlinks -r "./bin/${filename}_debug.zip" ./bin/Debug ./README.md ./installData.sh ./LICENSE 
+zip --symlinks -r "./bin/${filename}_release.zip" ./bin/Release ./README.md ./LICENSE
+zip --symlinks -r "./bin/${filename}_debug.zip" ./bin/Debug ./README.md ./LICENSE 
