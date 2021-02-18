@@ -36,6 +36,8 @@ FOR /D /R %%d IN (SolARPipeline*) DO (
 echo "**** Zip bundles"
 "7z.exe" a -tzip bin\%filename%_debug.zip README.md
 "7z.exe" a -tzip bin\%filename%_release.zip README.md
+"7z.exe" a -tzip bin\%filename%_debug.zip LICENSE
+"7z.exe" a -tzip bin\%filename%_release.zip LICENSE
 "7z.exe" a -tzip bin\%filename%_debug.zip bin\Debug
 "7z.exe" a -tzip bin\%filename%_release.zip bin\Release
 
