@@ -38,7 +38,7 @@ int main(){
     LOG_ADD_LOG_TO_CONSOLE();
     try {
         SRef<xpcf::IComponentManager> componentMgr = xpcf::getComponentManagerInstance();
-        xpcf::XPCFErrorCode errorLoad = componentMgr->load("PipelineNaturalImageMarker.xml");
+        xpcf::XPCFErrorCode errorLoad = componentMgr->load("SolARPipelineTest_NaturalImageMarker_conf.xml");
         auto pipeline = componentMgr->resolve<pipeline::IPoseEstimationPipeline>();
 
         if (pipeline->init(componentMgr) == FrameworkReturnCode::_SUCCESS )
