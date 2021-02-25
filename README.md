@@ -22,17 +22,57 @@ This pipeline loads a reference image marker, then tries to detect it on real-ti
 
 * To change properties of the components of the natural pipeline, edit the [conf_NaturalImageMarker.xml](./SolARSample_NaturalImageMarker_Mono/conf_NaturalImageMarker.xml) file.
 
-### SolARSample_NaturalImageMarker_Mono/SolARSample_NaturalImageMarker_Multi
+If you want to run your Natural image samples after having built them, do not forget to install the required dependencies if not already done:
 
-* Open a terminal and execute :
-    * `./bin/Release/SolARSample_NaturalImageMarker_Mono.exe`  
-    (showing a mono thread demonstration based on a natural marker).
+<pre><code>remaken install packagedependencies.txt</code></pre>
 
-    * `./bin/Release/SolARSample_NaturalImageMarker_Multi.exe`  
-    (showing a multithread demonstration based on a natural marker).
+and for debug mode:
 
-    * `./bin/Release/SolARPipelineTest_NaturalImageMarker.exe`  
-    (showing an application loading the natural image marker pipeline embedded into a dedicated SolAR Module).
+<pre><code>remaken install packagedependencies.txt -c debug</code></pre>
+
+For more information about how to install remaken on your machine, visit the [install page](https://solarframework.github.io/install/) on the SolAR website.
+
+### SolARSample_NaturalImageMarker_Mono
+
+* Open a terminal in the `bin/Release` or `bin/Debug`folder and execute :
+
+> #### Windows
+>
+	SolARSample_NaturalImageMarker_Mono.exe
+
+> #### Linux
+>
+	./run.sh ./	SolARSample_NaturalImageMarker_Mono.exe
+
+*  When the application is started, point the camera to the natural image marker (you can see a virtual cube on the marker). 
+* Press `escape` to quit the application.
+
+### SolARSample_NaturalImageMarker_Multi
+
+* Open a terminal in the `bin/Release` or `bin/Debug`folder and execute :
+
+> #### Windows
+>
+	SolARSample_NaturalImageMarker_Multi.exe
+
+> #### Linux
+>
+	./run.sh ./SolARSample_NaturalImageMarker_Multi
+
+*  When the application is started, point the camera to the natural image marker (you can see a virtual cube on the marker). 
+* Press `escape` to quit the application.
+
+ ### SolARPipelineTest_NaturalImageMarker
+
+Open a terminal in the `bin/Release` or `bin/Debug`folder and execute :
+
+> #### Windows
+>
+	SolARPipelineTest_NaturalImageMarker.exe
+
+> #### Linux
+>
+	./run.sh ./SolARPipelineTest_NaturalImageMarker   
 
 *  When the application is started, point the camera to the natural image marker (you can see a virtual cube on the marker). 
 * Press `escape` to quit the application.
