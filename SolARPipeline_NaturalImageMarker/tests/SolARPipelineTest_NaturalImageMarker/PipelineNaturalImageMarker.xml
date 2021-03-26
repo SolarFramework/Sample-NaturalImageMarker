@@ -1,22 +1,20 @@
 <?xml version="1.0"?>
 <xpcf-registry autoAlias="true" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-        <module uuid="5bbc1452-8d7f-4512-83f1-7bf48453809f" name="PipelineNaturalImageMarker" path="$REMAKEN_PKG_ROOT/packages/SolARBuild/win-cl-14.1/PipelineNaturalImageMarker/0.9.0/lib/x86_64/shared" description="The module embedding a pipeline to estimate the pose based on a natural Image marker">
-		<component uuid="6f6c7ae8-764c-49b3-a2fc-e9a4f539b9b1" name="PipelineNaturalImageMarker" description="A pipeline to estimate the pose based on a natural Image marker">
+        <module uuid="5bbc1452-8d7f-4512-83f1-7bf48453809f" name="SolARPipeline_NaturalImageMarker" path="$REMAKEN_PKG_ROOT/packages/SolARBuild/win-cl-14.1/SolARPipeline_NaturalImageMarker/0.9.3/lib/x86_64/shared" description="The module embedding a pipeline to estimate the pose based on a natural Image marker">
+                <component uuid="6f6c7ae8-764c-49b3-a2fc-e9a4f539b9b1" name="PipelineNaturalImageMarker" description="A pipeline to estimate the pose based on a natural Image marker">
 			<interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" name="IComponentIntrospect" description="IComponentIntrospect" />
                         <interface uuid="b5a6225e-6a91-4050-b298-886f4c17d9d2" name="IPoseEstimationPipeline" description="The interface to define a video see-throuh pipeline" />
 		</component>
 	</module> 
-        <module uuid="15e1990b-86b2-445c-8194-0cbe80ede970" name="SolARModuleOpenCV" path="$REMAKEN_PKG_ROOT/packages/SolARBuild/win-cl-14.1/SolARModuleOpenCV/0.9.0/lib/x86_64/shared" description="moduleOpenCV">
+        <module uuid="15e1990b-86b2-445c-8194-0cbe80ede970" name="SolARModuleOpenCV" path="$REMAKEN_PKG_ROOT/packages/SolARBuild/win-cl-14.1/SolARModuleOpenCV/0.9.3/lib/x86_64/shared" description="moduleOpenCV">
 		<component uuid="5B7396F4-A804-4F3C-A0EB-FB1D56042BB4" name="SolARCameraOpencv" description="SolARCameraOpencv">
 			<interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" name="IComponentIntrospect" description="IComponentIntrospect"/>
 			<interface uuid="5DDC7DF0-8377-437F-9C81-3643F7676A5B" name="ICamera" description="ICamera"/>
 		</component>
-		<component uuid="efcdb590-c570-11e7-abc4-cec278b6b50a" name="SolARMarker2DNaturalImageOpencv" description="SolARMarker2DNaturalImageOpencv">
-			<interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" name="IComponentIntrospect" description="IComponentIntrospect"/>
-			<interface uuid="3c9cee8a-e9ca-4c16-851a-669a94c2a68d" name="IMarker" description="IMarker"/>
-			<interface uuid="e9cdcf6e-c54c-11e7-abc4-cec278b6b50a" name="IMarker2Dquared" description="IMarker2Dquared"/>
-			<interface uuid="8fed06f8-c54d-11e7-abc4-cec278b6b50a" name="IMarker2DNaturalImage" description="IMarker2DNaturalImage"/>
-		</component>
+                <component uuid="aae41002-8e5b-11eb-8dcd-0242ac130003" name="SolARImageMarkerLoaderOpencv" description="SolARImageMarkerLoaderOpencv">
+                        <interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" name="IComponentIntrospect" description="IComponentIntrospect"/>
+                        <interface uuid="8e54d5d0-f7a3-4d62-b012-728e5704b46a" name="ITrackableLoader" description="ITrackableLoader"/>
+                </component>
 		<component uuid="e81c7e4e-7da6-476a-8eba-078b43071272" name="SolARKeypointDetectorOpencv" description="SolARKeypointDetectorOpencv" >
 			<interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" name="IComponentIntrospect" description="IComponentIntrospect"/>
 			<interface uuid="0eadc8b7-1265-434c-a4c6-6da8a028e06e" name="IKeypointDetector" description="IKeypointDetector"/>
@@ -67,7 +65,7 @@
 		</component>
 
 	</module>	
-        <module uuid="28b89d39-41bd-451d-b19e-d25a3d7c5797" name="SolARModuleTools" path="$REMAKEN_PKG_ROOT/packages/SolARBuild/win-cl-14.1/SolARModuleTools/0.9.0/lib/x86_64/shared" description="Module Tools">
+        <module uuid="28b89d39-41bd-451d-b19e-d25a3d7c5797" name="SolARModuleTools" path="$REMAKEN_PKG_ROOT/packages/SolARBuild/win-cl-14.1/SolARModuleTools/0.9.3/lib/x86_64/shared" description="Module Tools">
 		<component uuid="a2ef5542-029e-4fce-9974-0aea14b29d6f" name="SolARSBPatternReIndexer" description="SolARSBPatternReIndexer">
 			<interface uuid="125f2007-1bf9-421d-9367-fbdc1210d006" name="IComponentIntrospect" description="IComponentIntrospect" />
 			<interface uuid="79c5b810-d557-11e7-9296-cec278b6b50a" name="ISBPatternReIndexer" description="ISBPatternReIndexer" />
@@ -108,7 +106,7 @@
 			<property name="calibrationFile" type="string" value="camera_calibration.yml" description="path of the .yml file describing the calibration parameter of the camera." />
             <property name="deviceID" type="uint" value="0" description="ID of the camera (default = 0)" />
 		</configure>
-		<configure component="SolARMarker2DNaturalImageOpencv">
+                <configure component="SolARImageMarkerLoaderOpencv">
 			<property name="filePath" type="string" value="grafMarker.yml"/>
 		</configure>
 		<configure component="SolARKeypointDetectorOpencv">
@@ -127,10 +125,10 @@
 		<configure component="SolARDescriptorMatcherKNNOpencv">
             <property name="distanceRatio" type="float" value="0.75"/>
 		</configure>
-		<configure component="SolARGeometricMatchesFilterOpencv">
-            <property name="m_confidenceLevel" type="double" value="0.99"/>
-            <property name="m_outlierDistanceRatio" type="double" value="0.006"/>
-		</configure>
+            <configure component="SolARGeometricMatchesFilterOpencv">
+                <property name="confidence" type="double" value="0.99"/>
+                <property name="outlierDistanceRatio" type="double" value="0.006"/>
+            </configure>
 		<configure component="SolARPoseEstimationPlanarPointsOpencv">
             <property name="minNbInliers" type="int" value="50"/>
             <property name="reprojErrorThreshold" type="float" value="0.1"/>

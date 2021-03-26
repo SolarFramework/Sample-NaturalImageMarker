@@ -37,7 +37,7 @@
 
 // ADD COMPONENT INTERFACES HEADERS HERE
 #include "api/input/devices/ICamera.h"
-#include "api/input/files/IMarker2DNaturalImage.h"
+#include "api/input/files/ITrackableLoader.h"
 #include "api/features/IKeypointDetector.h"
 #include "api/features/IKeypointDetectorRegion.h"
 #include "api/features/IDescriptorMatcher.h"
@@ -53,6 +53,7 @@
 #include "api/display/I3DOverlay.h"
 #include "api/display/IMatchesOverlay.h"
 #include "api/display/IImageViewer.h"
+#include "datastructure/ImageMarker.h"
 
 
 using namespace SolAR;
@@ -95,7 +96,7 @@ int main(int argc, char *argv[])
         LOG_INFO("Start creating components");
 
         auto camera = xpcfComponentManager->resolve<input::devices::ICamera>();
-        auto marker = xpcfComponentManager->resolve<input::files::IMarker2DNaturalImage>();
+        auto trackableLoader = xpcfComponentManager->resolve<input::files::ITrackableLoader>();
         auto kpDetector = xpcfComponentManager->resolve<features::IKeypointDetector>();
         auto kpDetectorRegion = xpcfComponentManager->resolve<features::IKeypointDetectorRegion>();
         auto descriptorExtractor = xpcfComponentManager->resolve<features::IDescriptorsExtractor>();
@@ -116,6 +117,8 @@ int main(int argc, char *argv[])
         auto imageViewerResult = xpcfComponentManager->resolve<display::IImageViewer>();
 
         // Declare data structures used to exchange information between components for initialization
+        SRef<Trackable> trackable;
+        SRef<ImageMarker> imageMarker;
         SRef<Image> refImage;
 #ifndef NDEBUG
         SRef<Image> debugCamImage;
@@ -134,10 +137,23 @@ int main(int argc, char *argv[])
 
         // load marker
         LOG_INFO("LOAD MARKER IMAGE ");
-        marker->loadMarker();
-        marker->getWorldCorners(markerWorldCorners);
+        // load marker
+        LOG_INFO("LOAD MARKER IMAGE ");
+        if (trackableLoader->loadTrackable(trackable) != FrameworkReturnCode::_SUCCESS)
+        {
+            LOG_ERROR("Trackable cannot be loaded")
+            return -1;
+        }
+        if (trackable->getType() == TrackableType::IMAGE_MARKER)
+            imageMarker = xpcf::utils::dynamic_pointer_cast<ImageMarker>(trackable);
+        else
+        {
+            LOG_ERROR("The trackable is not an image marker")
+            return -1;
+        }
 
-        marker->getImage(refImage);
+        imageMarker->getWorldCorners(markerWorldCorners);
+        refImage = imageMarker->getImage();
 
         // detect keypoints in reference image
         kpDetector->detect(refImage, refKeypoints);
@@ -178,8 +194,8 @@ int main(int argc, char *argv[])
         // initialize image mapper with the reference image size and marker size
         img_mapper->bindTo<xpcf::IConfigurable>()->getProperty("digitalWidth")->setIntegerValue(refImage->getSize().width);
         img_mapper->bindTo<xpcf::IConfigurable>()->getProperty("digitalHeight")->setIntegerValue(refImage->getSize().height);
-        img_mapper->bindTo<xpcf::IConfigurable>()->getProperty("worldWidth")->setFloatingValue(marker->getSize().width);
-        img_mapper->bindTo<xpcf::IConfigurable>()->getProperty("worldHeight")->setFloatingValue(marker->getSize().height);
+        img_mapper->bindTo<xpcf::IConfigurable>()->getProperty("worldWidth")->setFloatingValue(imageMarker->getSize().width);
+        img_mapper->bindTo<xpcf::IConfigurable>()->getProperty("worldHeight")->setFloatingValue(imageMarker->getSize().height);
 
         // to count the average number of processed frames per seconds
         clock_t start, end;

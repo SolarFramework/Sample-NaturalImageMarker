@@ -45,7 +45,7 @@
 #include "api/geom/IImage2WorldMapper.h"
 #include "api/geom/I2DTransform.h"
 
-#include "api/input/files/IMarker2DSquaredBinary.h"
+#include "api/input/files/ITrackableLoader.h"
 #include "api/image/IImageFilter.h"
 #include "api/image/IImageConvertor.h"
 #include "api/features/IContoursExtractor.h"
@@ -76,7 +76,6 @@
 #include "api/tracking/IOpticalFlowEstimator.h"
 
 #include "api/features/IKeypointDetectorRegion.h"
-
 
 namespace SolAR {
 namespace PIPELINES {
@@ -131,9 +130,9 @@ private:
 
     // Declaration of the components used by the pipeline
     SRef<api::input::devices::ICamera> m_camera;
-    SRef<api::input::files::IMarker2DSquaredBinary> m_binaryMarker;
+    SRef<api::input::files::ITrackableLoader> m_binaryMarker;
 
-    SRef<api::input::files::IMarker2DNaturalImage> m_naturalImagemarker;
+    SRef<api::input::files::ITrackableLoader> m_trackableLoader;
     SRef<api::features::IKeypointDetector> m_kpDetector;
     SRef<api::features::IDescriptorMatcher> m_matcher;
     SRef<api::features::IMatchesFilter> m_basicMatchesFilter;
