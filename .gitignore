@@ -57,6 +57,8 @@ Release/
 *.pc
 *-Debug
 *-Release
+*Debug.bat
+*Release.bat
 
 # Executables
 *.exe
