@@ -46,7 +46,6 @@ build/
 *vcxproj.*
 x64/
 .vs/
-*.bat
 *remakeninfo.txt
 Debug/
 Release/
@@ -58,6 +57,8 @@ Release/
 *.pc
 *-Debug
 *-Release
+*Debug.bat
+*Release.bat
 
 # Executables
 *.exe
@@ -67,6 +68,10 @@ Release/
 # Generated documentation
 doc/ 
 doxygen/
+
+#sample bundles
+bin/*.zip
+run.sh
 
 # Tests builds
 tests/bin

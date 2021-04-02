@@ -81,8 +81,40 @@ namespace SolAR {
 namespace PIPELINES {
 
 /**
- * @class FiducialMarker
+ * @class PipelineNaturalImageMarker
  * @brief A pipeline to estimate the pose based on a squared fiducial marker.
+ *
+ * @SolARComponentInjectablesBegin
+ * @SolARComponentInjectable{SolAR::api::input::devices::ICamera}
+ * @SolARComponentInjectable{SolAR::api::input::files::IMarker2DSquaredBinary}
+ * @SolARComponentInjectable{SolAR::api::input::files::IMarker2DNaturalImage}
+ * @SolARComponentInjectable{SolAR::api::features::IKeypointDetector}
+ * @SolARComponentInjectable{SolAR::api::features::IDescriptorMatcher}
+ * @SolARComponentInjectable{SolAR::api::features::IMatchesFilter}
+ * @SolARComponentInjectable{SolAR::api::features::IMatchesFilter}
+ * @SolARComponentInjectable{SolAR::api::features::IKeypointsReIndexer}
+ * @SolARComponentInjectable{SolAR::api::features::IDescriptorsExtractor}
+ * @SolARComponentInjectable{SolAR::api::geom::IImage2WorldMapper}
+ * @SolARComponentInjectable{SolAR::api::image::IImageConvertor}
+ * @SolARComponentInjectable{SolAR::api::sink::ISinkPoseImage}
+ * @SolARComponentInjectable{SolAR::api::source::ISourceImage}
+ * @SolARComponentInjectable{SolAR::api::image::IImageConvertor}
+ * @SolARComponentInjectable{SolAR::api::features::IKeypointDetectorRegion}
+ * @SolARComponentInjectable{SolAR::api::solver::pose::I3DTransformSACFinderFrom2D3D}
+ * @SolARComponentInjectable{SolAR::api::tracking::IOpticalFlowEstimator}
+ * @SolARComponentInjectable{SolAR::api::geom::IProject}
+ * @SolARComponentInjectable{SolAR::api::geom::IUnproject}
+ * @SolARComponentInjectablesEnd
+ *
+ * @SolARComponentPropertiesBegin
+ * @SolARComponentProperty{ updateTrackedPointThreshold,
+ *                          ,
+ *                          @SolARComponentPropertyDescNum{ int, [0..MAX INT], 300 }}
+ * @SolARComponentProperty{ detectionMatchesNumberThreshold,
+ *                          ,
+ *                          @SolARComponentPropertyDescNum{ int, [0..MAX INT], 10 }}
+ * @SolARComponentPropertiesEnd
+ *
  */
 
 class SOLARPIPELINENATURALIMAGEMARKER_EXPORT_API PipelineNaturalImageMarker : public org::bcom::xpcf::ConfigurableBase,

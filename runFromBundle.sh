@@ -1,0 +1,3 @@
+LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD:$PWD/modules $1
+
+

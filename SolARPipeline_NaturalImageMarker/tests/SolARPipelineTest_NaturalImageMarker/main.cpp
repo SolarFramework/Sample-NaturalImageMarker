@@ -38,7 +38,7 @@ int main(){
     LOG_ADD_LOG_TO_CONSOLE();
     try {
         SRef<xpcf::IComponentManager> componentMgr = xpcf::getComponentManagerInstance();
-        xpcf::XPCFErrorCode errorLoad = componentMgr->load("PipelineNaturalImageMarker.xml");
+        xpcf::XPCFErrorCode errorLoad = componentMgr->load("SolARPipelineTest_NaturalImageMarker_conf.xml");
         auto pipeline = componentMgr->resolve<pipeline::IPoseEstimationPipeline>();
 
         if (pipeline->init() == FrameworkReturnCode::_SUCCESS )
@@ -86,9 +86,11 @@ int main(){
             }
             delete[] r_imageData;
         }
+        return 0;
     }
     catch (xpcf::Exception e)
     {
-        LOG_ERROR("The following exception has been catch {}", e.what());
+        LOG_ERROR ("The following exception has been catch : {}", e.what());
+        return -1;
     }
 }
