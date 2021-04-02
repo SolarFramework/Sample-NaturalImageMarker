@@ -34,7 +34,7 @@
 // Add the headers to datastructures and component interfaces used by the pipeline
 #include "api/input/devices/ICamera.h"
 
-#include "api/input/files/IMarker2DNaturalImage.h"
+#include "api/input/files/ITrackableLoader.h"
 #include "api/features/IKeypointDetector.h"
 #include "api/features/IDescriptorsExtractor.h"
 #include "api/features/IMatchesFilter.h"
@@ -86,8 +86,7 @@ namespace PIPELINES {
  *
  * @SolARComponentInjectablesBegin
  * @SolARComponentInjectable{SolAR::api::input::devices::ICamera}
- * @SolARComponentInjectable{SolAR::api::input::files::IMarker2DSquaredBinary}
- * @SolARComponentInjectable{SolAR::api::input::files::IMarker2DNaturalImage}
+ * @SolARComponentInjectable{SolAR::api::input::files::ITrackableLoader}
  * @SolARComponentInjectable{SolAR::api::features::IKeypointDetector}
  * @SolARComponentInjectable{SolAR::api::features::IDescriptorMatcher}
  * @SolARComponentInjectable{SolAR::api::features::IMatchesFilter}
@@ -162,7 +161,6 @@ private:
 
     // Declaration of the components used by the pipeline
     SRef<api::input::devices::ICamera> m_camera;
-    SRef<api::input::files::ITrackableLoader> m_binaryMarker;
 
     SRef<api::input::files::ITrackableLoader> m_trackableLoader;
     SRef<api::features::IKeypointDetector> m_kpDetector;
