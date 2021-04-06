@@ -12,8 +12,8 @@ echo filename is %filename%
 
 
 echo "**** Install dependencies locally"
-:: remaken install packagedependencies.txt
-:: remaken install packagedependencies.txt -c debug
+remaken install packagedependencies.txt
+remaken install packagedependencies.txt -c debug
 
 echo "**** Bundle dependencies in bin folder"
  FOR /D /R %%d IN (SolARSample*) DO (
