@@ -19,13 +19,11 @@
 #include <numeric>
 #include <string>
 #include <functional>
-
 #include <boost/log/core.hpp>
 
 using namespace std;
 
 #include "xpcf/xpcf.h"
-
 #include "api/input/devices/ICamera.h"
 #include "api/input/files/ITrackableLoader.h"
 #include "api/features/IKeypointDetector.h"
@@ -43,11 +41,7 @@ using namespace std;
 #include "api/display/I3DOverlay.h"
 #include "api/display/IImageViewer.h"
 #include "datastructure/ImageMarker.h"
-
-
 #include "core/Log.h"
-#include "SharedBuffer.hpp"
-
 #include <boost/timer/timer.hpp>
 #include <boost/chrono.hpp>
 

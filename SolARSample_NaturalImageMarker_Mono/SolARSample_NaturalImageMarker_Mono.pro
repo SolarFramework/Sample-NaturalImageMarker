@@ -78,7 +78,7 @@ android {
 
 config_files.path = $${TARGETDEPLOYDIR}
 config_files.files= $$files($${PWD}/SolARSample_NaturalImageMarker_Mono_conf.xml)\
-                    $$files($${PWD}/camera_calibration.yml)\
+                    $$files($${PWD}/camera_calibration.json)\
                     $$files($${PWD}/grafMarker.yml)\
                     $$files($${PWD}/graf1.png)
 INSTALLS += config_files

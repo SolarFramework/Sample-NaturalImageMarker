@@ -235,9 +235,9 @@ bool PipelineNaturalImageMarker::processDetection()
         {
 #ifdef TRACKING
             m_isTrack = true;
-            LOG_INFO("Start tracking");
+            LOG_DEBUG("Start tracking");
 #else
-            LOG_INFO("Valid pose");
+            LOG_DEBUG("Valid pose");
 #endif
             valid_pose = true;
         }
