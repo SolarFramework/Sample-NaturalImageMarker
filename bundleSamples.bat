@@ -1,7 +1,7 @@
 @echo off
 SETLOCAL EnableDelayedExpansion
 
-SET version=0.9.0
+SET version=0.10.0
 
 SET filename=SolAR_Fiducial_%version%
 SET arg1=%1
@@ -12,8 +12,8 @@ echo filename is %filename%
 
 
 echo "**** Install dependencies locally"
-:: remaken install packagedependencies.txt
-:: remaken install packagedependencies.txt -c debug
+remaken install packagedependencies.txt
+remaken install packagedependencies.txt -c debug
 
 echo "**** Bundle dependencies in bin folder"
  FOR /D /R %%d IN (SolARSample*) DO (
