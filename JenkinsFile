@@ -5,7 +5,7 @@ node("master") {
         dirName="SolARBuild"
         buildDir="SolARPipeline_NaturalImageMarker"
         makeTarget="install install_deps"  
-        android=false
+        android=true
     }    
 
     SolArModulePipeline {
