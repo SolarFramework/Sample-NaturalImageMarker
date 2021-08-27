@@ -19,12 +19,12 @@
 
 #if _WIN32
 #ifdef SolARPipeline_NaturalImageMarker_API_DLLEXPORT
-#define SOLARPIPELINENATURALIMAGEMARKER_EXPORT_API __declspec(dllexport)
-#else //SOLARPIPELINEFIDUCIALMARKER_API_DLLEXPORT
-#define SOLARPIPELINENATURALIMAGEMARKER_EXPORT_API __declspec(dllimport)
-#endif //SOLARPIPELINEFIDUCIALMARKER_API_DLLEXPORT
+#define SOLARPIPELINE_NATURALIMAGEMARKER_EXPORT_API __declspec(dllexport)
+#else //SolARPipeline_NaturalImageMarker_API_DLLEXPORT
+#define SOLARPIPELINE_NATURALIMAGEMARKER_EXPORT_API __declspec(dllimport)
+#endif //SolARPipeline_NaturalImageMarker_API_DLLEXPORT
 #else //_WIN32
-#define SOLARPIPELINENATURALIMAGEMARKER_EXPORT_API
+#define SOLARPIPELINE_NATURALIMAGEMARKER_EXPORT_API
 #endif //_WIN32
 
 #include "xpcf/core/traits.h"
@@ -34,7 +34,7 @@
 // Add the headers to datastructures and component interfaces used by the pipeline
 #include "api/input/devices/ICamera.h"
 
-#include "api/input/files/IMarker2DNaturalImage.h"
+#include "api/input/files/ITrackableLoader.h"
 #include "api/features/IKeypointDetector.h"
 #include "api/features/IDescriptorsExtractor.h"
 #include "api/features/IMatchesFilter.h"
@@ -45,7 +45,7 @@
 #include "api/geom/IImage2WorldMapper.h"
 #include "api/geom/I2DTransform.h"
 
-#include "api/input/files/IMarker2DSquaredBinary.h"
+#include "api/input/files/ITrackableLoader.h"
 #include "api/image/IImageFilter.h"
 #include "api/image/IImageConvertor.h"
 #include "api/features/IContoursExtractor.h"
@@ -77,7 +77,6 @@
 
 #include "api/features/IKeypointDetectorRegion.h"
 
-
 namespace SolAR {
 namespace PIPELINES {
 
@@ -87,8 +86,7 @@ namespace PIPELINES {
  *
  * @SolARComponentInjectablesBegin
  * @SolARComponentInjectable{SolAR::api::input::devices::ICamera}
- * @SolARComponentInjectable{SolAR::api::input::files::IMarker2DSquaredBinary}
- * @SolARComponentInjectable{SolAR::api::input::files::IMarker2DNaturalImage}
+ * @SolARComponentInjectable{SolAR::api::input::files::ITrackableLoader}
  * @SolARComponentInjectable{SolAR::api::features::IKeypointDetector}
  * @SolARComponentInjectable{SolAR::api::features::IDescriptorMatcher}
  * @SolARComponentInjectable{SolAR::api::features::IMatchesFilter}
@@ -118,7 +116,7 @@ namespace PIPELINES {
  *
  */
 
-class SOLARPIPELINENATURALIMAGEMARKER_EXPORT_API PipelineNaturalImageMarker : public org::bcom::xpcf::ConfigurableBase,
+class SOLARPIPELINE_NATURALIMAGEMARKER_EXPORT_API PipelineNaturalImageMarker : public org::bcom::xpcf::ConfigurableBase,
     public api::pipeline::IPoseEstimationPipeline
 {
 public:
@@ -126,9 +124,8 @@ public:
     ~PipelineNaturalImageMarker();
 
     //// @brief Initialization of the pipeline
-    /// Initialize the pipeline by providing a reference to the component manager loaded by the PipelineManager.
-    /// @param[in] componentManager a shared reference to the component manager which has loaded the components and configuration in the pipleine manager
-    FrameworkReturnCode init(SRef<xpcf::IComponentManager> xpcfComponentManager) override;
+    /// @return FrameworkReturnCode::_SUCCESS if the init succeed, else FrameworkReturnCode::_ERROR_
+    FrameworkReturnCode init() override;
 
     /// @brief Provide the camera parameters
     /// @return the camera parameters (its resolution and its focal)
@@ -164,9 +161,8 @@ private:
 
     // Declaration of the components used by the pipeline
     SRef<api::input::devices::ICamera> m_camera;
-    SRef<api::input::files::IMarker2DSquaredBinary> m_binaryMarker;
 
-    SRef<api::input::files::IMarker2DNaturalImage> m_naturalImagemarker;
+    SRef<api::input::files::ITrackableLoader> m_trackableLoader;
     SRef<api::features::IKeypointDetector> m_kpDetector;
     SRef<api::features::IDescriptorMatcher> m_matcher;
     SRef<api::features::IMatchesFilter> m_basicMatchesFilter;

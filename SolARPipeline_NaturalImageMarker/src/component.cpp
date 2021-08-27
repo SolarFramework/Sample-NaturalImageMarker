@@ -1,5 +1,6 @@
 #include "xpcf/module/ModuleFactory.h"
 #include "PipelineNaturalImageMarker.h"
+#include "datastructure/ImageMarker.h"
 #include "core/Log.h"
 
 XPCF_DEFINE_FACTORY_CREATE_INSTANCE(SolAR::PIPELINES::PipelineNaturalImageMarker)
@@ -19,7 +20,7 @@ PipelineNaturalImageMarker::PipelineNaturalImageMarker():ConfigurableBase(xpcf::
     declareInterface<api::pipeline::IPoseEstimationPipeline>(this);
     declareInjectable<input::devices::ICamera>(m_camera);
     declareInjectable<features::IKeypointDetector>(m_kpDetector);
-    declareInjectable<input::files::IMarker2DNaturalImage>(m_naturalImagemarker);
+    declareInjectable<input::files::ITrackableLoader>(m_trackableLoader);
     declareInjectable<features::IMatchesFilter>(m_geomMatchesFilter);
     declareInjectable<features::IDescriptorMatcher>(m_matcher);
     declareInjectable<features::IDescriptorsExtractor>(m_descriptorExtractor);
@@ -66,13 +67,26 @@ xpcf::XPCFErrorCode PipelineNaturalImageMarker::onConfigured()
     return xpcf::XPCFErrorCode::_SUCCESS;
 }
 
-FrameworkReturnCode PipelineNaturalImageMarker::init(SRef<xpcf::IComponentManager> xpcfComponentManager)
+FrameworkReturnCode PipelineNaturalImageMarker::init()
 {
     // load marker
     LOG_INFO("LOAD MARKER IMAGE ");
-    m_naturalImagemarker->loadMarker();
-    m_naturalImagemarker->getImage(m_refImage);
-    m_naturalImagemarker->getWorldCorners(m_markerWorldCorners);
+    SRef<Trackable> trackable;
+    SRef<ImageMarker> imageMarker;
+    if (m_trackableLoader->loadTrackable(trackable) != FrameworkReturnCode::_SUCCESS)
+    {
+        LOG_ERROR("Trackable cannot be loaded")
+        return FrameworkReturnCode::_ERROR_;
+    }
+    if (trackable->getType() == TrackableType::IMAGE_MARKER)
+        imageMarker = xpcf::utils::dynamic_pointer_cast<ImageMarker>(trackable);
+    else
+    {
+        LOG_ERROR("The trackable is not an image marker")
+        return FrameworkReturnCode::_ERROR_;
+    }
+    imageMarker->getWorldCorners(m_markerWorldCorners);
+    m_refImage = imageMarker->getImage();
 
 
     // detect keypoints in reference image
@@ -86,12 +100,12 @@ FrameworkReturnCode PipelineNaturalImageMarker::init(SRef<xpcf::IComponentManage
 
     // initialize image mapper with the reference image size and marker size
 
-    LOG_INFO(" worldWidth : {} worldHeight : {} \n",m_naturalImagemarker->getSize().width,m_naturalImagemarker->getSize().height)
+    LOG_INFO(" worldWidth : {} worldHeight : {} \n",imageMarker->getSize().width,imageMarker->getSize().height)
 
     m_img_mapper->bindTo<xpcf::IConfigurable>()->getProperty("digitalWidth")->setIntegerValue(m_refImage->getSize().width);
     m_img_mapper->bindTo<xpcf::IConfigurable>()->getProperty("digitalHeight")->setIntegerValue(m_refImage->getSize().height);
-    m_img_mapper->bindTo<xpcf::IConfigurable>()->getProperty("worldWidth")->setFloatingValue(m_naturalImagemarker->getSize().width);
-    m_img_mapper->bindTo<xpcf::IConfigurable>()->getProperty("worldHeight")->setFloatingValue(m_naturalImagemarker->getSize().height);
+    m_img_mapper->bindTo<xpcf::IConfigurable>()->getProperty("worldWidth")->setFloatingValue(imageMarker->getSize().width);
+    m_img_mapper->bindTo<xpcf::IConfigurable>()->getProperty("worldHeight")->setFloatingValue(imageMarker->getSize().height);
 
 
     Point2Df corner0(0, 0);

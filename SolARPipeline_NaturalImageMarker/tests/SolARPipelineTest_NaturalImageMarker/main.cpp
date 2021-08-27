@@ -41,7 +41,7 @@ int main(){
         xpcf::XPCFErrorCode errorLoad = componentMgr->load("SolARPipelineTest_NaturalImageMarker_conf.xml");
         auto pipeline = componentMgr->resolve<pipeline::IPoseEstimationPipeline>();
 
-        if (pipeline->init(componentMgr) == FrameworkReturnCode::_SUCCESS )
+        if (pipeline->init() == FrameworkReturnCode::_SUCCESS )
         {
             auto imageViewerResult = componentMgr->resolve<display::IImageViewer>();
             auto overlay3DComponent = componentMgr->resolve<display::I3DOverlay>();

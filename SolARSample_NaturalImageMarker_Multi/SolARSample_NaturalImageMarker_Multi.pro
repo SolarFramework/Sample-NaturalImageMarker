@@ -2,9 +2,11 @@
 QT       -= core gui
 CONFIG -= qt
 
+QMAKE_PROJECT_DEPTH = 0
+
 ## global defintions : target lib name, version
 TARGET = SolARSample_NaturalImageMarker_Multi
-VERSION=0.9.1
+VERSION=0.10.0
 
 DEFINES += MYVERSION=$${VERSION}
 CONFIG += c++1z
@@ -43,13 +45,6 @@ HEADERS += \
 SOURCES += \
 main.cpp
 
-linux {
-    ## Add rpath to find dependencies at runtime
-    QMAKE_LFLAGS_RPATH=
-    QMAKE_LFLAGS += "-Wl,-rpath,\'\$$ORIGIN\'"
-}
-
-
 unix {
     LIBS += -ldl
     QMAKE_CXXFLAGS += -DBOOST_LOG_DYN_LINK
@@ -82,21 +77,11 @@ config_files.files= $$files($${PWD}/SolARSample_NaturalImageMarker_Multi_conf.xm
                     $$files($${PWD}/graf1.png)
 INSTALLS += config_files
 
-linux {
-  run_install.path = $${TARGETDEPLOYDIR}
-  run_install.files = $${PWD}/../run.sh
-  CONFIG(release,debug|release) {
-    run_install.extra = cp $$files($${PWD}/../runRelease.sh) $${PWD}/../run.sh
-  }
-  CONFIG(debug,debug|release) {
-    run_install.extra = cp $$files($${PWD}/../runDebug.sh) $${PWD}/../run.sh
-  }
-  INSTALLS += run_install
-}
-
-
 OTHER_FILES += \
     packagedependencies.txt
 
 #NOTE : Must be placed at the end of the .pro
 include ($$shell_quote($$shell_path($${QMAKE_REMAKEN_RULES_ROOT}/remaken_install_target.pri)))) # Shell_quote & shell_path required for visual on windows
+
+DISTFILES += \
+    SolARSample_NaturalImageMarker_Multi_conf.xml

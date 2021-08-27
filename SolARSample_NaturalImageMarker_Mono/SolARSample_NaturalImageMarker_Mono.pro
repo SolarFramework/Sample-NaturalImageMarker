@@ -2,13 +2,17 @@
 QT       -= core gui
 CONFIG -= qt
 
+QMAKE_PROJECT_DEPTH = 0
+
 ## global defintions : target lib name, version
 TARGET = SolARSample_NaturalImageMarker_Mono
-VERSION=0.9.1
+VERSION=0.10.0
 
 DEFINES += MYVERSION=$${VERSION}
 CONFIG += c++1z
 CONFIG += console
+
+QMAKE_PROJECT_DEPTH=0
 
 include(findremakenrules.pri)
 
