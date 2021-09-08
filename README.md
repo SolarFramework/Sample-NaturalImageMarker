@@ -18,7 +18,7 @@ This pipeline loads a reference image marker, then tries to detect it on real-ti
 
 * If you want to change your natural image, you can edit the [grafMarker.yml](./SolARSample_NaturalImageMarker_Mono/grafMarker.yml).
 
-* If you want to change the calibration parameters of the camera, edit the [camera_calibration.yml](./SolARSample_NaturalImageMarker_Mono/camera_calibration.yml).
+* If you want to change the calibration parameters of the camera, edit the [camera_calibration.json](./SolARSample_NaturalImageMarker_Mono/camera_calibration.json).
 
 * To change properties of the components of the natural pipeline, edit the [conf_NaturalImageMarker.xml](./SolARSample_NaturalImageMarker_Mono/conf_NaturalImageMarker.xml) file.
 
