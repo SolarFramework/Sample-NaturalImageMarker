@@ -5,7 +5,7 @@ CONFIG -= qt
 QMAKE_PROJECT_DEPTH = 0
 
 ## global defintions : target lib name, version
-TARGET = SolARPipeline_NaturalImageMarker
+TARGET = SolARPipelineNaturalImageMarker
 INSTALLSUBDIR = SolARBuild
 FRAMEWORK = $$TARGET
 VERSION=0.10.0
