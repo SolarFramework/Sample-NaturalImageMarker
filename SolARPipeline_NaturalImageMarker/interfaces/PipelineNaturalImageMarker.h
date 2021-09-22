@@ -18,13 +18,13 @@
 #define PIPELINENATURALIMAGEMARKER_H
 
 #if _WIN32
-#ifdef SolARPipeline_NaturalImageMarker_API_DLLEXPORT
-#define SOLARPIPELINE_NATURALIMAGEMARKER_EXPORT_API __declspec(dllexport)
-#else //SolARPipeline_NaturalImageMarker_API_DLLEXPORT
-#define SOLARPIPELINE_NATURALIMAGEMARKER_EXPORT_API __declspec(dllimport)
-#endif //SolARPipeline_NaturalImageMarker_API_DLLEXPORT
+#ifdef SolARPipelineNaturalImageMarker_API_DLLEXPORT
+#define SOLARPIPELINENATURALIMAGEMARKER_EXPORT_API __declspec(dllexport)
+#else //SolARPipelineNaturalImageMarker_API_DLLEXPORT
+#define SOLARPIPELINENATURALIMAGEMARKER_EXPORT_API __declspec(dllimport)
+#endif //SolARPipelineNaturalImageMarker_API_DLLEXPORT
 #else //_WIN32
-#define SOLARPIPELINE_NATURALIMAGEMARKER_EXPORT_API
+#define SOLARPIPELINENATURALIMAGEMARKER_EXPORT_API
 #endif //_WIN32
 
 #include "xpcf/core/traits.h"
@@ -116,7 +116,7 @@ namespace PIPELINES {
  *
  */
 
-class SOLARPIPELINE_NATURALIMAGEMARKER_EXPORT_API PipelineNaturalImageMarker : public org::bcom::xpcf::ConfigurableBase,
+class SOLARPIPELINENATURALIMAGEMARKER_EXPORT_API PipelineNaturalImageMarker : public org::bcom::xpcf::ConfigurableBase,
     public api::pipeline::IPoseEstimationPipeline
 {
 public:
