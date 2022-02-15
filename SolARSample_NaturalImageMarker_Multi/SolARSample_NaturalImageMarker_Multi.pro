@@ -48,6 +48,9 @@ main.cpp
 unix {
     LIBS += -ldl
     QMAKE_CXXFLAGS += -DBOOST_LOG_DYN_LINK
+
+    # Avoids adding install steps manually. To be commented to have a better control over them.
+    QMAKE_POST_LINK += "make install install_deps"
 }
 
 macx {
@@ -68,6 +71,19 @@ win32 {
 
 android {
     ANDROID_ABIS="arm64-v8a"
+}
+
+linux {
+  run_install.path = $${TARGETDEPLOYDIR}
+  run_install.files = $${PWD}/../run.sh
+  CONFIG(release,debug|release) {
+    run_install.extra = cp $$files($${PWD}/../runRelease.sh) $${PWD}/../run.sh
+  }
+  CONFIG(debug,debug|release) {
+    run_install.extra = cp $$files($${PWD}/../runDebug.sh) $${PWD}/../run.sh
+  }
+  run_install.CONFIG += nostrip
+  INSTALLS += run_install
 }
 
 config_files.path = $${TARGETDEPLOYDIR}
