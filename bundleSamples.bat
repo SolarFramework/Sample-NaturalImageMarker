@@ -1,9 +1,9 @@
 @echo off
 SETLOCAL EnableDelayedExpansion
 
-SET version=0.10.0
+SET version=0.11.0
 
-SET filename=SolAR_Fiducial_%version%
+SET filename=SolARSample_Fiducial_%version%
 SET arg1=%1
 
 IF NOT "!arg1!"=="" (SET filename=%arg1%)
