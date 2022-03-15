@@ -64,6 +64,7 @@ Release/
 *.exe
 *.out
 *.app
+bin/
 
 # Generated documentation
 doc/ 
