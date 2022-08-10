@@ -178,18 +178,8 @@ int main(int argc, char *argv[])
             return -1;
         }
 
-        // initialize overlay 3D component with the camera intrinsec parameters (please refeer to the use of intrinsec parameters file)
-        overlay3DComponent->setCameraParameters(camera->getIntrinsicsParameters(), camera->getDistortionParameters());
-
-        // initialize pose estimations based on planar points with the camera intrinsec parameters (please refeer to the use of intrinsec parameters file)
-        poseEstimationPlanarDetection->setCameraParameters(camera->getIntrinsicsParameters(), camera->getDistortionParameters());
-        poseEstimationPlanarTracking->setCameraParameters(camera->getIntrinsicsParameters(), camera->getDistortionParameters());
-
-        // initialize projection component with the camera intrinsec parameters (please refeer to the use of intrinsec parameters file)
-        projection->setCameraParameters(camera->getIntrinsicsParameters(), camera->getDistortionParameters());
-
-        // initialize unprojection component with the camera intrinsec parameters (please refeer to the use of intrinsec parameters file)
-        unprojection->setCameraParameters(camera->getIntrinsicsParameters(), camera->getDistortionParameters());
+		// get camera parameters
+		CameraParameters camParams = camera->getParameters();
 
         // initialize image mapper with the reference image size and marker size
         img_mapper->bindTo<xpcf::IConfigurable>()->getProperty("digitalWidth")->setIntegerValue(refImage->getSize().width);
@@ -218,12 +208,7 @@ int main(int argc, char *argv[])
 
 // Marker Detection task
 		int countToDetect = 0;
-        std::function<void(void)> detection = [&refKeypoints, &refDescriptors, &countToDetect,
-#ifndef NDEBUG
-											   &debugCamImage, &overlay2DComponent,
-#endif
-                                               &m_dropBufferCamImageForDetection, &m_dropBufferPoseForTracking, &m_dropBufferPoseForDisplay,
-                                               &kpDetector, &descriptorExtractor, &matcher, &basicMatchesFilter, &geomMatchesFilter, &keypointsReindexer, &img_mapper, &poseEstimationPlanarDetection](){
+        std::function<void(void)> detection = [&](){
             SRef<Image> camImage;
             std::vector<Keypoint> camKeypoints;
             SRef<DescriptorBuffer> camDescriptors;
@@ -270,7 +255,7 @@ int main(int argc, char *argv[])
                 img_mapper->map(refMatched2Dpoints, ref3Dpoints);
 
                 imagePoints_inliers.clear();
-                if (poseEstimationPlanarDetection->estimate(camMatched2Dpoints, ref3Dpoints, inlier_indices, pose) == FrameworkReturnCode::_SUCCESS)
+                if (poseEstimationPlanarDetection->estimate(camMatched2Dpoints, ref3Dpoints, camParams, inlier_indices, pose) == FrameworkReturnCode::_SUCCESS)
                 {
                     LOG_DEBUG("Marker detected");                    
                     for (int index : inlier_indices)
@@ -307,12 +292,7 @@ int main(int argc, char *argv[])
         std::vector<Point2Df> imagePoints_inliers;
         std::vector<Point3Df> worldPoints_inliers;
 
-        std::function<void(void)> tracking = [&markerWorldCorners, &previousCamImage, &previousPose, &imagePoints_inliers, &worldPoints_inliers,
-#ifndef NDEBUG
-                                              &debugCamImage, overlay2DComponent, overlayMatches,
-#endif
-                                              &m_dropBufferCamImageForTracking, &m_dropBufferPoseForTracking, &m_dropBufferPoseForDisplay,
-                                              projection, kpDetectorRegion, unprojection, opticalFlowEstimator, poseEstimationPlanarTracking]()
+        std::function<void(void)> tracking = [&]()
         {
             SRef<Image> camImage;
             std::pair<SRef<Image>, Transform3Df> poseImageFromDetection;
@@ -359,7 +339,7 @@ int main(int argc, char *argv[])
                 worldPoints_inliers.clear();
                 std::vector<Keypoint> newKeypoints;
                 // Get the projection of the corner of the marker in the current image
-                projection->project(markerWorldCorners, projectedMarkerCorners, previousPose);
+                projection->project(markerWorldCorners, previousPose, camParams, projectedMarkerCorners);
 
                 // Detect the keypoints within the contours of the marker defined by the projected corners
                 kpDetectorRegion->detect(previousCamImage, projectedMarkerCorners, newKeypoints);
@@ -369,7 +349,7 @@ int main(int argc, char *argv[])
                         imagePoints_inliers.push_back(Point2Df(keypoint.getX(), keypoint.getY()));
 
 					// Get back the 3D positions of the detected keypoints in world space
-					unprojection->unproject(imagePoints_inliers, worldPoints_inliers, previousPose);
+					unprojection->unproject(imagePoints_inliers, previousPose, camParams, worldPoints_inliers);
 				}
             }
 
@@ -404,7 +384,7 @@ int main(int argc, char *argv[])
             // Estimate the pose from the 2D-3D planar correspondence
             imagePoints_inliers.clear();
             worldPoints_inliers.clear();
-            if (poseEstimationPlanarTracking->estimate(pts2D, pts3D, inlier_indices, pose) == FrameworkReturnCode::_SUCCESS)
+            if (poseEstimationPlanarTracking->estimate(pts2D, pts3D, camParams, inlier_indices, pose) == FrameworkReturnCode::_SUCCESS)
             {
 				previousPose = pose;
 				previousCamImage = camImage->copy();
@@ -432,9 +412,7 @@ int main(int argc, char *argv[])
         };
 
 // Display task
-        std::function<void(void)> display = [&stop, &count,
-                                             &m_dropBufferPoseForDisplay,
-                                             overlay3DComponent, imageViewerResult](){
+        std::function<void(void)> display = [&](){
 
             std::tuple<SRef<Image>, Transform3Df, bool> resultFromTracking;
 
@@ -443,7 +421,7 @@ int main(int argc, char *argv[])
 
             // If the pose is valid
             if (std::get<2>(resultFromTracking))
-                overlay3DComponent->draw(std::get<1>(resultFromTracking), std::get<0>(resultFromTracking));
+                overlay3DComponent->draw(std::get<1>(resultFromTracking), camParams, std::get<0>(resultFromTracking));
 
             if (imageViewerResult->display(std::get<0>(resultFromTracking)) == FrameworkReturnCode::_STOP){
                     stop=true;
