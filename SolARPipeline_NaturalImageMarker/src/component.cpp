@@ -121,15 +121,6 @@ FrameworkReturnCode PipelineNaturalImageMarker::init()
         for(int j=0;j<4;j++)
             m_pose(i,j)=0.f;
 
-    // initialize pose estimation based on planar points with the camera intrinsec parameters (please refeer to the use of intrinsec parameters file)
-    m_poseEstimationPlanar->setCameraParameters(m_camera->getIntrinsicsParameters(), m_camera->getDistortionParameters());
-
-    // initialize projection component with the camera intrinsec parameters (please refeer to the use of intrinsec parameters file)
-    m_projection->setCameraParameters(m_camera->getIntrinsicsParameters(), m_camera->getDistortionParameters());
-
-    // initialize unprojection component with the camera intrinsec parameters (please refeer to the use of intrinsec parameters file)
-    m_unprojection->setCameraParameters(m_camera->getIntrinsicsParameters(), m_camera->getDistortionParameters());
-
     m_isTrack = false;
     m_needNewTrackedPoints = false;
 
@@ -226,7 +217,7 @@ bool PipelineNaturalImageMarker::processDetection()
         m_img_mapper->map(ref2Dpoints, ref3Dpoints);
 
         // Estimate the pose from the 2D-3D planar correspondence
-        if (m_poseEstimationPlanar->estimate(cam2Dpoints, ref3Dpoints, inliers, pose) != FrameworkReturnCode::_SUCCESS)
+        if (m_poseEstimationPlanar->estimate(cam2Dpoints, ref3Dpoints, m_camera->getParameters(), inliers, pose) != FrameworkReturnCode::_SUCCESS)
         {
             valid_pose = false;
             LOG_DEBUG("No pose from Detection for this frame");
@@ -299,7 +290,7 @@ bool PipelineNaturalImageMarker::processTracking()
         std::vector<Point2Df> projectedMarkerCorners;
         std::vector<Keypoint> newKeypoints;
         // Get the projection of the corner of the marker in the current image
-        m_projection->project(m_markerWorldCorners, projectedMarkerCorners, m_pose);
+        m_projection->project(m_markerWorldCorners, m_pose, m_camera->getParameters(), projectedMarkerCorners);
 
         // Detect the keypoints within the contours of the marker defined by the projected corners
         m_kpDetectorRegion->detect(m_previousCamImage, projectedMarkerCorners, newKeypoints);
@@ -309,7 +300,7 @@ bool PipelineNaturalImageMarker::processTracking()
                 m_imagePoints_track.push_back(Point2Df(keypoint.getX(), keypoint.getY()));
 
             // get back the 3D positions of the detected keypoints in world space
-            m_unprojection->unproject(m_imagePoints_track, m_worldPoints_track, m_pose);
+            m_unprojection->unproject(m_imagePoints_track, m_pose, m_camera->getParameters(), m_worldPoints_track);
             LOG_DEBUG("Reinitialize points to track");
         }
         else {
@@ -343,7 +334,7 @@ bool PipelineNaturalImageMarker::processTracking()
     }
 
     // Estimate the pose from the 2D-3D planar correspondence
-    if (m_poseEstimationPlanar->estimate(pts2D, pts3D, inliers, m_pose) != FrameworkReturnCode::_SUCCESS)
+    if (m_poseEstimationPlanar->estimate(pts2D, pts3D, m_camera->getParameters(), inliers, m_pose) != FrameworkReturnCode::_SUCCESS)
     {
         m_isTrack = false;
         valid_pose = false;

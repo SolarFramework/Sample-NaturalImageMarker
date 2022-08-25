@@ -159,17 +159,8 @@ int main(int argc, char *argv[])
 			return -1;
 		}
 
-		// initialize overlay 3D component with the camera intrinsec parameters (please refeer to the use of intrinsec parameters file)
-        overlay3DComponent->setCameraParameters(camera->getIntrinsicsParameters(), camera->getDistortionParameters());
-
-		// initialize pose estimation based on planar points with the camera intrinsec parameters (please refeer to the use of intrinsec parameters file)
-        poseEstimationPlanar->setCameraParameters(camera->getIntrinsicsParameters(), camera->getDistortionParameters());
-
-		// initialize projection component with the camera intrinsec parameters (please refeer to the use of intrinsec parameters file)
-        projection->setCameraParameters(camera->getIntrinsicsParameters(), camera->getDistortionParameters());
-
-		// initialize unprojection component with the camera intrinsec parameters (please refeer to the use of intrinsec parameters file)
-        unprojection->setCameraParameters(camera->getIntrinsicsParameters(), camera->getDistortionParameters());
+		// get camera parameters
+		CameraParameters camParams = camera->getParameters();
 
 		// initialize image mapper with the reference image size and marker size
 		img_mapper->bindTo<xpcf::IConfigurable>()->getProperty("digitalWidth")->setIntegerValue(refImage->getSize().width);
@@ -232,7 +223,7 @@ int main(int argc, char *argv[])
 					img_mapper->map(refMatched2Dpoints, ref3Dpoints);
 
 					// Estimate the pose from the 2D-3D planar correspondence
-                    if (poseEstimationPlanar->estimate(camMatched2Dpoints, ref3Dpoints, inliers, pose) != FrameworkReturnCode::_SUCCESS)
+                    if (poseEstimationPlanar->estimate(camMatched2Dpoints, ref3Dpoints, camParams, inliers, pose) != FrameworkReturnCode::_SUCCESS)
 					{
 						valid_pose = false;
 						LOG_DEBUG("Wrong homography for this frame");
@@ -258,7 +249,7 @@ int main(int argc, char *argv[])
 					worldPoints_track.clear();
                     std::vector<Keypoint> newKeypoints;
 					// Get the projection of the corner of the marker in the current image
-					projection->project(markerWorldCorners, projectedMarkerCorners, pose);
+					projection->project(markerWorldCorners, pose, camParams, projectedMarkerCorners);
 #ifndef NDEBUG
 					overlay2DComponent->drawContour(projectedMarkerCorners, kpImageCam);
 #endif				
@@ -270,7 +261,7 @@ int main(int argc, char *argv[])
                             imagePoints_track.push_back(Point2Df(keypoint.getX(), keypoint.getY()));
 
 						// get back the 3D positions of the detected keypoints in world space
-						unprojection->unproject(imagePoints_track, worldPoints_track, pose);
+						unprojection->unproject(imagePoints_track, pose, camParams, worldPoints_track);
 						LOG_DEBUG("Reinitialize points to track");
 					}
 					else {
@@ -306,7 +297,7 @@ int main(int argc, char *argv[])
 
 					// calculate camera pose
 					// Estimate the pose from the 2D-3D planar correspondence
-                    if (poseEstimationPlanar->estimate(pts2D, pts3D, inliers, pose) != FrameworkReturnCode::_SUCCESS)
+                    if (poseEstimationPlanar->estimate(pts2D, pts3D, camParams, inliers, pose) != FrameworkReturnCode::_SUCCESS)
 					{
 						isTrack = false;
 						valid_pose = false;
@@ -339,7 +330,7 @@ int main(int argc, char *argv[])
 #ifndef NDEBUG
 				overlay3DComponent->draw(pose, kpImageCam);
 #else
-				overlay3DComponent->draw(pose, camImage);
+				overlay3DComponent->draw(pose, camParams, camImage);
 #endif
 			}
 
