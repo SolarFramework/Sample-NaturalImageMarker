@@ -8,6 +8,7 @@
 *.obj
 build/
 **/.build-rules/
+deploy
 
 # Precompiled Headers
 *.gch
