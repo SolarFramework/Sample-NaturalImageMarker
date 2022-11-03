@@ -328,7 +328,7 @@ int main(int argc, char *argv[])
 			{
 				// We draw a box on the place of the recognized natural marker
 #ifndef NDEBUG
-				overlay3DComponent->draw(pose, kpImageCam);
+                overlay3DComponent->draw(pose, camParams, kpImageCam);
 #else
 				overlay3DComponent->draw(pose, camParams, camImage);
 #endif
