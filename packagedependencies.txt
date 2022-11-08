@@ -1,3 +1,3 @@
 SolARModuleOpenCV|0.11.0|SolARModuleOpenCV|SolARBuild@github|https://github.com/SolarFramework/SolarModuleOpenCV/releases/download
 SolARModuleTools|0.11.0|SolARModuleTools|SolARBuild@github|https://github.com/SolarFramework/SolARModuleTools/releases/download
-SolARPipeline_NaturalImageMarker|0.11.0|SolARPipeline_NaturalImageMarker|SolARBuild@github|https://github.com/SolarFramework/Sample-NaturalImageMarker/releases/download
+SolARPipelineNaturalImageMarker|0.11.0|SolARPipelineNaturalImageMarker|SolARBuild@github|https://github.com/SolarFramework/Sample-NaturalImageMarker/releases/download
