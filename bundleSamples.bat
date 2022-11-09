@@ -19,16 +19,16 @@ echo "**** Bundle dependencies in bin folder"
  FOR /D /R %%d IN (SolARSample*) DO (
     For %%f IN (%%~fd\*_conf.xml) DO (
       echo "** Bundle sample configuration file %%f"
-      remaken bundleXpcf "%%f" -d ./deploy/bin/x86_64/shared/release -s modules
-      remaken bundleXpcf "%%f" -d ./deploy/bin/x86_64/shared/debug -s modules -c debug
+      remaken bundleXpcf --recurse -d ./deploy/bin/x86_64/shared/release -s modules "%%f"
+      remaken bundleXpcf --recurse -d ./deploy/bin/x86_64/shared/debug -s modules -c debug "%%f"
    )
 )
 
 FOR /D /R %%d IN (SolARPipeline*) DO (
    For %%f IN (%%~fd\*_conf.xml) DO (
       echo "** Bundle sample configuration file %%f"
-      remaken bundleXpcf "%%f" -d ./deploy/bin/x86_64/shared/release -s modules
-      remaken bundleXpcf "%%f" -d ./deploy/bin/x86_64/shared/debug -s modules -c debug
+      remaken bundleXpcf --recurse -d ./deploy/bin/x86_64/shared/release -s modules "%%f"
+      remaken bundleXpcf --recurse -d ./deploy/bin/x86_64/shared/debug -s modules -c debug "%%f"
    )
 )
 
