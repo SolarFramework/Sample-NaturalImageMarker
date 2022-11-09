@@ -16,8 +16,8 @@ echo "**** Bundle dependencies in bin folder"
 for file in $(find ./SolARSample* ./SolARPipeline*/tests/SolARPipelineTest* -path "*_conf.xml")
 do
    echo "install dependencies for config file: $file"
-   remaken bundleXpcf $file -d ./deploy/bin/x86_64/shared/release -s modules
-   remaken bundleXpcf $file -d ./deploy/bin/x86_64/shared/debug -s modules -c debug
+   remaken bundleXpcf --recurse -d ./deploy/bin/x86_64/shared/release -s modules $file
+   remaken bundleXpcf --recurse -d ./deploy/bin/x86_64/shared/debug -s modules -c debug $file
 done
 
 cp ./runFromBundle.sh ./run.sh
