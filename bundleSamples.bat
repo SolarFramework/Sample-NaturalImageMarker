@@ -34,10 +34,10 @@ FOR /D /R %%d IN (SolARPipeline*) DO (
 
 
 echo "**** Zip bundles"
-("7z.exe" a -tzip deploy\%filename%_debug.zip README.md && ^
-"7z.exe" a -tzip deploy\%filename%_release.zip README.md && ^
-"7z.exe" a -tzip deploy\%filename%_debug.zip LICENSE && ^
-"7z.exe" a -tzip deploy\%filename%_release.zip LICENSE && ^
-"7z.exe" a -tzip deploy\%filename%_debug.zip deploy\bin\x86_64\shared\debug && ^
-"7z.exe" a -tzip deploy\%filename%_release.zip deploy\bin\x86_64\shared\release) || (echo "Error: could not create bundle archive" && EXIT /B 1)
+("7z.exe" a -tzip deploy\%filename%_debug.zip README.md ^
+ && "7z.exe" a -tzip deploy\%filename%_release.zip README.md ^
+ && "7z.exe" a -tzip deploy\%filename%_debug.zip LICENSE ^
+ && "7z.exe" a -tzip deploy\%filename%_release.zip LICENSE ^
+ && "7z.exe" a -tzip deploy\%filename%_debug.zip deploy\bin\x86_64\shared\debug ^
+ && "7z.exe" a -tzip deploy\%filename%_release.zip deploy\bin\x86_64\shared\release) || (echo "Error: could not create bundle archive" && EXIT /B 1)
 
