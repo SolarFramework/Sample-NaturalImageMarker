@@ -34,9 +34,6 @@ PROJECTCONFIG = QTVS
 #NOTE : CONFIG as staticlib or sharedlib, DEPENDENCIESCONFIG as staticlib or sharedlib, QMAKE_TARGET.arch and PROJECTDEPLOYDIR MUST BE DEFINED BEFORE templatelibconfig.pri inclusion
 include ($$shell_quote($$shell_path($${QMAKE_REMAKEN_RULES_ROOT}/templateappconfig.pri)))  # Shell_quote & shell_path required for visual on windows
 
-#DEFINES += BOOST_ALL_NO_LIB
-DEFINES += BOOST_AUTO_LINK_NOMANGLE
-
 HEADERS += \
 
 SOURCES += \
