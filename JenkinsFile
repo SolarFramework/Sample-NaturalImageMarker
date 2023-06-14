@@ -4,14 +4,12 @@ node("master") {
         moduleName="SolARPipelineNaturalImageMarker"
         dirName="SolARBuild"
         buildDir="SolARPipeline_NaturalImageMarker"
-        android=true
     }    
 
     SolArModulePipeline {
         moduleName="SolARSample_NaturalImageMarker"
         dirName="SolARBuild"
         buildDir="SolARSample_NaturalImageMarker_Mono,SolARSample_NaturalImageMarker_Multi,SolARPipeline_NaturalImageMarker/tests/SolARPipelineTest_NaturalImageMarker"
-        android=false
         packageScripts="bundleSamples"
     }
 
