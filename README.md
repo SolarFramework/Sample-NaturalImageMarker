@@ -7,20 +7,20 @@ The SolAR **Natural Image Marker sample** show a SolAR pipeline for augmented re
 This pipeline loads a reference image marker, then tries to detect it on real-time camera images and to estimate the pose of the camera in relation to the coordinate system of the image marker. If the marker is detected, the pipeline over the current camera image renders a 3D cube from a virtual camera which pose corresponds to the one estimated by the pipeline.
 
 
-| ![](./SolARSample_NaturalImageMarker_Mono/standalone.jpg) | ![](./SolARPipeline_NaturalImageMarker/plugin.jpg) |
+| ![](./SolARPipeline_NaturalImageMarker/tests/SolARPipelineTest_NaturalImageMarker/standalone.jpg) | ![](./SolARPipeline_NaturalImageMarker/plugin.jpg) |
 |:-:|:-:|
-| SolARSample_NaturalImageMarker_Mono/SolARSample_NaturalImageMarker_Multi | SolARPipeline_NaturalImageMarker | 
+| SolARPipelineTest_NaturalImageMarker | SolARPipeline_NaturalImageMarker | 
 
 
 ## How to run
 
-* To run it, first print the marker [graf1.png](./SolARSample_NaturalImageMarker_Mono/graf1.png).
+* To run it, first print the marker [graf1.png](./SolARPipeline_NaturalImageMarker/tests/SolARPipelineTest_NaturalImageMarker/graf1.png).
 
-* If you want to change your natural image, you can edit the [grafMarker.yml](./SolARSample_NaturalImageMarker_Mono/grafMarker.yml).
+* If you want to change your natural image, you can edit the [grafMarker.yml](./SolARPipeline_NaturalImageMarker/tests/SolARPipelineTest_NaturalImageMarker/grafMarker.yml).
 
-* If you want to change the calibration parameters of the camera, edit the [camera_calibration.json](./SolARSample_NaturalImageMarker_Mono/camera_calibration.json).
+* If you want to change the calibration parameters of the camera, edit the [camera_calibration.json](./SolARPipeline_NaturalImageMarker/tests/SolARPipelineTest_NaturalImageMarker/camera_calibration.json).
 
-* To change properties of the components of the natural pipeline, edit the [conf_NaturalImageMarker.xml](./SolARSample_NaturalImageMarker_Mono/conf_NaturalImageMarker.xml) file.
+* To change properties of the components of the natural pipeline, edit the [conf_NaturalImageMarker.xml](./SolARPipeline_NaturalImageMarker/tests/SolARPipelineTest_NaturalImageMarker/SolARPipelineTest_NaturalImageMarker_conf.xml) file.
 
 If you want to run your Natural image samples after having built them, do not forget to install the required dependencies if not already done:
 
@@ -32,35 +32,7 @@ and for debug mode:
 
 For more information about how to install remaken on your machine, visit the [install page](https://solarframework.github.io/install/) on the SolAR website.
 
-### SolARSample_NaturalImageMarker_Mono
 
-* Open a terminal in the `bin/Release` or `bin/Debug`folder and execute :
-
-> #### Windows
->
-	SolARSample_NaturalImageMarker_Mono.exe
-
-> #### Linux
->
-	./run.sh ./	SolARSample_NaturalImageMarker_Mono.exe
-
-*  When the application is started, point the camera to the natural image marker (you can see a virtual cube on the marker). 
-* Press `escape` to quit the application.
-
-### SolARSample_NaturalImageMarker_Multi
-
-* Open a terminal in the `bin/Release` or `bin/Debug`folder and execute :
-
-> #### Windows
->
-	SolARSample_NaturalImageMarker_Multi.exe
-
-> #### Linux
->
-	./run.sh ./SolARSample_NaturalImageMarker_Multi
-
-*  When the application is started, point the camera to the natural image marker (you can see a virtual cube on the marker). 
-* Press `escape` to quit the application.
 
  ### SolARPipelineTest_NaturalImageMarker
 
