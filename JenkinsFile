@@ -9,7 +9,7 @@ node("master") {
     SolArModulePipeline {
         moduleName="SolARSample_NaturalImageMarker"
         dirName="SolARBuild"
-        buildDir="SolARSample_NaturalImageMarker_Multi,SolARPipeline_NaturalImageMarker/tests/SolARPipelineTest_NaturalImageMarker"
+        buildDir="SolARPipeline_NaturalImageMarker/tests/SolARPipelineTest_NaturalImageMarker"
         packageScripts="bundleSamples"
     }
 
