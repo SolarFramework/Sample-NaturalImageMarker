@@ -1,5 +1,6 @@
+set -e
 
-Version="0.11.0"
+Version=1.0.0
 
 if [ -z "$1" ]
 then

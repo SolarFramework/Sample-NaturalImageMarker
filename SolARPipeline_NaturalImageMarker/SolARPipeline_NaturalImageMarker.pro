@@ -8,7 +8,7 @@ QMAKE_PROJECT_DEPTH = 0
 TARGET = SolARPipelineNaturalImageMarker
 INSTALLSUBDIR = SolARBuild
 FRAMEWORK = $$TARGET
-VERSION=0.11.0
+VERSION=1.0.0
 
 DEFINES += MYVERSION=$${VERSION}
 DEFINES += TEMPLATE_LIBRARY
@@ -53,17 +53,8 @@ unix {
     QMAKE_POST_LINK += "make install"
 }
 
-unix:!android {
+unix {
     QMAKE_CXXFLAGS += -Wignored-qualifiers
-}
-
-macx {
-    DEFINES += _MACOS_TARGET_
-    QMAKE_MAC_SDK= macosx
-    QMAKE_CFLAGS += -mmacosx-version-min=10.7 -std=c11 #-x objective-c++
-    QMAKE_CXXFLAGS += -mmacosx-version-min=10.7 -std=c11 -std=c++11 -O3 -fPIC#-x objective-c++
-    QMAKE_LFLAGS += -mmacosx-version-min=10.7 -v -lstdc++
-    LIBS += -lstdc++ -lc -lpthread
 }
 
 win32 {
@@ -71,10 +62,6 @@ win32 {
     DEFINES += WIN64 UNICODE _UNICODE
     QMAKE_COMPILER_DEFINES += _WIN64
     QMAKE_CXXFLAGS += -wd4250 -wd4251 -wd4244 -wd4275
-}
-
-android {
-    ANDROID_ABIS="arm64-v8a"
 }
 
 header_files.path = $${PROJECTDEPLOYDIR}/interfaces

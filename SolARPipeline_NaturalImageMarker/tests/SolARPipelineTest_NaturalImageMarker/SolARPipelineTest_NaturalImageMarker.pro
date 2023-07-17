@@ -6,7 +6,7 @@ QMAKE_PROJECT_DEPTH = 0
 
 ## global defintions : target lib name, version
 TARGET = SolARPipelineTest_NaturalImageMarker
-VERSION=0.11.0
+VERSION=1.0.0
 PROJECTDEPLOYDIR = $${PWD}/../../../deploy
 
 DEFINES += MYVERSION=$${VERSION}
@@ -45,15 +45,6 @@ unix {
     QMAKE_POST_LINK += "make install install_deps"
 }
 
-macx {
-    DEFINES += _MACOS_TARGET_
-    QMAKE_MAC_SDK= macosx
-    QMAKE_CFLAGS += -mmacosx-version-min=10.7 -std=c11 #-x objective-c++
-    QMAKE_CXXFLAGS += -mmacosx-version-min=10.7 -std=c11 -std=c++11 -O3 -fPIC#-x objective-c++
-    QMAKE_LFLAGS += -mmacosx-version-min=10.7 -v -lstdc++
-    LIBS += -lstdc++ -lc -lpthread
-}
-
 win32 {
 
     DEFINES += WIN64 UNICODE _UNICODE
@@ -64,7 +55,7 @@ win32 {
 config_files.path = $${TARGETDEPLOYDIR}
 config_files.files=$$files($${PWD}/SolARPipelineTest_NaturalImageMarker_conf.xml)\
 					$$files($${PWD}/camera_calibration.json)\
-					$$files($${PWD}/NaturalImageMarker.yml)\
+					$$files($${PWD}/grafMarker.yml)\
 					$$files($${PWD}/graf1.png)
 INSTALLS += config_files
 
