@@ -1,3 +1,7 @@
+# DEPRECATED - This repo is no longer maintained
+
+----
+
 # SolAR Natural Image Marker
 
 [![License](https://img.shields.io/github/license/SolARFramework/NaturalImageMarker?style=flat-square&label=License)](https://www.apache.org/licenses/LICENSE-2.0)
